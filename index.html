@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 Virtual Closet Arcade 🎮</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="arcade-bg"></div>
+    <div class="grid-overlay"></div>
+
+    <header class="arcade-header">
+        <h1 class="arcade-title">🎮 Virtual Closet Arcade 🎮</h1>
+    </header>
+
+    <!-- Stats Dashboard -->
+    <div id="statsContainer" class="stats-container">
+        <div class="stat-box">
+            <span class="stat-label">TOTAL ITEMS</span>
+            <span class="stat-value">0</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">ACTIVE</span>
+            <span class="stat-value">0</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">SOLD</span>
+            <span class="stat-value">0</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">TOTAL PROFIT</span>
+            <span class="stat-value">$0.00</span>
+        </div>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="search-container">
+        <label for="searchInput" class="visually-hidden">Search items</label>
+        <input 
+            type="text" 
+            id="searchInput" 
+            class="search-input" 
+            placeholder="🔍 SEARCH ITEMS..."
+            aria-label="Search items"
+        />
+        <div class="filter-container" role="group" aria-label="Filter options">
+            <div class="filter-group">
+                <label for="categoryFilter" class="filter-label">Category:</label>
+                <select 
+                    id="categoryFilter" 
+                    class="filter-select"
+                    aria-label="Filter by category"
+                >
+                    <option value="All">ALL CATEGORIES</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="sizeFilter" class="filter-label">Size:</label>
+                <select 
+                    id="sizeFilter" 
+                    class="filter-select"
+                    aria-label="Filter by size"
+                >
+                    <option value="All">ALL SIZES</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="statusFilter" class="filter-label">Status:</label>
+                <select 
+                    id="statusFilter" 
+                    class="filter-select"
+                    aria-label="Filter by status"
+                >
+                    <option value="All">ALL STATUS</option>
+                    <option value="Active">ACTIVE</option>
+                    <option value="SOLD">SOLD</option>
+                    <option value="Ended">ENDED</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Items Grid -->
+    <main id="itemsContainer">
+        <div class="item-grid" role="list" aria-label="Inventory items">
+            <!-- Items will be dynamically inserted here -->
+        </div>
+    </main>
+
+    <!-- Loading State -->
+    <div id="loading" class="loading" style="display: none;" role="status" aria-live="polite">
+        LOADING INVENTORY...
+    </div>
+
+    <!-- Footer -->
+    <footer class="arcade-footer">
+        <div class="footer-text">🎮 VIRTUAL CLOSET ARCADE 🎮</div>
+        <div class="footer-text">LAST UPDATED: <span id="lastUpdated"></span></div>
+    </footer>
+
+    <script>
+        // Inline the initial data from the Notion database
+        window.items = ITEMS_PLACEHOLDER;
+        
+        // Update last updated timestamp
+        document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+    </script>
+    <script src="app.js"></script>
+</body>
+</html>
