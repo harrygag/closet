@@ -3,110 +3,246 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎮 Virtual Closet Arcade 🎮</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>RESELLER CLOSET - INVENTORY SYSTEM</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="arcade-bg"></div>
-    <div class="grid-overlay"></div>
+    <div class="crt-overlay"></div>
+    
+    <div class="app-container">
+        <!-- Retro Header -->
+        <header class="retro-header">
+            <div class="header-content">
+                <h1 class="pixel-text">🎮 RESELLER CLOSET</h1>
+                <div class="score-display">
+                    <span class="pixel-small">ITEMS: <span id="totalItems">0</span></span>
+                    <span class="pixel-small">VALUE: $<span id="totalValue">0</span></span>
+                </div>
+            </div>
+            <div class="level-bar">
+                <div class="level-fill" id="levelFill"></div>
+            </div>
+        </header>
 
-    <header class="arcade-header">
-        <h1 class="arcade-title">🎮 Virtual Closet Arcade 🎮</h1>
-    </header>
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <input type="text" id="searchInput" class="retro-input" placeholder="🔍 SEARCH INVENTORY...">
+            
+            <div class="filter-buttons">
+                <button class="retro-btn active" data-status="all">ALL</button>
+                <button class="retro-btn" data-status="Active">ACTIVE</button>
+                <button class="retro-btn" data-status="Inactive">INACTIVE</button>
+                <button class="retro-btn" data-status="SOLD">SOLD</button>
+            </div>
 
-    <!-- Stats Dashboard -->
-    <div id="statsContainer" class="stats-container">
-        <div class="stat-box">
-            <span class="stat-label">TOTAL ITEMS</span>
-            <span class="stat-value">0</span>
+            <div class="category-tabs">
+                <button class="tab-btn active" data-category="all">ALL TAGS</button>
+                <button class="tab-btn" data-category="Hoodie">HOODIE</button>
+                <button class="tab-btn" data-category="Jersey">JERSEY</button>
+                <button class="tab-btn" data-category="Pullover/Jackets">PULLOVER</button>
+                <button class="tab-btn" data-category="polo">POLO</button>
+                <button class="tab-btn" data-category="T-shirts">T-SHIRTS</button>
+                <button class="tab-btn" data-category="Bottoms">BOTTOMS</button>
+            </div>
         </div>
-        <div class="stat-box">
-            <span class="stat-label">ACTIVE</span>
-            <span class="stat-value">0</span>
+
+        <!-- Stats Dashboard -->
+        <div class="stats-dashboard">
+            <div class="stat-card">
+                <div class="stat-icon">🟢</div>
+                <div class="stat-value" id="availableCount">0</div>
+                <div class="stat-label">ACTIVE</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⚫</div>
+                <div class="stat-value" id="listedCount">0</div>
+                <div class="stat-label">INACTIVE</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-value" id="soldCount">0</div>
+                <div class="stat-label">SOLD</div>
+            </div>
+            <div class="stat-card profit">
+                <div class="stat-icon">📈</div>
+                <div class="stat-value" id="profitValue">$0</div>
+                <div class="stat-label">NET PROFIT</div>
+            </div>
         </div>
-        <div class="stat-box">
-            <span class="stat-label">SOLD</span>
-            <span class="stat-value">0</span>
+
+        <!-- Items Grid -->
+        <div class="items-grid" id="itemsGrid">
+            <div class="empty-state" id="emptyState">
+                <div class="pixel-art">👾</div>
+                <h2 class="pixel-text">GAME OVER</h2>
+                <p class="pixel-small">NO ITEMS IN INVENTORY</p>
+                <p class="pixel-small">PRESS START TO ADD ITEMS</p>
+            </div>
         </div>
-        <div class="stat-box">
-            <span class="stat-label">TOTAL PROFIT</span>
-            <span class="stat-value">$0.00</span>
+
+        <!-- Power Button (Add Item) -->
+        <button class="power-button" id="addBtn">
+            <span class="pixel-text">START</span>
+        </button>
+    </div>
+
+    <!-- Item Modal -->
+    <div class="modal" id="itemModal">
+        <div class="modal-window">
+            <div class="window-header">
+                <span class="pixel-text" id="modalTitle">ADD NEW ITEM</span>
+                <button class="close-btn" id="closeModal" aria-label="Close modal">✕</button>
+            </div>
+            
+            <form id="itemForm" class="pixel-form">
+                <input type="hidden" id="itemId">
+                
+                <div class="form-section">
+                    <label class="pixel-label" for="itemName">NAME *</label>
+                    <input type="text" id="itemName" class="retro-input" required placeholder="e.g., Vintage Nike Hoodie">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-section half">
+                        <label class="pixel-label" for="size">SIZE</label>
+                        <select id="size" class="retro-select" aria-label="Select size">
+                            <option value="">SELECT SIZE</option>
+                            <option value="S">S - SMALL</option>
+                            <option value="M">M - MEDIUM</option>
+                            <option value="L">L - LARGE</option>
+                            <option value="XL">XL - EXTRA LARGE</option>
+                            <option value="XXL">XXL - 2X</option>
+                            <option value="XXXL">XXXL - 3X</option>
+                            <option value="Youth XL">YOUTH XL</option>
+                        </select>
+                    </div>
+
+                    <div class="form-section half">
+                        <label class="pixel-label" for="status">STATUS *</label>
+                        <select id="status" class="retro-select" required aria-label="Select status">
+                            <option value="Active">ACTIVE</option>
+                            <option value="Inactive">INACTIVE</option>
+                            <option value="SOLD">SOLD</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <label class="pixel-label">TAGS</label>
+                    <div class="tags-grid">
+                        <label class="tag-checkbox">
+                            <input type="checkbox" name="tags" value="Hoodie">
+                            <span>HOODIE</span>
+                        </label>
+                        <label class="tag-checkbox">
+                            <input type="checkbox" name="tags" value="Jersey">
+                            <span>JERSEY</span>
+                        </label>
+                        <label class="tag-checkbox">
+                            <input type="checkbox" name="tags" value="Pullover/Jackets">
+                            <span>PULLOVER/JACKETS</span>
+                        </label>
+                        <label class="tag-checkbox">
+                            <input type="checkbox" name="tags" value="polo">
+                            <span>POLO</span>
+                        </label>
+                        <label class="tag-checkbox">
+                            <input type="checkbox" name="tags" value="T-shirts">
+                            <span>T-SHIRTS</span>
+                        </label>
+                        <label class="tag-checkbox">
+                            <input type="checkbox" name="tags" value="Bottoms">
+                            <span>BOTTOMS</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-section half">
+                        <label class="pixel-label" for="hangerId">HANGER ID</label>
+                        <input type="text" id="hangerId" class="retro-input" placeholder="e.g., H1, L2, S3">
+                    </div>
+
+                    <div class="form-section half">
+                        <label class="pixel-label" for="hangerStatus">HANGER STATUS</label>
+                        <select id="hangerStatus" class="retro-select" aria-label="Select hanger status">
+                            <option value="">SELECT</option>
+                            <option value="Available">AVAILABLE</option>
+                            <option value="In Use">IN USE</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-divider"></div>
+
+                <div class="form-row">
+                    <div class="form-section third">
+                        <label class="pixel-label" for="costPrice">COST</label>
+                        <input type="number" id="costPrice" class="retro-input" step="0.01" placeholder="0.00">
+                    </div>
+
+                    <div class="form-section third">
+                        <label class="pixel-label" for="sellingPrice">SELLING PRICE</label>
+                        <input type="number" id="sellingPrice" class="retro-input" step="0.01" placeholder="0.00">
+                    </div>
+
+                    <div class="form-section third">
+                        <label class="pixel-label" for="ebayFees">EBAY FEES</label>
+                        <input type="number" id="ebayFees" class="retro-input" step="0.01" placeholder="0.00">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <label class="pixel-label" for="netProfitDisplay">NET PROFIT (AUTO)</label>
+                    <input type="text" id="netProfitDisplay" class="retro-input" readonly placeholder="$0.00" aria-label="Net profit calculated automatically">
+                </div>
+
+                <div class="form-section">
+                    <label class="pixel-label" for="ebayUrl">EBAY LISTING URL</label>
+                    <input type="url" id="ebayUrl" class="retro-input" placeholder="https://www.ebay.com/itm/...">
+                </div>
+
+                <div class="form-section">
+                    <label class="pixel-label" for="dateField">DATE</label>
+                    <input type="date" id="dateField" class="retro-input">
+                </div>
+
+                <div class="form-section">
+                    <label class="pixel-label" for="notes">NOTES</label>
+                    <textarea id="notes" class="retro-textarea" rows="3" placeholder="Additional details..."></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="retro-btn cancel-btn" id="cancelBtn">CANCEL</button>
+                    <button type="submit" class="retro-btn save-btn">SAVE ITEM</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- Search and Filters -->
-    <div class="search-container">
-        <label for="searchInput" class="visually-hidden">Search items</label>
-        <input 
-            type="text" 
-            id="searchInput" 
-            class="search-input" 
-            placeholder="🔍 SEARCH ITEMS..."
-            aria-label="Search items"
-        />
-        <div class="filter-container" role="group" aria-label="Filter options">
-            <div class="filter-group">
-                <label for="categoryFilter" class="filter-label">Category:</label>
-                <select 
-                    id="categoryFilter" 
-                    class="filter-select"
-                    aria-label="Filter by category"
-                >
-                    <option value="All">ALL CATEGORIES</option>
-                </select>
+    <!-- View Item Modal -->
+    <div class="modal" id="viewModal">
+        <div class="modal-window">
+            <div class="window-header">
+                <span class="pixel-text">ITEM DETAILS</span>
+                <button class="close-btn" id="closeViewModal" aria-label="Close details">✕</button>
             </div>
-            <div class="filter-group">
-                <label for="sizeFilter" class="filter-label">Size:</label>
-                <select 
-                    id="sizeFilter" 
-                    class="filter-select"
-                    aria-label="Filter by size"
-                >
-                    <option value="All">ALL SIZES</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label for="statusFilter" class="filter-label">Status:</label>
-                <select 
-                    id="statusFilter" 
-                    class="filter-select"
-                    aria-label="Filter by status"
-                >
-                    <option value="All">ALL STATUS</option>
-                    <option value="Active">ACTIVE</option>
-                    <option value="SOLD">SOLD</option>
-                    <option value="Ended">ENDED</option>
-                </select>
+            
+            <div class="item-details" id="itemDetails"></div>
+            
+            <div class="form-actions">
+                <button class="retro-btn danger-btn" id="deleteBtn">DELETE</button>
+                <button class="retro-btn save-btn" id="editBtn">EDIT</button>
             </div>
         </div>
     </div>
 
-    <!-- Items Grid -->
-    <main id="itemsContainer">
-        <div class="item-grid" role="list" aria-label="Inventory items">
-            <!-- Items will be dynamically inserted here -->
-        </div>
-    </main>
-
-    <!-- Loading State -->
-    <div id="loading" class="loading" style="display: none;" role="status" aria-live="polite">
-        LOADING INVENTORY...
-    </div>
-
-    <!-- Footer -->
-    <footer class="arcade-footer">
-        <div class="footer-text">🎮 VIRTUAL CLOSET ARCADE 🎮</div>
-        <div class="footer-text">LAST UPDATED: <span id="lastUpdated"></span></div>
-    </footer>
-
-    <script>
-        // Inline the initial data from the Notion database
-        window.items = ITEMS_PLACEHOLDER;
-        
-        // Update last updated timestamp
-        document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
-    </script>
     <script src="app.js"></script>
 </body>
 </html>
