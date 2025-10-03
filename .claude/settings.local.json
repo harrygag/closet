@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep:*)",
+      "Bash(awk:*)",
+      "Bash(npm --version)",
+      "Bash(npm install)",
+      "Bash(npm run setup-workspace:*)",
+      "Read(//tmp/**)",
+      "Bash(start index.html)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
