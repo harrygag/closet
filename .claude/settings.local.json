@@ -7,7 +7,16 @@
       "Bash(npm install)",
       "Bash(npm run setup-workspace:*)",
       "Read(//tmp/**)",
-      "Bash(start index.html)"
+      "Bash(start index.html)",
+      "Bash(curl:*)",
+      "Bash(node:*)",
+      "Bash(git log:*)",
+      "Bash(dir:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfix: restore retro arcade aesthetic - animated background, neon colors, titlePulse\n\nRestored the original arcade visual design from commit 08608e0:\n- Added animated gradient background (magenta → cyan → yellow)\n- Added retro grid overlay with neon pink/cyan lines\n- Restored titlePulse animation on header\n- Updated header with triple text-shadow (magenta, cyan, yellow)\n- Changed title back to \"Virtual Closet Arcade\" branding\n- Restored vibrant neon color scheme\n\nThe app functionality remains intact while bringing back the magical\nretro arcade aesthetic that defines this application''s identity.\n\nFixes critical visual regression introduced in commit b7049f7.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(npm install:*)",
+      "Bash(netlify deploy:*)",
+      "Bash(start https://virtual-closet-arcade.netlify.app)"
     ],
     "deny": [],
     "ask": []
