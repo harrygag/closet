@@ -1,10 +1,19 @@
-// Storage Service - localStorage Management with Error Handling
+// Storage Service - localStorage Management with Error Handling (Multi-User Support)
 class StorageService {
     static KEY = 'resellerClosetItems';
 
+    static getStorageKey() {
+        // Use AuthService if available, otherwise fallback to default key
+        if (typeof AuthService !== 'undefined' && AuthService.isLoggedIn()) {
+            return AuthService.getCurrentUserStorageKey();
+        }
+        return this.KEY;
+    }
+
     static saveItems(items) {
         try {
-            localStorage.setItem(this.KEY, JSON.stringify(items));
+            const key = this.getStorageKey();
+            localStorage.setItem(key, JSON.stringify(items));
             return { success: true };
         } catch (e) {
             console.error('Storage failed:', e);
@@ -14,7 +23,8 @@ class StorageService {
 
     static loadItems() {
         try {
-            const stored = localStorage.getItem(this.KEY);
+            const key = this.getStorageKey();
+            const stored = localStorage.getItem(key);
             return stored ? JSON.parse(stored) : [];
         } catch (e) {
             console.error('Load failed:', e);
@@ -24,7 +34,8 @@ class StorageService {
 
     static clearItems() {
         try {
-            localStorage.removeItem(this.KEY);
+            const key = this.getStorageKey();
+            localStorage.removeItem(key);
             return { success: true };
         } catch (e) {
             console.error('Clear failed:', e);
