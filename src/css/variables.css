@@ -1,0 +1,73 @@
+/* CSS Custom Properties - Color Palette and Design Tokens */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+:root {
+    /* Color Palette */
+    --retro-bg: #0f0f23;
+    --retro-dark: #1a1a2e;
+    --retro-purple: #16213e;
+    --retro-blue: #0f3460;
+    --retro-cyan: #00d9ff;
+    --retro-pink: #ff006e;
+    --retro-yellow: #ffbe0b;
+    --retro-green: #06ffa5;
+    --retro-red: #ff006e;
+    --retro-white: #f8f9fa;
+    --retro-gray: #6c757d;
+
+    /* Typography */
+    --font-arcade: 'Press Start 2P', cursive;
+    --text-size-lg: 16px;
+    --text-size-md: 10px;
+    --text-size-sm: 8px;
+    --text-size-xs: 7px;
+
+    /* Spacing */
+    --spacing-xs: 5px;
+    --spacing-sm: 10px;
+    --spacing-md: 15px;
+    --spacing-lg: 20px;
+
+    /* Border */
+    --border-sm: 2px;
+    --border-md: 3px;
+    --border-lg: 4px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-arcade);
+    background: #000;
+    color: var(--retro-cyan);
+    line-height: 1.8;
+    overflow-x: hidden;
+    image-rendering: pixelated;
+}
+
+/* Utility Classes */
+.hidden {
+    display: none !important;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--retro-dark);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--retro-cyan);
+    border: var(--border-sm) solid var(--retro-dark);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--retro-green);
+}

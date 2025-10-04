@@ -7,10 +7,11 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1a1a2e">
     <title>Virtual Closet Arcade - Inventory System</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <!-- Modular CSS -->
+    <link rel="stylesheet" href="src/css/variables.css">
+    <link rel="stylesheet" href="src/css/arcade.css">
+    <link rel="stylesheet" href="src/css/components.css">
+    <link rel="stylesheet" href="src/css/responsive.css">
 </head>
 <body>
     <div class="arcade-bg"></div>
@@ -245,6 +246,11 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <!-- Modular JavaScript -->
+    <script src="src/js/storage-service.js"></script>
+    <script src="src/js/item-service.js"></script>
+    <script src="src/js/filter-service.js"></script>
+    <script src="src/js/ui-service.js"></script>
+    <script src="src/js/app.js"></script>
 </body>
 </html>
