@@ -32,6 +32,37 @@ class ResellerCloset {
             this.openModal();
         });
 
+        // Export button
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            const items = this.itemService.getAllItems();
+            ExportService.exportToJSON(items);
+        });
+
+        // Import button
+        document.getElementById('importBtn').addEventListener('click', () => {
+            document.getElementById('importFileInput').click();
+        });
+
+        // File input change
+        document.getElementById('importFileInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            try {
+                const result = await ImportService.importFromJSON(file);
+                if (result.success) {
+                    this.itemService.replaceAllItems(result.items);
+                    this.render();
+                    alert(`✅ Successfully imported ${result.count} items!`);
+                }
+            } catch (error) {
+                alert(`❌ Import failed: ${error.error}`);
+            }
+
+            // Reset file input
+            e.target.value = '';
+        });
+
         // Close modals
         document.getElementById('closeModal').addEventListener('click', () => {
             this.uiService.closeModal('itemModal');

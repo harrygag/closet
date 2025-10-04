@@ -135,6 +135,26 @@
     text-transform: uppercase;
 }
 
+.retro-btn-small {
+    padding: 4px 8px;
+    background: var(--retro-purple);
+    border: 2px solid var(--retro-cyan);
+    color: var(--retro-cyan);
+    font-family: var(--font-arcade);
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    margin-left: 8px;
+}
+
+.retro-btn-small:hover {
+    background: var(--retro-cyan);
+    color: var(--retro-purple);
+    box-shadow: 0 0 10px var(--retro-cyan);
+    transform: translateY(-2px);
+}
+
 .retro-btn:hover {
     background: var(--retro-blue);
     border-color: var(--retro-green);

@@ -78,4 +78,10 @@ class ItemService {
         const ebayFees = parseFloat(fees) || 0;
         return sellingPrice - costPrice - ebayFees;
     }
+
+    replaceAllItems(newItems) {
+        this.items = newItems;
+        this.saveItems();
+        return true;
+    }
 }
