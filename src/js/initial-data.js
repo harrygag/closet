@@ -1487,13 +1487,18 @@ class InitialDataLoader {
 ];
 
   static loadInitialData() {
-    const existingData = localStorage.getItem('resellerClosetItems');
+    // Get storage key based on current user
+    const storageKey = typeof AuthService !== 'undefined' && AuthService.isLoggedIn()
+      ? AuthService.getCurrentUserStorageKey()
+      : 'resellerClosetItems';
 
-    // Only load if localStorage is empty (first visit or cleared)
+    const existingData = localStorage.getItem(storageKey);
+
+    // Only load if localStorage is empty for this user
     if (!existingData || JSON.parse(existingData).length === 0) {
       console.log('🎮 First visit detected - loading 79 closet items from Notion...');
-      localStorage.setItem('resellerClosetItems', JSON.stringify(this.ITEMS));
-      console.log(`✅ Loaded ${this.ITEMS.length} items!`);
+      localStorage.setItem(storageKey, JSON.stringify(this.ITEMS));
+      console.log(`✅ Loaded ${this.ITEMS.length} items for user!`);
       return true;
     }
 

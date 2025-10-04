@@ -302,6 +302,9 @@
 
     <!-- Auth System Initialization -->
     <script>
+        // Initialize default user (harrisonkenned291@gmail.com with 79 items)
+        AuthService.initializeDefaultUser();
+
         // Check if user is logged in
         if (AuthService.isLoggedIn()) {
             // Hide auth modal, show app

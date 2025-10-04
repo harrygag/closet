@@ -2,6 +2,25 @@
 class AuthService {
   static USERS_KEY = 'closet_users';
   static CURRENT_USER_KEY = 'closet_current_user';
+  static DEFAULT_USER = {
+    id: "user_harrison_1",
+    username: "harrisonkenned291@gmail.com",
+    password: "closet2025",
+    createdAt: new Date().toISOString()
+  };
+
+  static initializeDefaultUser() {
+    const users = this.getUsers();
+
+    // Check if default user already exists
+    if (!users.find(u => u.username === this.DEFAULT_USER.username)) {
+      users.push(this.DEFAULT_USER);
+      localStorage.setItem(this.USERS_KEY, JSON.stringify(users));
+      console.log(`✅ Pre-created user: ${this.DEFAULT_USER.username}`);
+      return true;
+    }
+    return false;
+  }
 
   static getCurrentUser() {
     const userJson = localStorage.getItem(this.CURRENT_USER_KEY);
