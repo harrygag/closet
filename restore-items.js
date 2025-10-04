@@ -1,22 +1,5 @@
-// Restore 90 items to localStorage
+// Restore 79 closet items to localStorage
 const items = [
-  {
-    "id": "280e2bc3-23a9-8195-b0fa-f5774b6666c8",
-    "name": "🎮 Virtual Closet Arcade - Project Management",
-    "size": "",
-    "status": "Active",
-    "hangerStatus": "",
-    "hangerId": "",
-    "tags": [],
-    "ebayUrl": "",
-    "costPrice": 0,
-    "sellingPrice": 0,
-    "ebayFees": 0,
-    "netProfit": 0,
-    "dateField": "",
-    "notes": "",
-    "dateAdded": "2025-10-02T21:53:00.000Z"
-  },
   {
     "id": "27de2bc3-23a9-80ab-bebd-edb2e8fed857",
     "name": "True Religion Jacket Large White Classic Full Zip collared Jacket",
@@ -65,57 +48,6 @@ const items = [
     "tags": [
       "Pullover/Jackets"
     ],
-    "ebayUrl": "",
-    "costPrice": 0,
-    "sellingPrice": 0,
-    "ebayFees": 0,
-    "netProfit": 0,
-    "dateField": "",
-    "notes": "",
-    "dateAdded": "2025-09-29T01:14:00.000Z"
-  },
-  {
-    "id": "27de2bc3-23a9-8077-9b15-c235e9314a78",
-    "name": "",
-    "size": "",
-    "status": "Active",
-    "hangerStatus": "",
-    "hangerId": "",
-    "tags": [],
-    "ebayUrl": "",
-    "costPrice": 0,
-    "sellingPrice": 0,
-    "ebayFees": 0,
-    "netProfit": 0,
-    "dateField": "",
-    "notes": "",
-    "dateAdded": "2025-09-29T01:14:00.000Z"
-  },
-  {
-    "id": "27de2bc3-23a9-8088-9fbc-e7e5cec5d80c",
-    "name": "",
-    "size": "",
-    "status": "Active",
-    "hangerStatus": "",
-    "hangerId": "",
-    "tags": [],
-    "ebayUrl": "",
-    "costPrice": 0,
-    "sellingPrice": 0,
-    "ebayFees": 0,
-    "netProfit": 0,
-    "dateField": "",
-    "notes": "",
-    "dateAdded": "2025-09-29T01:14:00.000Z"
-  },
-  {
-    "id": "27de2bc3-23a9-8057-a5b2-ed4393fd85f9",
-    "name": "",
-    "size": "",
-    "status": "Active",
-    "hangerStatus": "",
-    "hangerId": "",
-    "tags": [],
     "ebayUrl": "",
     "costPrice": 0,
     "sellingPrice": 0,
@@ -200,74 +132,6 @@ const items = [
     "dateField": "",
     "notes": "",
     "dateAdded": "2025-09-28T23:17:00.000Z"
-  },
-  {
-    "id": "27ce2bc3-23a9-80d0-b351-ebe5262ea0d7",
-    "name": "",
-    "size": "",
-    "status": "Inactive",
-    "hangerStatus": "",
-    "hangerId": "",
-    "tags": [],
-    "ebayUrl": "",
-    "costPrice": 0,
-    "sellingPrice": 0,
-    "ebayFees": 0,
-    "netProfit": 0,
-    "dateField": "",
-    "notes": "",
-    "dateAdded": "2025-09-28T23:07:00.000Z"
-  },
-  {
-    "id": "27ce2bc3-23a9-802e-aaa8-ea7818da4212",
-    "name": "",
-    "size": "",
-    "status": "Active",
-    "hangerStatus": "",
-    "hangerId": "",
-    "tags": [],
-    "ebayUrl": "",
-    "costPrice": 0,
-    "sellingPrice": 0,
-    "ebayFees": 0,
-    "netProfit": 0,
-    "dateField": "",
-    "notes": "",
-    "dateAdded": "2025-09-28T23:02:00.000Z"
-  },
-  {
-    "id": "27be2bc3-23a9-806c-b4b2-f91b9de8baca",
-    "name": "",
-    "size": "",
-    "status": "Active",
-    "hangerStatus": "",
-    "hangerId": "",
-    "tags": [],
-    "ebayUrl": "",
-    "costPrice": 0,
-    "sellingPrice": 0,
-    "ebayFees": 0,
-    "netProfit": 0,
-    "dateField": "",
-    "notes": "",
-    "dateAdded": "2025-09-27T19:57:00.000Z"
-  },
-  {
-    "id": "27ae2bc3-23a9-80cf-88a8-d4f367d397fa",
-    "name": "",
-    "size": "",
-    "status": "Active",
-    "hangerStatus": "",
-    "hangerId": "",
-    "tags": [],
-    "ebayUrl": "",
-    "costPrice": 0,
-    "sellingPrice": 0,
-    "ebayFees": 0,
-    "netProfit": 0,
-    "dateField": "",
-    "notes": "",
-    "dateAdded": "2025-09-26T22:36:00.000Z"
   },
   {
     "id": "27ae2bc3-23a9-8010-bf68-e525f9236786",
@@ -693,23 +557,6 @@ const items = [
     "dateAdded": "2025-09-26T20:44:00.000Z"
   },
   {
-    "id": "275e2bc3-23a9-8092-b2c5-cb747af54e2b",
-    "name": "",
-    "size": "",
-    "status": "Active",
-    "hangerStatus": "",
-    "hangerId": "",
-    "tags": [],
-    "ebayUrl": "",
-    "costPrice": 0,
-    "sellingPrice": 0,
-    "ebayFees": 0,
-    "netProfit": 0,
-    "dateField": "",
-    "notes": "",
-    "dateAdded": "2025-09-21T18:20:00.000Z"
-  },
-  {
     "id": "26ce2bc3-23a9-81cd-997e-ed44c30f6371",
     "name": "XXL - Browning Camo Quarter Zip Pullover black",
     "size": "",
@@ -784,23 +631,6 @@ const items = [
     "dateField": "",
     "notes": "",
     "dateAdded": "2025-08-30T19:03:00.000Z"
-  },
-  {
-    "id": "25fe2bc3-23a9-8081-91f1-c44ef0c2cb67",
-    "name": "",
-    "size": "",
-    "status": "Active",
-    "hangerStatus": "",
-    "hangerId": "",
-    "tags": [],
-    "ebayUrl": "",
-    "costPrice": 0,
-    "sellingPrice": 0,
-    "ebayFees": 0,
-    "netProfit": 0,
-    "dateField": "",
-    "notes": "",
-    "dateAdded": "2025-08-30T17:22:00.000Z"
   },
   {
     "id": "25ee2bc3-23a9-8161-9f77-cef3c756feef",
@@ -1485,23 +1315,6 @@ const items = [
     "dateAdded": "2025-08-28T23:53:00.000Z"
   },
   {
-    "id": "25de2bc3-23a9-80c9-9167-facc4556c42c",
-    "name": "",
-    "size": "",
-    "status": "Active",
-    "hangerStatus": "",
-    "hangerId": "",
-    "tags": [],
-    "ebayUrl": "",
-    "costPrice": 0,
-    "sellingPrice": 0,
-    "ebayFees": 0,
-    "netProfit": 0,
-    "dateField": "",
-    "notes": "",
-    "dateAdded": "2025-08-28T23:53:00.000Z"
-  },
-  {
     "id": "25de2bc3-23a9-80a5-b5b3-e0195eba156a",
     "name": "New Tech Spec",
     "size": "",
@@ -1673,6 +1486,6 @@ const items = [
 ];
 
 localStorage.setItem('resellerClosetItems', JSON.stringify(items));
-console.log('✅ Restored 90 items to localStorage!');
+console.log('✅ Restored 79 closet items to localStorage!');
 console.log('Reloading app...');
 location.reload();
