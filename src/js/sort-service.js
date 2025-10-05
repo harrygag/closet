@@ -40,6 +40,24 @@ class SortService {
         });
         break;
 
+      case 'type-hanger':
+        // Sort by type (tags) first, then by hanger ID
+        sorted.sort((a, b) => {
+          // Get primary tag (first tag in array)
+          const typeA = (a.tags && a.tags[0]) || 'ZZZ'; // Put items without tags at end
+          const typeB = (b.tags && b.tags[0]) || 'ZZZ';
+
+          // First compare by type
+          const typeCompare = typeA.localeCompare(typeB);
+          if (typeCompare !== 0) return typeCompare;
+
+          // If same type, sort by hanger ID
+          const hangerA = a.hangerId || '';
+          const hangerB = b.hangerId || '';
+          return hangerA.localeCompare(hangerB);
+        });
+        break;
+
       default:
         // No sorting, return as-is
         break;
