@@ -177,7 +177,10 @@ class ClosetViewService {
 
     // Render entire closet view with 6 fixed categories
     async renderClosetView(items) {
+        console.log('🎨 renderClosetView called with', items?.length, 'items');
+        
         if (!items || items.length === 0) {
+            console.log('⚠️ No items, showing empty state');
             return `
                 <div class="closet-container">
                     <div class="empty-closet">
@@ -193,12 +196,17 @@ class ClosetViewService {
         const groups = this.groupItemsByFixedCategories(items);
         const categories = this.getFixedCategories();
         
+        console.log('📊 Grouped items:', Object.keys(groups).map(k => `${k}: ${groups[k].length}`));
+        
         // Render all 6 sections (even if empty)
-        const sectionsPromises = categories.map(cat => 
-            this.renderClosetSection(cat.name, groups[cat.name] || [], cat.icon)
-        );
-        const sectionsHtml = (await Promise.all(sectionsPromises)).join('');
+        const sectionsPromises = categories.map(cat => {
+            console.log(`🔨 Rendering section: ${cat.name} with ${groups[cat.name]?.length || 0} items`);
+            return this.renderClosetSection(cat.name, groups[cat.name] || [], cat.icon);
+        });
+        const sectionsHtml = (await Promise.all(sectionsPromises)).join('\n');
 
+        console.log('✅ All 6 sections rendered, total HTML length:', sectionsHtml.length);
+        
         return `
             <div class="closet-container">
                 ${sectionsHtml}
