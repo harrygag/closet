@@ -375,10 +375,10 @@ class ResellerCloset {
         this.uiService.playSuccessAnimation();
     }
 
-    viewItem(itemId) {
+    async viewItem(itemId) {
         const item = this.itemService.getItem(itemId);
         if (item) {
-            this.uiService.renderItemDetails(item);
+            await this.uiService.renderItemDetails(item);
         }
     }
 

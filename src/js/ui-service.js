@@ -111,7 +111,7 @@ class UIService {
         }
     }
 
-    populateForm(item) {
+    async populateForm(item) {
         document.getElementById('itemId').value = item.id;
         document.getElementById('itemName').value = item.name;
         document.getElementById('size').value = item.size || '';
@@ -130,6 +130,19 @@ class UIService {
         document.getElementById('ebayFees').value = item.ebayFees || '';
         document.getElementById('dateField').value = item.dateField || '';
         document.getElementById('notes').value = item.notes || '';
+        document.getElementById('listPrice').value = item.listPrice || '';
+
+        // Load photos from IndexedDB (Sprint 6)
+        if (item.photoIds && item.photoIds.length > 0) {
+            // Load photos into app.currentPhotos
+            if (typeof window.app !== 'undefined') {
+                window.app.currentPhotos = [];
+                for (const photoId of item.photoIds) {
+                    window.app.currentPhotos.push({ id: photoId });
+                }
+                await window.app.renderPhotoPreview();
+            }
+        }
 
         // Trigger net profit calculation
         const event = new Event('input');
@@ -169,14 +182,33 @@ class UIService {
     }
 
     // View Item Details
-    renderItemDetails(item) {
+    async renderItemDetails(item) {
         this.currentEditId = item.id;
 
         const detailsDiv = document.getElementById('itemDetails');
         const netProfit = item.netProfit || 0;
         const profitClass = netProfit > 0 ? 'profit' : netProfit < 0 ? 'loss' : '';
 
+        // Load photos from IndexedDB if they exist
+        let photosHtml = '';
+        if (item.photoIds && item.photoIds.length > 0) {
+            const photoUrls = await PhotoStorageService.getPhotosForItem(item.photoIds);
+            if (photoUrls.length > 0) {
+                photosHtml = `
+                    <div class="detail-row" style="flex-direction: column; align-items: flex-start;">
+                        <span class="detail-label">PHOTOS (${photoUrls.length})</span>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                            ${photoUrls.map(photo => `
+                                <img src="${photo.url}" alt="Item photo" style="width: 100px; height: 100px; object-fit: cover; border: 2px solid var(--retro-cyan); border-radius: 5px; cursor: pointer;" onclick="window.open('${photo.url}', '_blank')">
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
         detailsDiv.innerHTML = `
+            ${photosHtml}
             <div class="detail-row">
                 <span class="detail-label">NAME</span>
                 <span class="detail-value">${item.name}</span>
