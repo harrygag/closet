@@ -261,6 +261,27 @@
                     <textarea id="notes" class="retro-textarea" rows="3" placeholder="Additional details..."></textarea>
                 </div>
 
+                <!-- Photo Upload Section (Alex - Sprint 6) -->
+                <div class="form-divider"></div>
+
+                <div class="form-section">
+                    <label class="pixel-label">📸 PHOTOS (UP TO 5)</label>
+                    <div id="photoUploadZone" class="photo-upload-zone">
+                        <input type="file" id="photoInput" accept="image/*" multiple style="display: none;">
+                        <div class="photo-upload-prompt">
+                            <div style="font-size: 48px; margin-bottom: 10px;">📸</div>
+                            <div class="pixel-small">CLICK OR DRAG PHOTOS HERE</div>
+                            <div style="font-size: 11px; color: var(--retro-gray); margin-top: 5px;">
+                                Max 5 photos • Auto-compressed to &lt;500KB each
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="photoPreviewContainer" style="display: none; margin-top: 10px;">
+                        <div id="photoPreviewGrid" class="photo-preview-grid"></div>
+                    </div>
+                </div>
+
                 <div class="form-actions">
                     <button type="button" class="retro-btn cancel-btn" id="cancelBtn">CANCEL</button>
                     <button type="submit" class="retro-btn save-btn">SAVE ITEM</button>
@@ -326,6 +347,7 @@
     <script src="src/js/backup-service.js"></script>
     <script src="src/js/sort-service.js"></script>
     <script src="src/js/bulk-operations-service.js"></script>
+    <script src="src/js/photo-storage-service.js"></script>
     <script src="src/js/item-service.js"></script>
     <script src="src/js/filter-service.js"></script>
     <script src="src/js/ui-service.js"></script>
