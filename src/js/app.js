@@ -24,7 +24,7 @@ class ResellerCloset {
     }
 
     // Centralized Render Method
-    render() {
+    async render() {
         const allItems = this.itemService.getAllItems();
         const filteredItems = this.filterService.filterItems(allItems);
         const itemsGrid = document.getElementById('itemsGrid');
@@ -36,8 +36,9 @@ class ResellerCloset {
 
         // Sprint 8: Render based on current view mode
         if (this.currentView === 'closet') {
-            // Render closet view
-            itemsGrid.innerHTML = this.closetViewService.renderClosetView(filteredItems);
+            // Render closet view (async for photos)
+            const closetHtml = await this.closetViewService.renderClosetView(filteredItems);
+            itemsGrid.innerHTML = closetHtml;
             this.closetViewService.setupDragAndDrop(itemsGrid);
         } else {
             // Render card view (original)

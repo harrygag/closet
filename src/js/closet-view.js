@@ -5,29 +5,62 @@ class ClosetViewService {
         this.currentView = 'cards'; // 'cards' or 'closet'
     }
 
-    // Group items by type and sort by hanger ID
-    groupItemsByType(items) {
-        console.log(`🗂️ Grouping ${items.length} items by type...`);
+    // Fixed 6 category racks
+    getFixedCategories() {
+        return [
+            { name: 'Hoodie', icon: '🧥' },
+            { name: 'Jersey', icon: '👕' },
+            { name: 'Pullover/Jackets', icon: '🧥' },
+            { name: 'polo', icon: '👔' },
+            { name: 'T-shirts', icon: '👕' },
+            { name: 'Bottoms', icon: '👖' }
+        ];
+    }
+
+    // Group items into 6 fixed categories
+    groupItemsByFixedCategories(items) {
+        const categories = this.getFixedCategories();
         const groups = {};
 
+        // Initialize all 6 categories
+        categories.forEach(cat => {
+            groups[cat.name] = [];
+        });
+
+        // Distribute items into categories
         items.forEach(item => {
-            const type = item.type || 'Other';
-            if (!groups[type]) {
-                groups[type] = [];
+            // Check if item has any of these tags
+            const itemTags = item.tags || [];
+            let placed = false;
+
+            for (const cat of categories) {
+                if (itemTags.includes(cat.name)) {
+                    groups[cat.name].push(item);
+                    placed = true;
+                    break;
+                }
             }
-            groups[type].push(item);
+
+            // If no matching tag, try to match by type
+            if (!placed && item.type) {
+                for (const cat of categories) {
+                    if (item.type === cat.name) {
+                        groups[cat.name].push(item);
+                        break;
+                    }
+                }
+            }
         });
 
         // Sort each group by hanger ID
-        Object.keys(groups).forEach(type => {
-            groups[type].sort((a, b) => {
+        Object.keys(groups).forEach(catName => {
+            groups[catName].sort((a, b) => {
                 const hangerA = a.hangerId || '';
                 const hangerB = b.hangerId || '';
                 return hangerA.localeCompare(hangerB, undefined, { numeric: true });
             });
         });
 
-        console.log(`✅ Grouped into ${Object.keys(groups).length} types:`, Object.keys(groups));
         return groups;
     }
 
@@ -61,11 +94,34 @@ class ClosetViewService {
         return 'active';
     }
 
-    // Render a single hanger item
-    renderHangerItem(item) {
-        const emoji = this.getClothingEmoji(item.type);
+    // Get platform logo based on URL
+    getPlatformLogo(url) {
+        if (!url) return '';
+        const urlLower = url.toLowerCase();
+        
+        if (urlLower.includes('ebay')) return '🛒'; // eBay
+        if (urlLower.includes('poshmark')) return '👗'; // Poshmark
+        if (urlLower.includes('mercari')) return '🏪'; // Mercari
+        if (urlLower.includes('grailed')) return '👟'; // Grailed
+        if (urlLower.includes('depop')) return '🎨'; // Depop
+        
+        return '🌐'; // Generic
+    }
+
+    // Render a single hanger item (enhanced with photo, price, platform, hanger ID)
+    async renderHangerItem(item) {
         const statusClass = this.getStatusClass(item.status);
-        const price = parseFloat(item.sellingPrice) || 0;
+        const price = parseFloat(item.sellingPrice) || parseFloat(item.listPrice) || 0;
+        const platform = this.getPlatformLogo(item.ebayUrl);
+        
+        // Get first photo if available
+        let photoHtml = '';
+        if (item.photoIds && item.photoIds.length > 0 && typeof PhotoStorageService !== 'undefined') {
+            const photoUrl = await PhotoStorageService.getPhoto(item.photoIds[0]);
+            if (photoUrl) {
+                photoHtml = `<img src="${photoUrl}" alt="${item.name}" class="hanger-photo">`;
+            }
+        }
 
         return `
             <div class="hanger-item"
@@ -83,35 +139,44 @@ class ClosetViewService {
                     <div class="hanger-wire"></div>
                 </div>
 
-                <!-- Clothing icon -->
-                <div class="clothing-icon" data-type="${item.type || ''}">${emoji}</div>
+                <!-- Photo (if available) -->
+                ${photoHtml ? `<div class="hanger-photo-container">${photoHtml}</div>` : ''}
 
-                <!-- Hanger ID -->
-                <div class="hanger-id">${item.hangerId || 'N/A'}</div>
+                <!-- Hanger ID (prominent) -->
+                <div class="hanger-id-large">${item.hangerId || 'N/A'}</div>
 
-                <!-- Price tag -->
-                <div class="price-tag">$${price.toFixed(0)}</div>
+                <!-- Price -->
+                <div class="hanger-price">$${price.toFixed(0)}</div>
+
+                <!-- Platform Logo -->
+                ${platform ? `<div class="hanger-platform">${platform}</div>` : ''}
             </div>
         `;
     }
 
-    // Render closet section (one type group)
-    renderClosetSection(type, items) {
-        const itemsHtml = items.map(item => this.renderHangerItem(item)).join('');
+    // Render closet section (one type group) - with async photo loading
+    async renderClosetSection(type, items, icon) {
+        const itemsPromises = items.map(item => this.renderHangerItem(item));
+        const itemsHtml = (await Promise.all(itemsPromises)).join('');
+        
+        const itemCount = items.length;
+        const countDisplay = itemCount > 0 ? `(${itemCount})` : '(0)';
 
         return `
             <div class="closet-section" data-section-type="${type}">
-                <div class="closet-section-header">━━━━ ${type.toUpperCase()} ━━━━</div>
+                <div class="closet-section-header">
+                    ${icon} ${type.toUpperCase()} ${countDisplay}
+                </div>
                 <div class="closet-rod"></div>
                 <div class="closet-items-row">
-                    ${itemsHtml}
+                    ${itemsHtml || '<div class="empty-rack">No items</div>'}
                 </div>
             </div>
         `;
     }
 
-    // Render entire closet view
-    renderClosetView(items) {
+    // Render entire closet view with 6 fixed categories
+    async renderClosetView(items) {
         if (!items || items.length === 0) {
             return `
                 <div class="closet-container">
@@ -124,11 +189,15 @@ class ClosetViewService {
             `;
         }
 
-        const groups = this.groupItemsByType(items);
-        const sectionsHtml = Object.keys(groups)
-            .sort() // Alphabetical type order
-            .map(type => this.renderClosetSection(type, groups[type]))
-            .join('');
+        // Use fixed 6 categories
+        const groups = this.groupItemsByFixedCategories(items);
+        const categories = this.getFixedCategories();
+        
+        // Render all 6 sections (even if empty)
+        const sectionsPromises = categories.map(cat => 
+            this.renderClosetSection(cat.name, groups[cat.name] || [], cat.icon)
+        );
+        const sectionsHtml = (await Promise.all(sectionsPromises)).join('');
 
         return `
             <div class="closet-container">
