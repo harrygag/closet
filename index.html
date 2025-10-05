@@ -18,6 +18,9 @@
     <link rel="stylesheet" href="src/css/arcade.css">
     <link rel="stylesheet" href="src/css/components.css">
     <link rel="stylesheet" href="src/css/responsive.css">
+
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <div class="arcade-bg"></div>
@@ -33,6 +36,7 @@
                     <span class="pixel-small" id="userDisplay"></span>
                     <span class="pixel-small">ITEMS: <span id="totalItems">0</span></span>
                     <span class="pixel-small">VALUE: $<span id="totalValue">0</span></span>
+                    <button class="retro-btn-small" id="analyticsBtn" title="Analytics Dashboard">📊 ANALYTICS</button>
                     <button class="retro-btn-small" id="exportBtn" title="Export Data">📥 EXPORT</button>
                     <button class="retro-btn-small" id="importBtn" title="Import Data">📤 IMPORT</button>
                     <button class="retro-btn-small" id="backupBtn" title="Backup Manager">💾 BACKUPS</button>
