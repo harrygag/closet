@@ -1,5 +1,11 @@
 /* Closet View - Visual hanging clothes interface */
 
+/* Override items-grid when displaying closet view */
+#itemsGrid:has(.closet-container) {
+    display: block !important;
+    grid-template-columns: unset !important;
+}
+
 /* Closet container */
 .closet-container {
     padding: 20px;
@@ -11,6 +17,8 @@
     overflow-x: auto;
     overflow-y: visible;
     height: auto;
+    width: 100%;
+    display: block;
 }
 
 /* Closet section (grouped by type) */
