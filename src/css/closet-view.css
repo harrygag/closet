@@ -1,9 +1,12 @@
 /* Closet View - Visual hanging clothes interface */
 
-/* Override items-grid when displaying closet view */
-#itemsGrid:has(.closet-container) {
-    display: block !important;
-    grid-template-columns: unset !important;
+/* Override items-grid for closet view - CRITICAL FIX */
+.items-grid {
+    display: grid;
+}
+
+.items-grid .closet-container {
+    grid-column: 1 / -1;
 }
 
 /* Closet container */
@@ -14,11 +17,11 @@
     border-radius: 15px;
     box-shadow: 0 0 30px rgba(255, 0, 255, 0.3);
     min-height: 600px;
-    overflow-x: auto;
+    overflow-x: visible;
     overflow-y: visible;
     height: auto;
     width: 100%;
-    display: block;
+    display: block !important;
 }
 
 /* Closet section (grouped by type) */
