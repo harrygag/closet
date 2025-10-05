@@ -139,6 +139,7 @@ class UIService {
     getFormData() {
         const itemId = document.getElementById('itemId').value;
         const costPrice = parseFloat(document.getElementById('costPrice').value) || 0;
+        const listPrice = parseFloat(document.getElementById('listPrice').value) || 0;
         const sellingPrice = parseFloat(document.getElementById('sellingPrice').value) || 0;
         const ebayFees = parseFloat(document.getElementById('ebayFees').value) || 0;
 
@@ -158,6 +159,7 @@ class UIService {
             tags: selectedTags,
             ebayUrl: document.getElementById('ebayUrl').value,
             costPrice: costPrice,
+            listPrice: listPrice,
             sellingPrice: sellingPrice,
             ebayFees: ebayFees,
             netProfit: sellingPrice - costPrice - ebayFees,

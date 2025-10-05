@@ -187,17 +187,36 @@ class ResellerCloset {
         // Net profit calculator
         const ebayFeesInput = document.getElementById('ebayFees');
         const sellingPriceInput = document.getElementById('sellingPrice');
+        const listPriceInput = document.getElementById('listPrice');
         const costPriceInput = document.getElementById('costPrice');
 
         const calculateNetProfit = () => {
-            const cost = costPriceInput.value;
-            const selling = sellingPriceInput.value;
-            const fees = ebayFeesInput.value;
-            this.uiService.updateNetProfitDisplay(cost, selling, fees);
+            const cost = parseFloat(costPriceInput.value) || 0;
+            const selling = parseFloat(sellingPriceInput.value) || 0;
+            const fees = parseFloat(ebayFeesInput.value) || 0;
+            const netProfit = selling - cost - fees;
+
+            document.getElementById('netProfitDisplay').value = netProfit >= 0
+                ? `+$${netProfit.toFixed(2)}`
+                : `-$${Math.abs(netProfit).toFixed(2)}`;
+
+            // Color code the profit
+            const profitDisplay = document.getElementById('netProfitDisplay');
+            if (netProfit > 0) {
+                profitDisplay.style.background = 'rgba(0,255,0,0.2)';
+                profitDisplay.style.color = 'var(--retro-green)';
+            } else if (netProfit < 0) {
+                profitDisplay.style.background = 'rgba(255,0,0,0.2)';
+                profitDisplay.style.color = 'var(--retro-red)';
+            } else {
+                profitDisplay.style.background = 'rgba(255,255,255,0.1)';
+                profitDisplay.style.color = 'var(--retro-gray)';
+            }
         };
 
         costPriceInput.addEventListener('input', calculateNetProfit);
         sellingPriceInput.addEventListener('input', calculateNetProfit);
+        listPriceInput.addEventListener('input', calculateNetProfit);
         ebayFeesInput.addEventListener('input', calculateNetProfit);
 
         // Close modal on background click
