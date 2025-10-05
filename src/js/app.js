@@ -324,6 +324,18 @@ class ResellerCloset {
     saveItem() {
         const formData = this.uiService.getFormData();
 
+        // Validate unique hanger ID
+        if (formData.hangerId) {
+            const existingItem = this.itemService.getAllItems().find(item =>
+                item.hangerId === formData.hangerId && item.id !== formData.id
+            );
+
+            if (existingItem) {
+                alert(`❌ Hanger ID "${formData.hangerId}" is already in use by "${existingItem.name}"!\nEach hanger must have a unique ID.`);
+                return;
+            }
+        }
+
         // Add photoIds (Sprint 6)
         formData.photoIds = this.currentPhotos.map(p => p.id);
 
