@@ -94,25 +94,43 @@ class ClosetViewService {
         return 'active';
     }
 
-    // Get platform logo based on URL
-    getPlatformLogo(url) {
-        if (!url) return '';
-        const urlLower = url.toLowerCase();
+    // Get platform logo based on URL - Returns actual logo text/emoji
+    getPlatformLogo(item) {
+        const logos = [];
         
-        if (urlLower.includes('ebay')) return '🛒'; // eBay
-        if (urlLower.includes('poshmark')) return '👗'; // Poshmark
-        if (urlLower.includes('mercari')) return '🏪'; // Mercari
-        if (urlLower.includes('grailed')) return '👟'; // Grailed
-        if (urlLower.includes('depop')) return '🎨'; // Depop
+        // Check eBay URL
+        if (item.ebayUrl && item.ebayUrl.toLowerCase().includes('ebay')) {
+            logos.push('<span class="platform-logo ebay">eBay</span>');
+        }
         
-        return '🌐'; // Generic
+        // Check for Poshmark
+        if (item.poshmarkUrl || (item.ebayUrl && item.ebayUrl.toLowerCase().includes('poshmark'))) {
+            logos.push('<span class="platform-logo poshmark">Posh</span>');
+        }
+        
+        // Check for Depop
+        if (item.depopUrl || (item.ebayUrl && item.ebayUrl.toLowerCase().includes('depop'))) {
+            logos.push('<span class="platform-logo depop">Depop</span>');
+        }
+        
+        // Check for Mercari
+        if (item.mercariUrl || (item.ebayUrl && item.ebayUrl.toLowerCase().includes('mercari'))) {
+            logos.push('<span class="platform-logo mercari">Mercari</span>');
+        }
+        
+        // Check for Grailed
+        if (item.grailedUrl || (item.ebayUrl && item.ebayUrl.toLowerCase().includes('grailed'))) {
+            logos.push('<span class="platform-logo grailed">Grailed</span>');
+        }
+        
+        return logos.join(' ');
     }
 
     // Render a single hanger item (enhanced with photo, price, platform, hanger ID)
     async renderHangerItem(item) {
         const statusClass = this.getStatusClass(item.status);
         const price = parseFloat(item.sellingPrice) || parseFloat(item.listPrice) || 0;
-        const platform = this.getPlatformLogo(item.ebayUrl);
+        const platform = this.getPlatformLogo(item);
         
         // Get first photo if available
         let photoHtml = '';
@@ -154,8 +172,8 @@ class ClosetViewService {
         `;
     }
 
-    // Render closet section (one type group) - with async photo loading
-    async renderClosetSection(type, items, icon) {
+    // Render closet section (one type group) - with async photo loading and rack number
+    async renderClosetSection(type, items, icon, rackNumber) {
         const itemsPromises = items.map(item => this.renderHangerItem(item));
         const itemsHtml = (await Promise.all(itemsPromises)).join('');
         
@@ -165,7 +183,7 @@ class ClosetViewService {
         return `
             <div class="closet-section" data-section-type="${type}">
                 <div class="closet-section-header">
-                    ${icon} ${type.toUpperCase()} ${countDisplay}
+                    <span class="rack-number">RACK ${rackNumber}</span> ${icon} ${type.toUpperCase()} ${countDisplay}
                 </div>
                 <div class="closet-rod"></div>
                 <div class="closet-items-row">
@@ -198,10 +216,11 @@ class ClosetViewService {
         
         console.log('📊 Grouped items:', Object.keys(groups).map(k => `${k}: ${groups[k].length}`));
         
-        // Render all 6 sections (even if empty)
-        const sectionsPromises = categories.map(cat => {
+        // Render all 6 sections (even if empty) with rack numbers 1-6
+        const sectionsPromises = categories.map((cat, index) => {
+            const rackNumber = index + 1; // RACK 1, 2, 3, 4, 5, 6
             console.log(`🔨 Rendering section: ${cat.name} with ${groups[cat.name]?.length || 0} items`);
-            return this.renderClosetSection(cat.name, groups[cat.name] || [], cat.icon);
+            return this.renderClosetSection(cat.name, groups[cat.name] || [], cat.icon, rackNumber);
         });
         const sectionsHtml = (await Promise.all(sectionsPromises)).join('\n');
 

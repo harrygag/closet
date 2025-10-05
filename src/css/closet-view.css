@@ -34,6 +34,20 @@
     text-align: center;
 }
 
+/* Rack number badge */
+.rack-number {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-purple) 100%);
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    margin-right: 10px;
+    border: 2px solid var(--accent-yellow);
+    box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+    text-shadow: 0 0 10px rgba(255, 255, 0, 0.8), 2px 2px 0 #000;
+}
+
 /* Closet rod (horizontal bar) */
 .closet-rod {
     height: 8px;
@@ -54,6 +68,9 @@
     padding: 10px;
     flex-wrap: wrap;
     min-height: 200px;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
 }
 
 /* Individual hanger item */
@@ -211,12 +228,55 @@
     border: 1px solid var(--accent-green);
 }
 
-/* Platform logo */
+/* Platform logos - Styled text badges */
 .hanger-platform {
-    font-size: 20px;
     text-align: center;
     margin: 5px 0;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    justify-content: center;
+}
+
+.platform-logo {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    padding: 3px 5px;
+    border-radius: 3px;
+    font-weight: bold;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    display: inline-block;
+}
+
+.platform-logo.ebay {
+    background: linear-gradient(135deg, #e53238 0%, #0064d2 50%, #f5af02 100%);
+    color: #fff;
+    border: 1px solid #fff;
+}
+
+.platform-logo.poshmark {
+    background: linear-gradient(135deg, #df4661 0%, #f26c88 100%);
+    color: #fff;
+    border: 1px solid #fff;
+}
+
+.platform-logo.depop {
+    background: linear-gradient(135deg, #ff0000 0%, #ff3333 100%);
+    color: #fff;
+    border: 1px solid #fff;
+}
+
+.platform-logo.mercari {
+    background: linear-gradient(135deg, #ff4500 0%, #ff6633 100%);
+    color: #fff;
+    border: 1px solid #fff;
+}
+
+.platform-logo.grailed {
+    background: linear-gradient(135deg, #000 0%, #333 100%);
+    color: #fff;
+    border: 1px solid #666;
 }
 
 /* Empty rack message */
