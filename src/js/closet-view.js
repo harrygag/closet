@@ -217,15 +217,17 @@ class ClosetViewService {
                     });
 
                     // Show success notification
-                    if (typeof UIService !== 'undefined') {
+                    if (typeof UIService !== 'undefined' && UIService.showNotification) {
                         UIService.showNotification(
                             `Moved items: ${draggedHangerId} ↔️ ${targetHangerId}`,
                             'success'
                         );
                     }
 
-                    // Re-render closet view
-                    this.refreshClosetView();
+                    // Re-render closet view through app
+                    if (typeof window.app !== 'undefined') {
+                        window.app.render();
+                    }
                 }
 
                 target.classList.remove('drag-over');
