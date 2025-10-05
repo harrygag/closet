@@ -9,6 +9,8 @@
     box-shadow: 0 0 30px rgba(255, 0, 255, 0.3);
     min-height: 600px;
     overflow-x: auto;
+    overflow-y: visible;
+    height: auto;
 }
 
 /* Closet section (grouped by type) */
