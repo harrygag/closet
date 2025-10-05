@@ -6,7 +6,9 @@ class ResellerCloset {
         this.filterService = new FilterService();
         this.uiService = new UIService();
         this.bulkService = new BulkOperationsService();
+        this.closetViewService = new ClosetViewService(this.itemService); // Sprint 8
         this.bulkModeActive = false;
+        this.currentView = 'cards'; // Sprint 8: 'cards' or 'closet'
         this.currentPhotos = []; // Sprint 6: Track photos for current item being edited
 
         this.init();
@@ -26,11 +28,21 @@ class ResellerCloset {
         const allItems = this.itemService.getAllItems();
         const filteredItems = this.filterService.filterItems(allItems);
 
-        this.uiService.renderItems(
-            filteredItems,
-            (itemId) => this.viewItem(itemId),
-            this.bulkModeActive ? this.bulkService : null
-        );
+        // Sprint 8: Render based on current view mode
+        if (this.currentView === 'closet') {
+            // Render closet view
+            const mainContent = document.getElementById('mainContent');
+            mainContent.innerHTML = this.closetViewService.renderClosetView(filteredItems);
+            this.closetViewService.setupDragAndDrop(mainContent);
+        } else {
+            // Render card view (original)
+            this.uiService.renderItems(
+                filteredItems,
+                (itemId) => this.viewItem(itemId),
+                this.bulkModeActive ? this.bulkService : null
+            );
+        }
+
         this.uiService.updateStats(allItems);
         this.uiService.updateLevelBar(allItems);
         this.updateBulkPanel(filteredItems);
@@ -72,6 +84,11 @@ class ResellerCloset {
         // Backup Manager button
         document.getElementById('backupBtn').addEventListener('click', () => {
             this.openBackupManager();
+        });
+
+        // Sprint 8: View Toggle Button (Cards ⟷ Closet)
+        document.getElementById('viewToggleBtn').addEventListener('click', () => {
+            this.toggleView();
         });
 
         // Close backup modal
@@ -360,6 +377,28 @@ class ResellerCloset {
         }
     }
 
+    // Sprint 8: Toggle between Cards and Closet view
+    toggleView() {
+        this.currentView = this.currentView === 'cards' ? 'closet' : 'cards';
+        this.closetViewService.currentView = this.currentView;
+
+        // Update toggle button
+        const toggleBtn = document.getElementById('viewToggleBtn');
+        const toggleIcon = document.getElementById('viewToggleIcon');
+        const toggleText = document.getElementById('viewToggleText');
+
+        if (this.currentView === 'closet') {
+            toggleIcon.textContent = '📇';
+            toggleText.textContent = 'CARD VIEW';
+        } else {
+            toggleIcon.textContent = '👔';
+            toggleText.textContent = 'CLOSET VIEW';
+        }
+
+        // Re-render with new view
+        this.render();
+    }
+
     // Backup Manager (Riley + Alex - Sprint 5)
     openBackupManager() {
         document.getElementById('backupModal').classList.add('active');
@@ -529,5 +568,6 @@ class ResellerCloset {
 
 // Initialize app when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    window.resellerCloset = new ResellerCloset();
+    window.app = new ResellerCloset(); // Sprint 8: Make accessible for closet view
+    window.resellerCloset = window.app; // Keep backward compatibility
 });

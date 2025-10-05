@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="src/css/arcade.css">
     <link rel="stylesheet" href="src/css/components.css">
     <link rel="stylesheet" href="src/css/responsive.css">
+    <link rel="stylesheet" href="src/css/closet-view.css">
 
     <!-- Chart.js for Analytics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -53,6 +54,11 @@
             <input type="text" id="searchInput" class="retro-input" placeholder="🔍 SEARCH INVENTORY...">
 
             <div class="filter-buttons">
+                <button class="view-toggle" id="viewToggleBtn">
+                    <span id="viewToggleIcon">👔</span>
+                    <span id="viewToggleText">CLOSET VIEW</span>
+                </button>
+
                 <button class="retro-btn active" data-status="all">ALL</button>
                 <button class="retro-btn" data-status="Active">ACTIVE</button>
                 <button class="retro-btn" data-status="Inactive">INACTIVE</button>
@@ -360,6 +366,8 @@
     <script src="src/js/sort-service.js"></script>
     <script src="src/js/bulk-operations-service.js"></script>
     <script src="src/js/photo-storage-service.js"></script>
+    <script src="src/js/analytics-service.js"></script>
+    <script src="src/js/closet-view.js"></script>
     <script src="src/js/item-service.js"></script>
     <script src="src/js/filter-service.js"></script>
     <script src="src/js/ui-service.js"></script>
