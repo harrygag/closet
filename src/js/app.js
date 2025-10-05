@@ -65,6 +65,28 @@ class ResellerCloset {
             document.getElementById('importFileInput').click();
         });
 
+        // Backup Manager button
+        document.getElementById('backupBtn').addEventListener('click', () => {
+            this.openBackupManager();
+        });
+
+        // Close backup modal
+        document.getElementById('closeBackupModal').addEventListener('click', () => {
+            this.uiService.closeModal('backupModal');
+        });
+
+        // Create backup button
+        document.getElementById('createBackupBtn').addEventListener('click', () => {
+            const items = this.itemService.getAllItems();
+            const result = BackupService.createBackup(items);
+            if (result.success) {
+                alert(`✅ Backup created! (${items.length} items)`);
+                this.renderBackupsList();
+            } else {
+                alert(`❌ Backup failed: ${result.error}`);
+            }
+        });
+
         // File input change
         document.getElementById('importFileInput').addEventListener('change', async (e) => {
             const file = e.target.files[0];
@@ -267,9 +289,92 @@ class ResellerCloset {
             this.uiService.renderItemDetails(item);
         }
     }
+
+    // Backup Manager (Riley + Alex - Sprint 5)
+    openBackupManager() {
+        document.getElementById('backupModal').classList.add('active');
+        this.renderBackupsList();
+    }
+
+    renderBackupsList() {
+        const backups = BackupService.getAllBackups();
+        const backupsList = document.getElementById('backupsList');
+        const noBackups = document.getElementById('noBackups');
+
+        if (backups.length === 0) {
+            backupsList.innerHTML = '';
+            noBackups.style.display = 'block';
+            return;
+        }
+
+        noBackups.style.display = 'none';
+
+        backupsList.innerHTML = backups.map(backup => {
+            const date = new Date(backup.timestamp);
+            const dateStr = date.toLocaleString();
+
+            return `
+                <div style="
+                    background: var(--retro-purple);
+                    border: 2px solid var(--retro-cyan);
+                    padding: 15px;
+                    margin-bottom: 10px;
+                    border-radius: 5px;
+                ">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <div>
+                            <div class="pixel-small" style="color: var(--retro-cyan);">
+                                📅 ${dateStr}
+                            </div>
+                            <div style="font-size: 12px; color: var(--retro-gray); margin-top: 5px;">
+                                👤 ${backup.user} • 📦 ${backup.itemCount} items
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button
+                            class="retro-btn-small"
+                            onclick="window.resellerCloset.restoreBackup('${backup.key}')"
+                            style="flex: 1; background: var(--retro-green);"
+                        >
+                            ↩️ RESTORE
+                        </button>
+                        <button
+                            class="retro-btn-small"
+                            onclick="window.resellerCloset.deleteBackup('${backup.key}')"
+                            style="background: var(--retro-red);"
+                        >
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    restoreBackup(backupKey) {
+        if (confirm('RESTORE THIS BACKUP? Current items will be replaced.')) {
+            const result = BackupService.restoreBackup(backupKey);
+            if (result.success) {
+                this.itemService.replaceAllItems(result.items);
+                this.render();
+                this.uiService.closeModal('backupModal');
+                alert(`✅ Restored ${result.items.length} items!`);
+            } else {
+                alert(`❌ Restore failed: ${result.error}`);
+            }
+        }
+    }
+
+    deleteBackup(backupKey) {
+        if (confirm('DELETE THIS BACKUP?')) {
+            localStorage.removeItem(backupKey);
+            this.renderBackupsList();
+        }
+    }
 }
 
 // Initialize app when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    new ResellerCloset();
+    window.resellerCloset = new ResellerCloset();
 });

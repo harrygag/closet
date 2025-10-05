@@ -304,6 +304,57 @@
     accent-color: var(--retro-pink);
 }
 
+/* 🎨 Kai: Micro-Interactions (Sprint 5) */
+/* Button press feedback */
+.retro-btn:hover,
+.retro-btn-small:hover,
+.tab-btn:hover {
+    box-shadow: 0 0 15px currentColor;
+}
+
+.retro-btn:active,
+.retro-btn-small:active,
+.tab-btn:active {
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Input focus glow */
+.retro-input:focus,
+.retro-select:focus,
+.retro-textarea:focus {
+    box-shadow: 0 0 20px var(--retro-cyan);
+    border-color: var(--retro-cyan);
+}
+
+/* Card click feedback */
+.item-card:active {
+    transform: scale(0.98);
+}
+
+/* Stat card pulse on update */
+@keyframes statPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.stat-value {
+    animation: statPulse 0.5s ease;
+}
+
+/* Export/Import button bounce */
+#exportBtn:hover,
+#importBtn:hover {
+    animation: bounce 0.5s ease;
+}
+
+/* Power button (START) glow */
+.power-button:hover {
+    box-shadow: 0 0 30px var(--retro-green),
+                0 0 60px var(--retro-green),
+                0 0 90px var(--retro-green);
+    transform: scale(1.05);
+}
+
 .item-status {
     font-family: var(--font-arcade);
     font-size: var(--text-size-sm);

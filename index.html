@@ -35,6 +35,7 @@
                     <span class="pixel-small">VALUE: $<span id="totalValue">0</span></span>
                     <button class="retro-btn-small" id="exportBtn" title="Export Data">📥 EXPORT</button>
                     <button class="retro-btn-small" id="importBtn" title="Import Data">📤 IMPORT</button>
+                    <button class="retro-btn-small" id="backupBtn" title="Backup Manager">💾 BACKUPS</button>
                     <button class="retro-btn-small" id="headerLogoutBtn" title="Logout">🚪 LOGOUT</button>
                 </div>
             </div>
@@ -406,6 +407,35 @@
             }
         });
     </script>
+
+    <!-- Backup Manager Modal (Riley + Alex - Sprint 5) -->
+    <div class="modal" id="backupModal">
+        <div class="modal-window" style="max-width: 600px;">
+            <div class="window-header">
+                <span class="pixel-text">💾 BACKUP MANAGER 💾</span>
+                <button class="close-btn" id="closeBackupModal" aria-label="Close backup manager">✕</button>
+            </div>
+
+            <div style="padding: 20px;">
+                <div style="margin-bottom: 20px;">
+                    <button class="retro-btn" id="createBackupBtn" style="width: 100%;">
+                        💾 CREATE BACKUP NOW
+                    </button>
+                </div>
+
+                <div class="pixel-label" style="margin-bottom: 10px;">AVAILABLE BACKUPS:</div>
+                <div id="backupsList" style="max-height: 400px; overflow-y: auto;">
+                    <!-- Backups will be listed here -->
+                </div>
+
+                <div id="noBackups" style="text-align: center; padding: 40px; color: var(--retro-gray); display: none;">
+                    <div class="pixel-art" style="font-size: 48px;">📦</div>
+                    <p class="pixel-small">NO BACKUPS YET</p>
+                    <p style="font-size: 12px;">Create your first backup to protect your data</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Hidden file input for imports -->
     <input type="file" id="importFileInput" accept=".json" style="display: none;">
