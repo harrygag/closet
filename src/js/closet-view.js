@@ -7,6 +7,7 @@ class ClosetViewService {
 
     // Group items by type and sort by hanger ID
     groupItemsByType(items) {
+        console.log(`🗂️ Grouping ${items.length} items by type...`);
         const groups = {};
 
         items.forEach(item => {
@@ -26,6 +27,7 @@ class ClosetViewService {
             });
         });
 
+        console.log(`✅ Grouped into ${Object.keys(groups).length} types:`, Object.keys(groups));
         return groups;
     }
 

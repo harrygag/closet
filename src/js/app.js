@@ -27,20 +27,29 @@ class ResellerCloset {
     render() {
         const allItems = this.itemService.getAllItems();
         const filteredItems = this.filterService.filterItems(allItems);
+        console.log(`📊 Rendering ${filteredItems.length} items in ${this.currentView} view`);
 
         // Sprint 8: Render based on current view mode
         if (this.currentView === 'closet') {
             // Render closet view
+            console.log('👔 Rendering CLOSET view...');
             const mainContent = document.getElementById('mainContent');
+            if (!mainContent) {
+                console.error('❌ mainContent element not found!');
+                return;
+            }
             mainContent.innerHTML = this.closetViewService.renderClosetView(filteredItems);
             this.closetViewService.setupDragAndDrop(mainContent);
+            console.log('✅ Closet view rendered');
         } else {
             // Render card view (original)
+            console.log('📇 Rendering CARD view...');
             this.uiService.renderItems(
                 filteredItems,
                 (itemId) => this.viewItem(itemId),
                 this.bulkModeActive ? this.bulkService : null
             );
+            console.log('✅ Card view rendered');
         }
 
         this.uiService.updateStats(allItems);
@@ -379,8 +388,10 @@ class ResellerCloset {
 
     // Sprint 8: Toggle between Cards and Closet view
     toggleView() {
+        console.log('🔄 Toggle view called. Current:', this.currentView);
         this.currentView = this.currentView === 'cards' ? 'closet' : 'cards';
         this.closetViewService.currentView = this.currentView;
+        console.log('🔄 New view:', this.currentView);
 
         // Update toggle button
         const toggleBtn = document.getElementById('viewToggleBtn');
@@ -390,13 +401,17 @@ class ResellerCloset {
         if (this.currentView === 'closet') {
             toggleIcon.textContent = '📇';
             toggleText.textContent = 'CARD VIEW';
+            console.log('✅ Switched to CLOSET view');
         } else {
             toggleIcon.textContent = '👔';
             toggleText.textContent = 'CLOSET VIEW';
+            console.log('✅ Switched to CARD view');
         }
 
         // Re-render with new view
+        console.log('🎨 Re-rendering...');
         this.render();
+        console.log('✅ Render complete');
     }
 
     // Backup Manager (Riley + Alex - Sprint 5)
