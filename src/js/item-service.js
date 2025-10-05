@@ -19,6 +19,12 @@ class ItemService {
 
     saveItems() {
         const result = StorageService.saveItems(this.items);
+
+        // Auto-backup check (every 10 items)
+        if (typeof BackupService !== 'undefined' && BackupService.shouldAutoBackup(this.items.length)) {
+            BackupService.createBackup(this.items);
+        }
+
         return result;
     }
 

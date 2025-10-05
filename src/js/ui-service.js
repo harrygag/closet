@@ -36,7 +36,7 @@ class UIService {
     }
 
     // Render Items Grid
-    renderItems(filteredItems, onItemClick) {
+    renderItems(filteredItems, onItemClick, bulkService = null) {
         const container = document.getElementById('itemsGrid');
         const emptyState = document.getElementById('emptyState');
 
@@ -53,9 +53,11 @@ class UIService {
             const statusClass = `status-${item.status.toLowerCase().replace(' ', '-')}`;
             const netProfit = item.netProfit || 0;
             const tagDisplay = item.tags && item.tags.length > 0 ? item.tags.join(', ') : '';
+            const isSelected = bulkService && bulkService.isSelected(item.id);
 
             return `
-                <div class="item-card" data-id="${item.id}">
+                <div class="item-card ${isSelected ? 'selected' : ''}" data-id="${item.id}">
+                    ${bulkService ? `<input type="checkbox" class="item-checkbox" data-id="${item.id}" ${isSelected ? 'checked' : ''} onclick="event.stopPropagation()">` : ''}
                     <div class="item-status ${statusClass}">${item.status.toUpperCase()}</div>
                     <div class="item-name">${item.name}</div>
                     ${item.size ? `<div class="item-details-text">SIZE: ${item.size}</div>` : ''}
@@ -72,8 +74,10 @@ class UIService {
 
         // Add click listeners
         container.querySelectorAll('.item-card').forEach(card => {
-            card.addEventListener('click', () => {
-                onItemClick(card.dataset.id);
+            card.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('item-checkbox')) {
+                    onItemClick(card.dataset.id);
+                }
             });
         });
     }

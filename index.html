@@ -46,12 +46,24 @@
         <!-- Control Panel -->
         <div class="control-panel">
             <input type="text" id="searchInput" class="retro-input" placeholder="🔍 SEARCH INVENTORY...">
-            
+
             <div class="filter-buttons">
                 <button class="retro-btn active" data-status="all">ALL</button>
                 <button class="retro-btn" data-status="Active">ACTIVE</button>
                 <button class="retro-btn" data-status="Inactive">INACTIVE</button>
                 <button class="retro-btn" data-status="SOLD">SOLD</button>
+
+                <select id="sortSelect" class="retro-select" style="margin-left: 10px;">
+                    <option value="">🔽 SORT BY</option>
+                    <option value="date-desc">📅 Newest First</option>
+                    <option value="date-asc">📅 Oldest First</option>
+                    <option value="profit-desc">💰 Highest Profit</option>
+                    <option value="profit-asc">💰 Lowest Profit</option>
+                    <option value="name-asc">🔤 A-Z</option>
+                    <option value="name-desc">🔤 Z-A</option>
+                    <option value="price-desc">💵 Highest Price</option>
+                    <option value="price-asc">💵 Lowest Price</option>
+                </select>
             </div>
 
             <div class="category-tabs">
@@ -62,6 +74,23 @@
                 <button class="tab-btn" data-category="polo">POLO</button>
                 <button class="tab-btn" data-category="T-shirts">T-SHIRTS</button>
                 <button class="tab-btn" data-category="Bottoms">BOTTOMS</button>
+            </div>
+
+            <!-- Bulk Operations Panel (hidden by default) -->
+            <div id="bulkPanel" style="display: none; margin-top: 10px; padding: 10px; background: rgba(255,0,255,0.1); border: 2px solid var(--retro-pink); border-radius: 5px;">
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <span class="pixel-small" id="bulkSelectedCount">0 SELECTED</span>
+                    <button class="retro-btn-small" id="bulkSelectAll">SELECT ALL</button>
+                    <button class="retro-btn-small" id="bulkDeselectAll">DESELECT ALL</button>
+                    <select id="bulkStatusChange" class="retro-select" style="font-size: 12px; padding: 5px;">
+                        <option value="">CHANGE STATUS...</option>
+                        <option value="Active">→ ACTIVE</option>
+                        <option value="Inactive">→ INACTIVE</option>
+                        <option value="SOLD">→ SOLD</option>
+                    </select>
+                    <button class="retro-btn-small" id="bulkExportSelected" style="background: var(--retro-cyan);">📥 EXPORT</button>
+                    <button class="retro-btn-small" id="bulkDeleteSelected" style="background: var(--retro-red);">🗑️ DELETE</button>
+                </div>
             </div>
         </div>
 
@@ -293,6 +322,9 @@
     <script src="src/js/initial-data.js"></script>
     <script src="src/js/auth-service.js"></script>
     <script src="src/js/storage-service.js"></script>
+    <script src="src/js/backup-service.js"></script>
+    <script src="src/js/sort-service.js"></script>
+    <script src="src/js/bulk-operations-service.js"></script>
     <script src="src/js/item-service.js"></script>
     <script src="src/js/filter-service.js"></script>
     <script src="src/js/ui-service.js"></script>

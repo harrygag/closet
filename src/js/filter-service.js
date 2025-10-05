@@ -4,6 +4,8 @@ class FilterService {
         this.currentStatusFilter = 'all';
         this.currentTagFilter = 'all';
         this.searchQuery = '';
+        this.sortBy = null;
+        this.sortOrder = null;
     }
 
     setStatusFilter(status) {
@@ -18,14 +20,26 @@ class FilterService {
         this.searchQuery = query.toLowerCase();
     }
 
+    setSortOptions(sortBy, sortOrder) {
+        this.sortBy = sortBy;
+        this.sortOrder = sortOrder;
+    }
+
     filterItems(items) {
-        return items.filter(item => {
+        let filtered = items.filter(item => {
             const matchesStatus = this.matchesStatus(item);
             const matchesTag = this.matchesTag(item);
             const matchesSearch = this.matchesSearch(item);
 
             return matchesStatus && matchesTag && matchesSearch;
         });
+
+        // Apply sorting if sort options are set
+        if (this.sortBy && this.sortOrder && typeof SortService !== 'undefined') {
+            filtered = SortService.sortItems(filtered, this.sortBy, this.sortOrder);
+        }
+
+        return filtered;
     }
 
     matchesStatus(item) {
