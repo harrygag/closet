@@ -7,11 +7,15 @@ class ResellerCloset {
         this.uiService = new UIService();
         this.bulkService = new BulkOperationsService();
         this.bulkModeActive = false;
+        this.currentPhotos = []; // Sprint 6: Track photos for current item being edited
 
         this.init();
     }
 
-    init() {
+    async init() {
+        // Initialize IndexedDB for photos (Sprint 6)
+        await PhotoStorageService.init();
+
         this.itemService.loadItems();
         this.setupEventListeners();
         this.render();
@@ -200,6 +204,7 @@ class ResellerCloset {
         document.getElementById('itemModal').addEventListener('click', (e) => {
             if (e.target.id === 'itemModal') {
                 this.uiService.closeModal('itemModal');
+                this.clearPhotoUpload();
             }
         });
 
@@ -207,6 +212,36 @@ class ResellerCloset {
             if (e.target.id === 'viewModal') {
                 this.uiService.closeModal('viewModal');
             }
+        });
+
+        // Photo upload (Sprint 6)
+        const photoUploadZone = document.getElementById('photoUploadZone');
+        const photoInput = document.getElementById('photoInput');
+
+        // Click upload zone to open file picker
+        photoUploadZone.addEventListener('click', () => {
+            photoInput.click();
+        });
+
+        // File input change
+        photoInput.addEventListener('change', (e) => {
+            this.handlePhotoUpload(e.target.files);
+        });
+
+        // Drag and drop
+        photoUploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            photoUploadZone.classList.add('drag-over');
+        });
+
+        photoUploadZone.addEventListener('dragleave', () => {
+            photoUploadZone.classList.remove('drag-over');
+        });
+
+        photoUploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            photoUploadZone.classList.remove('drag-over');
+            this.handlePhotoUpload(e.dataTransfer.files);
         });
 
         // Bulk operations
@@ -270,6 +305,9 @@ class ResellerCloset {
     saveItem() {
         const formData = this.uiService.getFormData();
 
+        // Add photoIds (Sprint 6)
+        formData.photoIds = this.currentPhotos.map(p => p.id);
+
         if (formData.id) {
             // Update existing item
             this.itemService.updateItem(formData.id, formData);
@@ -279,6 +317,7 @@ class ResellerCloset {
         }
 
         this.uiService.closeModal('itemModal');
+        this.clearPhotoUpload();
         this.render();
         this.uiService.playSuccessAnimation();
     }
@@ -371,6 +410,89 @@ class ResellerCloset {
             localStorage.removeItem(backupKey);
             this.renderBackupsList();
         }
+    }
+
+    // Photo Upload Handlers (Sprint 6 Phase 2)
+    async handlePhotoUpload(files) {
+        const maxPhotos = 5;
+        const remainingSlots = maxPhotos - this.currentPhotos.length;
+
+        if (remainingSlots <= 0) {
+            alert('❌ Max 5 photos per item!');
+            return;
+        }
+
+        const filesToUpload = Array.from(files).slice(0, remainingSlots);
+        const currentItemId = document.getElementById('itemId').value || 'temp_' + Date.now();
+
+        for (const file of filesToUpload) {
+            try {
+                const result = await PhotoStorageService.uploadPhoto(file, currentItemId);
+
+                if (result.success) {
+                    this.currentPhotos.push({
+                        id: result.photoId,
+                        file: file,
+                        size: result.size
+                    });
+                } else {
+                    alert(`❌ Failed to upload ${file.name}: ${result.error}`);
+                }
+            } catch (error) {
+                alert(`❌ Error uploading ${file.name}`);
+            }
+        }
+
+        this.renderPhotoPreview();
+    }
+
+    async renderPhotoPreview() {
+        const previewContainer = document.getElementById('photoPreviewContainer');
+        const previewGrid = document.getElementById('photoPreviewGrid');
+
+        if (this.currentPhotos.length === 0) {
+            previewContainer.style.display = 'none';
+            return;
+        }
+
+        previewContainer.style.display = 'block';
+        previewGrid.innerHTML = '';
+
+        for (const photo of this.currentPhotos) {
+            const photoUrl = await PhotoStorageService.getPhoto(photo.id);
+
+            const photoItem = document.createElement('div');
+            photoItem.className = 'photo-preview-item';
+            photoItem.innerHTML = `
+                <img src="${photoUrl}" alt="Photo preview">
+                <button class="photo-preview-delete" data-photo-id="${photo.id}" type="button">✕</button>
+            `;
+
+            photoItem.querySelector('.photo-preview-delete').addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.deletePhotoPreview(photo.id);
+            });
+
+            previewGrid.appendChild(photoItem);
+        }
+    }
+
+    async deletePhotoPreview(photoId) {
+        // Remove from IndexedDB
+        await PhotoStorageService.deletePhoto(photoId);
+
+        // Remove from current photos array
+        this.currentPhotos = this.currentPhotos.filter(p => p.id !== photoId);
+
+        // Re-render preview
+        this.renderPhotoPreview();
+    }
+
+    clearPhotoUpload() {
+        this.currentPhotos = [];
+        const previewContainer = document.getElementById('photoPreviewContainer');
+        previewContainer.style.display = 'none';
+        document.getElementById('photoInput').value = '';
     }
 }
 

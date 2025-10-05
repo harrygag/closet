@@ -54,7 +54,20 @@ class ItemService {
         return null;
     }
 
-    deleteItem(itemId) {
+    async deleteItem(itemId) {
+        const item = this.getItem(itemId);
+
+        // Delete photos from IndexedDB (Sprint 6)
+        if (item && item.photoIds && item.photoIds.length > 0) {
+            for (const photoId of item.photoIds) {
+                try {
+                    await PhotoStorageService.deletePhoto(photoId);
+                } catch (error) {
+                    console.warn('Failed to delete photo:', photoId, error);
+                }
+            }
+        }
+
         this.items = this.items.filter(i => i.id !== itemId);
         this.saveItems();
         return true;
