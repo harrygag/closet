@@ -265,11 +265,11 @@ class ClosetViewService {
 
     // Refresh closet view
     refreshClosetView() {
-        const mainContent = document.getElementById('mainContent');
-        if (mainContent && this.currentView === 'closet') {
+        const itemsGrid = document.getElementById('itemsGrid');
+        if (itemsGrid && this.currentView === 'closet') {
             const items = this.itemService.getAllItems();
-            mainContent.innerHTML = this.renderClosetView(items);
-            this.setupDragAndDrop(mainContent);
+            itemsGrid.innerHTML = this.renderClosetView(items);
+            this.setupDragAndDrop(itemsGrid);
         }
     }
 

@@ -27,29 +27,25 @@ class ResellerCloset {
     render() {
         const allItems = this.itemService.getAllItems();
         const filteredItems = this.filterService.filterItems(allItems);
-        console.log(`📊 Rendering ${filteredItems.length} items in ${this.currentView} view`);
+        const itemsGrid = document.getElementById('itemsGrid');
+        
+        if (!itemsGrid) {
+            console.error('❌ itemsGrid element not found!');
+            return;
+        }
 
         // Sprint 8: Render based on current view mode
         if (this.currentView === 'closet') {
             // Render closet view
-            console.log('👔 Rendering CLOSET view...');
-            const mainContent = document.getElementById('mainContent');
-            if (!mainContent) {
-                console.error('❌ mainContent element not found!');
-                return;
-            }
-            mainContent.innerHTML = this.closetViewService.renderClosetView(filteredItems);
-            this.closetViewService.setupDragAndDrop(mainContent);
-            console.log('✅ Closet view rendered');
+            itemsGrid.innerHTML = this.closetViewService.renderClosetView(filteredItems);
+            this.closetViewService.setupDragAndDrop(itemsGrid);
         } else {
             // Render card view (original)
-            console.log('📇 Rendering CARD view...');
             this.uiService.renderItems(
                 filteredItems,
                 (itemId) => this.viewItem(itemId),
                 this.bulkModeActive ? this.bulkService : null
             );
-            console.log('✅ Card view rendered');
         }
 
         this.uiService.updateStats(allItems);
