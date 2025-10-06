@@ -6,6 +6,20 @@
     box-sizing: border-box;
 }
 
+/* Smooth transitions on all interactive elements */
+button, a, input, select, .item-card, .stat-card, .tab-btn, .retro-btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
 :root {
     --retro-bg: #0f0f23;
     --retro-dark: #1a1a2e;
@@ -233,7 +247,12 @@ body {
     border-color: var(--retro-green);
     color: var(--retro-green);
     box-shadow: 0 0 15px var(--retro-green);
-    transform: translateY(-2px);
+    transform: translateY(-2px) scale(1.05);
+}
+
+.retro-btn:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 0 10px var(--retro-cyan);
 }
 
 .retro-btn.active {
@@ -306,8 +325,16 @@ body {
 }
 
 .stat-card:hover {
-    transform: scale(1.05);
+    transform: scale(1.05) rotate(-1deg);
     box-shadow: 0 0 20px var(--retro-cyan);
+}
+
+.stat-icon {
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover .stat-icon {
+    transform: scale(1.2) rotate(10deg);
 }
 
 .stat-card.profit {
@@ -370,9 +397,13 @@ body {
 }
 
 .item-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-5px) scale(1.02);
     border-color: var(--retro-green);
-    box-shadow: 0 0 25px var(--retro-cyan);
+    box-shadow: 0 0 25px var(--retro-cyan), 0 10px 30px rgba(0, 217, 255, 0.3);
+}
+
+.item-card:active {
+    transform: translateY(-2px) scale(1.01);
 }
 
 .item-status {

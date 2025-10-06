@@ -1,5 +1,10 @@
 /* Closet View - Visual hanging clothes interface */
 
+/* Smooth transitions for closet elements */
+.hanger-item, .closet-section, .rack-number, .platform-logo {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* Override items-grid for closet view - CRITICAL FIX */
 .items-grid {
     display: grid;
@@ -59,6 +64,17 @@
     border: 2px solid var(--accent-yellow);
     box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
     text-shadow: 0 0 10px rgba(255, 255, 0, 0.8), 2px 2px 0 #000;
+    animation: pulseBadge 2s ease-in-out infinite;
+}
+
+@keyframes pulseBadge {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(255, 0, 255, 0.5); }
+    50% { transform: scale(1.05); box-shadow: 0 0 25px rgba(255, 0, 255, 0.8); }
+}
+
+.closet-section:hover .rack-number {
+    animation: none;
+    transform: scale(1.1) rotate(-3deg);
 }
 
 /* Closet rod (horizontal bar) */
@@ -96,12 +112,24 @@
 }
 
 .hanger-item:hover {
-    transform: translateY(-5px);
+    transform: translateY(-5px) scale(1.05);
     z-index: 10;
+    filter: brightness(1.2);
+}
+
+.hanger-item:hover .hanger-hook {
+    animation: swingHook 0.5s ease-in-out;
 }
 
 .hanger-item:active {
     cursor: grabbing;
+    transform: scale(0.95);
+}
+
+@keyframes swingHook {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-3deg); }
+    75% { transform: rotate(3deg); }
 }
 
 .hanger-item.dragging {
