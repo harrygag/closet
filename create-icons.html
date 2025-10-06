@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head><title>Icon Generator</title></head>
+<body>
+<canvas id="canvas192" width="192" height="192"></canvas>
+<canvas id="canvas512" width="512" height="512"></canvas>
+<script>
+function createIcon(canvasId, size) {
+    const canvas = document.getElementById(canvasId);
+    const ctx = canvas.getContext('2d');
+    
+    // Arcade gradient background
+    const gradient = ctx.createLinearGradient(0, 0, size, size);
+    gradient.addColorStop(0, '#ff00ff');
+    gradient.addColorStop(0.5, '#00ffff');
+    gradient.addColorStop(1, '#ffff00');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, size, size);
+    
+    // Add emoji
+    ctx.font = `${size * 0.5}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🎮', size/2, size/2);
+    
+    // Download
+    canvas.toBlob(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `icon-${size}.png`;
+        a.click();
+    });
+}
+createIcon('canvas192', 192);
+setTimeout(() => createIcon('canvas512', 512), 500);
+</script>
+</body>
+</html>
