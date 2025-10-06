@@ -18,32 +18,15 @@ class ItemService {
         return this.items;
     }
 
-    // Auto-assign hanger numbers to items without one
+    // Auto-assign hanger numbers sequentially (1, 2, 3, 4, 5...)
     autoAssignHangerNumbers() {
-        let needsSave = false;
-
-        // Get all existing hanger IDs that are numbers
-        const existingNumbers = this.items
-            .map(item => item.hangerId)
-            .filter(id => id && !isNaN(parseInt(id)))
-            .map(id => parseInt(id));
-
-        // Find the highest number
-        let nextNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
-
-        // Assign numbers to items without hanger IDs
-        this.items.forEach(item => {
-            if (!item.hangerId || item.hangerId.trim() === '') {
-                item.hangerId = nextNumber.toString();
-                nextNumber++;
-                needsSave = true;
-            }
+        // Reassign ALL items with sequential numbers 1, 2, 3, 4, 5...
+        this.items.forEach((item, index) => {
+            item.hangerId = (index + 1).toString();
         });
 
-        if (needsSave) {
-            this.saveItems();
-            console.log('✅ Auto-assigned hanger numbers to items');
-        }
+        this.saveItems();
+        console.log(`✅ Auto-assigned sequential hanger numbers 1-${this.items.length}`);
     }
 
     saveItems() {
