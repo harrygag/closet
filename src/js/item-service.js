@@ -14,7 +14,36 @@ class ItemService {
 
     loadItems() {
         this.items = StorageService.loadItems();
+        this.autoAssignHangerNumbers();
         return this.items;
+    }
+
+    // Auto-assign hanger numbers to items without one
+    autoAssignHangerNumbers() {
+        let needsSave = false;
+
+        // Get all existing hanger IDs that are numbers
+        const existingNumbers = this.items
+            .map(item => item.hangerId)
+            .filter(id => id && !isNaN(parseInt(id)))
+            .map(id => parseInt(id));
+
+        // Find the highest number
+        let nextNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
+
+        // Assign numbers to items without hanger IDs
+        this.items.forEach(item => {
+            if (!item.hangerId || item.hangerId.trim() === '') {
+                item.hangerId = nextNumber.toString();
+                nextNumber++;
+                needsSave = true;
+            }
+        });
+
+        if (needsSave) {
+            this.saveItems();
+            console.log('✅ Auto-assigned hanger numbers to items');
+        }
     }
 
     saveItems() {
@@ -29,6 +58,17 @@ class ItemService {
     }
 
     addItem(itemData) {
+        // Auto-assign hanger number if not provided
+        if (!itemData.hangerId || itemData.hangerId.trim() === '') {
+            const existingNumbers = this.items
+                .map(item => item.hangerId)
+                .filter(id => id && !isNaN(parseInt(id)))
+                .map(id => parseInt(id));
+
+            const nextNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
+            itemData.hangerId = nextNumber.toString();
+        }
+
         const newItem = {
             ...itemData,
             id: Date.now().toString(),
