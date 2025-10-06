@@ -76,6 +76,11 @@ class ResellerCloset {
             this.openModal();
         });
 
+        // Add Hanger button
+        document.getElementById('addHangerBtn').addEventListener('click', () => {
+            this.openModal();
+        });
+
         // Export button
         document.getElementById('exportBtn').addEventListener('click', () => {
             const items = this.itemService.getAllItems();

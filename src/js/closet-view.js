@@ -174,10 +174,17 @@ class ClosetViewService {
 
     // Render closet section (one type group) - with async photo loading and rack number
     async renderClosetSection(type, items, icon, rackNumber) {
-        const itemsPromises = items.map(item => this.renderHangerItem(item));
+        // Sort items by hanger ID numerically
+        const sortedItems = [...items].sort((a, b) => {
+            const numA = parseInt(a.hangerId) || 0;
+            const numB = parseInt(b.hangerId) || 0;
+            return numA - numB;
+        });
+
+        const itemsPromises = sortedItems.map(item => this.renderHangerItem(item));
         const itemsHtml = (await Promise.all(itemsPromises)).join('');
-        
-        const itemCount = items.length;
+
+        const itemCount = sortedItems.length;
         const countDisplay = itemCount > 0 ? `(${itemCount})` : '(0)';
 
         return `
