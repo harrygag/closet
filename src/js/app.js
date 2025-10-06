@@ -384,7 +384,7 @@ class ResellerCloset {
     }
 
     // Sprint 8: Toggle between Cards and Closet view
-    toggleView() {
+    async toggleView() {
         console.log('🔄 Toggle view called. Current:', this.currentView);
         this.currentView = this.currentView === 'cards' ? 'closet' : 'cards';
         this.closetViewService.currentView = this.currentView;
@@ -407,7 +407,7 @@ class ResellerCloset {
 
         // Re-render with new view
         console.log('🎨 Re-rendering...');
-        this.render();
+        await this.render();
         console.log('✅ Render complete');
     }
 
