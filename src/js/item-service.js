@@ -14,19 +14,7 @@ class ItemService {
 
     loadItems() {
         this.items = StorageService.loadItems();
-        this.autoAssignHangerNumbers();
         return this.items;
-    }
-
-    // Auto-assign hanger numbers sequentially (1, 2, 3, 4, 5...)
-    autoAssignHangerNumbers() {
-        // Reassign ALL items with sequential numbers 1, 2, 3, 4, 5...
-        this.items.forEach((item, index) => {
-            item.hangerId = (index + 1).toString();
-        });
-
-        this.saveItems();
-        console.log(`✅ Auto-assigned sequential hanger numbers 1-${this.items.length}`);
     }
 
     saveItems() {
