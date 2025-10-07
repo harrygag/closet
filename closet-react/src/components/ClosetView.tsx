@@ -25,15 +25,19 @@ import { Button } from './ui/Button';
 interface ClosetViewProps {
   items: Item[];
   onItemClick: (item: Item) => void;
+  onImageUpload?: (itemId: string, imageUrl: string) => void;
+  onUpdate?: (item: Item) => void;
   onAddItem?: () => void;
 }
 
 interface SortableHangerProps {
   item: Item;
   onItemClick: (item: Item) => void;
+  onImageUpload?: (itemId: string, imageUrl: string) => void;
+  onUpdate?: (item: Item) => void;
 }
 
-const SortableHanger: React.FC<SortableHangerProps> = ({ item, onItemClick }) => {
+const SortableHanger: React.FC<SortableHangerProps> = ({ item, onItemClick, onImageUpload, onUpdate }) => {
   const {
     attributes,
     listeners,
@@ -50,7 +54,13 @@ const SortableHanger: React.FC<SortableHangerProps> = ({ item, onItemClick }) =>
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <ClosetHanger item={item} onClick={onItemClick} isDragging={isDragging} />
+      <ClosetHanger
+        item={item}
+        onClick={onItemClick}
+        onImageUpload={onImageUpload}
+        onUpdate={onUpdate}
+        isDragging={isDragging}
+      />
     </div>
   );
 };
@@ -65,7 +75,7 @@ const RACKS: { number: number; category: ItemTag; label: string }[] = [
   { number: 6, category: 'Bottoms', label: 'Bottoms' },
 ];
 
-export const ClosetView: React.FC<ClosetViewProps> = ({ items, onItemClick, onAddItem }) => {
+export const ClosetView: React.FC<ClosetViewProps> = ({ items, onItemClick, onImageUpload, onUpdate, onAddItem }) => {
   const [sortedItems, setSortedItems] = useState(() => {
     return [...items].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
   });
@@ -196,7 +206,12 @@ export const ClosetView: React.FC<ClosetViewProps> = ({ items, onItemClick, onAd
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                 {rackItems.map((item) => (
                   <div key={item.id}>
-                    <SortableHanger item={item} onItemClick={onItemClick} />
+                    <SortableHanger
+                      item={item}
+                      onItemClick={onItemClick}
+                      onImageUpload={onImageUpload}
+                      onUpdate={onUpdate}
+                    />
                   </div>
                 ))}
               </div>

@@ -58,6 +58,16 @@ function App() {
     await deleteItem(id);
   };
 
+  const handleImageUpload = async (itemId: string, imageUrl: string) => {
+    const item = filteredItems.find(i => i.id === itemId);
+    if (item) {
+      await updateItem({
+        ...item,
+        imageUrl,
+      });
+    }
+  };
+
   const handleFormSubmit = async (itemData: Omit<Item, 'id' | 'dateAdded'> | Item) => {
     if ('id' in itemData) {
       // Editing existing item
@@ -200,6 +210,8 @@ function App() {
             <ClosetView
               items={filteredItems}
               onItemClick={handleEditItem}
+              onImageUpload={handleImageUpload}
+              onUpdate={updateItem}
               onAddItem={handleAddItem}
             />
           )}
