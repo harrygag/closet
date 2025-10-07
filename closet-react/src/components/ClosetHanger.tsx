@@ -21,6 +21,16 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
   isDragging = false,
   position
 }) => {
+  // Get badge color based on category
+  const getBadgeColor = () => {
+    if (item.tags.includes('polo')) return 'bg-white text-gray-900 border-2 border-gray-300';
+    if (item.tags.includes('Hoodie')) return 'bg-pink-500 text-white';
+    if (item.tags.includes('T-shirts')) return 'bg-blue-500 text-white';
+    if (item.tags.includes('Jersey')) return 'bg-green-500 text-white';
+    if (item.tags.includes('Pullover/Jackets')) return 'bg-red-500 text-white';
+    if (item.tags.includes('Bottoms')) return 'bg-orange-500 text-white';
+    return 'bg-purple-600 text-white'; // Default
+  };
   const [isFlipped, setIsFlipped] = useState(false);
   const [isDropping, setIsDropping] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -173,11 +183,26 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
 
               {/* Image */}
               <div className="flex-1 flex items-center justify-center p-1">
-                {item.imageUrl && item.imageUrl.trim() !== '' ? (
+                {item.imageUrl && item.imageUrl.trim() !== '' && !item.imageUrl.includes('undefined') ? (
                   <img
                     src={item.imageUrl}
                     alt={item.name}
                     className="h-full w-full object-cover rounded"
+                    onError={(e) => {
+                      // If image fails to load, hide it
+                      e.currentTarget.style.display = 'none';
+                      const parent = e.currentTarget.parentElement;
+                      if (parent) {
+                        parent.innerHTML = `
+                          <div class="flex flex-col items-center justify-center gap-2">
+                            <svg class="h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                            </svg>
+                            <p class="text-xs text-center font-bold text-gray-700">Drop photo</p>
+                          </div>
+                        `;
+                      }
+                    }}
                   />
                 ) : (
                   <div className="flex flex-col items-center justify-center gap-2">
@@ -248,10 +273,12 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
             </div>
           </div>
 
-          {/* Hanger ID Badge */}
-          {/* Auto-numbered position badge */}
+          {/* Auto-numbered position badge with color coding */}
           <div className="mt-3 flex justify-center">
-            <div className="rounded-full bg-purple-600 px-4 py-1.5 text-sm font-bold text-white shadow-md">
+            <div className={clsx(
+              'rounded-full px-4 py-1.5 text-sm font-bold shadow-md',
+              getBadgeColor()
+            )}>
               {item.hangerId || (position ? `#${position}` : '')}
             </div>
           </div>
