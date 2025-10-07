@@ -8,7 +8,8 @@ class ResellerCloset {
         this.bulkService = new BulkOperationsService();
         this.closetViewService = new ClosetViewService(this.itemService); // Sprint 8
         this.bulkModeActive = false;
-        this.currentView = 'cards'; // Sprint 8: 'cards' or 'closet'
+        // Sprint 8: Load saved view from localStorage, default to 'cards'
+        this.currentView = localStorage.getItem('currentView') || 'cards';
         this.currentPhotos = []; // Sprint 6: Track photos for current item being edited
 
         this.init();
@@ -20,15 +21,39 @@ class ResellerCloset {
 
         this.itemService.loadItems();
         this.setupEventListeners();
+
+        // Restore toggle button state from saved view
+        this.updateToggleButtonState();
+
         this.render();
+    }
+
+    // Update toggle button to match current view state
+    updateToggleButtonState() {
+        const toggleIcon = document.getElementById('viewToggleIcon');
+        const toggleText = document.getElementById('viewToggleText');
+
+        if (this.currentView === 'closet') {
+            toggleIcon.textContent = '📇';
+            toggleText.textContent = 'CARD VIEW';
+        } else {
+            toggleIcon.textContent = '👔';
+            toggleText.textContent = 'CLOSET VIEW';
+        }
     }
 
     // Centralized Render Method
     async render() {
+        // Don't render if modal is open - prevents view from being cleared
+        const modal = document.getElementById('itemModal');
+        if (modal && modal.classList.contains('active')) {
+            return;
+        }
+
         const allItems = this.itemService.getAllItems();
         const filteredItems = this.filterService.filterItems(allItems);
         const itemsGrid = document.getElementById('itemsGrid');
-        
+
         if (!itemsGrid) {
             console.error('❌ itemsGrid element not found!');
             return;
@@ -390,30 +415,17 @@ class ResellerCloset {
 
     // Sprint 8: Toggle between Cards and Closet view
     async toggleView() {
-        console.log('🔄 Toggle view called. Current:', this.currentView);
         this.currentView = this.currentView === 'cards' ? 'closet' : 'cards';
         this.closetViewService.currentView = this.currentView;
-        console.log('🔄 New view:', this.currentView);
 
-        // Update toggle button
-        const toggleBtn = document.getElementById('viewToggleBtn');
-        const toggleIcon = document.getElementById('viewToggleIcon');
-        const toggleText = document.getElementById('viewToggleText');
+        // Save view preference to localStorage
+        localStorage.setItem('currentView', this.currentView);
 
-        if (this.currentView === 'closet') {
-            toggleIcon.textContent = '📇';
-            toggleText.textContent = 'CARD VIEW';
-            console.log('✅ Switched to CLOSET view');
-        } else {
-            toggleIcon.textContent = '👔';
-            toggleText.textContent = 'CLOSET VIEW';
-            console.log('✅ Switched to CARD view');
-        }
+        // Update toggle button state
+        this.updateToggleButtonState();
 
         // Re-render with new view
-        console.log('🎨 Re-rendering...');
         await this.render();
-        console.log('✅ Render complete');
     }
 
     // Backup Manager (Riley + Alex - Sprint 5)
