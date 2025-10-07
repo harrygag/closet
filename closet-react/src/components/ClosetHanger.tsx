@@ -143,6 +143,22 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
     setIsFlipped(false);
   };
 
+  const handleTitleDoubleClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(item.name);
+      // Visual feedback - could add a toast notification here
+      const target = e.currentTarget as HTMLElement;
+      const originalText = target.textContent;
+      target.textContent = '✓ Copied!';
+      setTimeout(() => {
+        target.textContent = originalText;
+      }, 1000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
   return (
     <div
       onDragOver={handleDragOver}
@@ -240,7 +256,11 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
 
               {/* Bottom info bar - Bigger font */}
               <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-2 py-1 rounded-b-lg">
-                <p className="text-sm font-bold text-white truncate text-center">
+                <p
+                  className="text-sm font-bold text-white truncate text-center cursor-pointer hover:bg-white/10 rounded px-1 transition-colors"
+                  onDoubleClick={handleTitleDoubleClick}
+                  title="Double-click to copy"
+                >
                   {item.name}
                 </p>
                 {item.size && (

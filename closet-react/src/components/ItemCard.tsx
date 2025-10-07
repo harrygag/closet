@@ -81,6 +81,22 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, onIm
     }
   };
 
+  const handleTitleDoubleClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(item.name);
+      // Visual feedback
+      const target = e.currentTarget as HTMLElement;
+      const originalText = target.textContent;
+      target.textContent = '✓ Copied!';
+      setTimeout(() => {
+        target.textContent = originalText;
+      }, 1000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
   return (
     <Card className="group relative overflow-hidden hover:border-purple-500/50 transition-colors">
       {/* Hidden file input */}
@@ -125,9 +141,15 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, onIm
 
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
-          <CardTitle className="text-sm leading-tight flex-1">
-            {truncateText(item.name, 50)}
-          </CardTitle>
+          <div
+            className="flex-1 cursor-pointer"
+            onDoubleClick={handleTitleDoubleClick}
+            title="Double-click to copy"
+          >
+            <CardTitle className="text-sm leading-tight hover:text-purple-400 transition-colors">
+              {truncateText(item.name, 50)}
+            </CardTitle>
+          </div>
           <span
             className={clsx(
               'rounded-full px-2 py-0.5 text-xs font-medium text-white shrink-0',
