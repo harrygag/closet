@@ -167,9 +167,9 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
             </svg>
           </div>
 
-          {/* Item Card */}
+          {/* Item Card - Larger on mobile */}
           <div className="flex justify-center -mt-2">
-            <div className="relative flex h-56 w-40 flex-col rounded-lg border-2 border-gray-600 bg-white shadow-xl transition-all duration-300 group-hover:shadow-2xl group-hover:border-purple-500">
+            <div className="relative flex h-64 w-48 sm:h-56 sm:w-40 flex-col rounded-lg border-2 border-gray-600 bg-white shadow-xl transition-all duration-300 group-hover:shadow-2xl group-hover:border-purple-500">
               {/* Upload indicator */}
               {(isDropping || isUploading) && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-lg z-10">
@@ -206,19 +206,19 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                   />
                 ) : (
                   <div className="flex flex-col items-center justify-center gap-2">
-                    <Shirt className="h-16 w-16 text-gray-400" />
-                    <p className="text-xs text-center font-bold text-gray-700">Drop photo</p>
+                    <Shirt className="h-20 w-20 sm:h-16 sm:w-16 text-gray-400" />
+                    <p className="text-sm sm:text-xs text-center font-bold text-gray-700">Drop photo</p>
                   </div>
                 )}
               </div>
 
-              {/* Bottom info bar */}
-              <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-3 py-2 rounded-b-lg">
-                <p className="text-sm font-bold text-white truncate text-center">
+              {/* Bottom info bar - Larger text on mobile */}
+              <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-3 py-2.5 sm:py-2 rounded-b-lg">
+                <p className="text-base sm:text-sm font-bold text-white truncate text-center leading-tight">
                   {item.name}
                 </p>
                 {item.size && (
-                  <p className="text-xs text-purple-100 text-center font-medium">{item.size}</p>
+                  <p className="text-sm sm:text-xs text-purple-100 text-center font-medium">{item.size}</p>
                 )}
               </div>
 
@@ -234,7 +234,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                 />
                 
                 {marketplaceUrls.length > 0 && (
-                  <div className="flex gap-1 bg-gray-900/95 backdrop-blur-sm px-2 py-1 rounded-full border border-gray-700 shadow-lg">
+                  <div className="flex gap-1.5 sm:gap-1 bg-gray-900/95 backdrop-blur-sm px-2.5 sm:px-2 py-1.5 sm:py-1 rounded-full border border-gray-700 shadow-lg">
                     {marketplaceUrls.slice(0, 3).map((marketplace, index) => {
                       const Icon = MARKETPLACE_ICONS[marketplace.type];
                       const price = getMarketplacePrice(marketplace.type);
@@ -245,13 +245,13 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={(e) => e.stopPropagation()}
-                          className="flex items-center gap-1 transition-transform hover:scale-110"
+                          className="flex items-center gap-1 transition-transform active:scale-95 sm:hover:scale-110"
                           title={`${marketplace.type}: $${price}`}
                           style={{ color: MARKETPLACE_COLORS[marketplace.type] }}
                         >
-                          <Icon className="h-4 w-4" />
+                          <Icon className="h-5 w-5 sm:h-4 sm:w-4" />
                           {price > 0 && (
-                            <span className="text-xs font-bold text-white">
+                            <span className="text-sm sm:text-xs font-bold text-white">
                               ${price}
                             </span>
                           )}
@@ -265,7 +265,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
               {/* SOLD Badge */}
               {item.status === 'SOLD' && (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="rotate-12 rounded bg-blue-600 px-4 py-2 text-base font-bold text-white shadow-xl border-2 border-blue-400">
+                  <div className="rotate-12 rounded bg-blue-600 px-5 sm:px-4 py-2.5 sm:py-2 text-lg sm:text-base font-bold text-white shadow-xl border-2 border-blue-400">
                     SOLD
                   </div>
                 </div>
