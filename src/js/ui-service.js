@@ -125,6 +125,8 @@ class UIService {
         });
 
         document.getElementById('ebayUrl').value = item.ebayUrl || '';
+        document.getElementById('poshmarkUrl').value = item.poshmarkUrl || '';
+        document.getElementById('depopUrl').value = item.depopUrl || '';
         document.getElementById('costPrice').value = item.costPrice || '';
         document.getElementById('sellingPrice').value = item.sellingPrice || '';
         document.getElementById('ebayFees').value = item.ebayFees || '';
@@ -171,6 +173,8 @@ class UIService {
             hangerId: document.getElementById('hangerId').value,
             tags: selectedTags,
             ebayUrl: document.getElementById('ebayUrl').value,
+            poshmarkUrl: document.getElementById('poshmarkUrl').value,
+            depopUrl: document.getElementById('depopUrl').value,
             costPrice: costPrice,
             listPrice: listPrice,
             sellingPrice: sellingPrice,

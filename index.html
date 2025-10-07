@@ -269,8 +269,21 @@
                 </div>
 
                 <div class="form-section">
-                    <label class="pixel-label" for="ebayUrl">EBAY LISTING URL</label>
-                    <input type="url" id="ebayUrl" class="retro-input" placeholder="https://www.ebay.com/itm/...">
+                    <label class="pixel-label">PLATFORM LISTING URLS</label>
+                    <div style="display: grid; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 20px;" title="eBay">🟡</span>
+                            <input type="url" id="ebayUrl" class="retro-input" placeholder="eBay: https://www.ebay.com/itm/..." style="flex: 1;">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 20px;" title="Poshmark">💗</span>
+                            <input type="url" id="poshmarkUrl" class="retro-input" placeholder="Poshmark: https://poshmark.com/listing/..." style="flex: 1;">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 20px;" title="Depop">🔴</span>
+                            <input type="url" id="depopUrl" class="retro-input" placeholder="Depop: https://www.depop.com/products/..." style="flex: 1;">
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-section">

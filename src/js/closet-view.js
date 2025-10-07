@@ -99,28 +99,18 @@ class ClosetViewService {
         const logos = [];
         
         // Check eBay URL
-        if (item.ebayUrl && item.ebayUrl.toLowerCase().includes('ebay')) {
-            logos.push('<span class="platform-logo ebay">eBay</span>');
+        if (item.ebayUrl && item.ebayUrl.trim()) {
+            logos.push('<span class="platform-logo ebay" title="Listed on eBay">🟡</span>');
         }
         
         // Check for Poshmark
-        if (item.poshmarkUrl || (item.ebayUrl && item.ebayUrl.toLowerCase().includes('poshmark'))) {
-            logos.push('<span class="platform-logo poshmark">Posh</span>');
+        if (item.poshmarkUrl && item.poshmarkUrl.trim()) {
+            logos.push('<span class="platform-logo poshmark" title="Listed on Poshmark">💗</span>');
         }
         
         // Check for Depop
-        if (item.depopUrl || (item.ebayUrl && item.ebayUrl.toLowerCase().includes('depop'))) {
-            logos.push('<span class="platform-logo depop">Depop</span>');
-        }
-        
-        // Check for Mercari
-        if (item.mercariUrl || (item.ebayUrl && item.ebayUrl.toLowerCase().includes('mercari'))) {
-            logos.push('<span class="platform-logo mercari">Mercari</span>');
-        }
-        
-        // Check for Grailed
-        if (item.grailedUrl || (item.ebayUrl && item.ebayUrl.toLowerCase().includes('grailed'))) {
-            logos.push('<span class="platform-logo grailed">Grailed</span>');
+        if (item.depopUrl && item.depopUrl.trim()) {
+            logos.push('<span class="platform-logo depop" title="Listed on Depop">🔴</span>');
         }
         
         return logos.join(' ');

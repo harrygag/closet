@@ -269,55 +269,55 @@
     border: 1px solid var(--retro-green);
 }
 
-/* Platform logos - Styled text badges */
+/* Platform logos - Emoji badges */
 .hanger-platform {
     text-align: center;
     margin: 5px 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 3px;
+    gap: 5px;
     justify-content: center;
+    align-items: center;
 }
 
 .platform-logo {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 7px;
-    padding: 3px 5px;
-    border-radius: 3px;
-    font-weight: bold;
-    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    font-size: 18px;
     display: inline-block;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+    transition: transform 0.2s ease;
+    cursor: help;
+}
+
+.platform-logo:hover {
+    transform: scale(1.2);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
 }
 
 .platform-logo.ebay {
-    background: linear-gradient(135deg, #e53238 0%, #0064d2 50%, #f5af02 100%);
-    color: #fff;
-    border: 1px solid #fff;
+    animation: pulse-yellow 2s ease-in-out infinite;
 }
 
 .platform-logo.poshmark {
-    background: linear-gradient(135deg, #df4661 0%, #f26c88 100%);
-    color: #fff;
-    border: 1px solid #fff;
+    animation: pulse-pink 2s ease-in-out infinite;
 }
 
 .platform-logo.depop {
-    background: linear-gradient(135deg, #ff0000 0%, #ff3333 100%);
-    color: #fff;
-    border: 1px solid #fff;
+    animation: pulse-red 2s ease-in-out infinite;
 }
 
-.platform-logo.mercari {
-    background: linear-gradient(135deg, #ff4500 0%, #ff6633 100%);
-    color: #fff;
-    border: 1px solid #fff;
+@keyframes pulse-yellow {
+    0%, 100% { filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.6)); }
+    50% { filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.9)); }
 }
 
-.platform-logo.grailed {
-    background: linear-gradient(135deg, #000 0%, #333 100%);
-    color: #fff;
-    border: 1px solid #666;
+@keyframes pulse-pink {
+    0%, 100% { filter: drop-shadow(0 0 3px rgba(255, 105, 180, 0.6)); }
+    50% { filter: drop-shadow(0 0 8px rgba(255, 105, 180, 0.9)); }
+}
+
+@keyframes pulse-red {
+    0%, 100% { filter: drop-shadow(0 0 3px rgba(255, 0, 0, 0.6)); }
+    50% { filter: drop-shadow(0 0 8px rgba(255, 0, 0, 0.9)); }
 }
 
 /* Empty rack message */
