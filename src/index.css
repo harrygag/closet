@@ -2,6 +2,63 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  /* Sway animation for hanging clothes */
+  @keyframes sway {
+    0%, 100% {
+      transform: rotate(0deg) translateX(0);
+    }
+    25% {
+      transform: rotate(-1.5deg) translateX(-2px);
+    }
+    50% {
+      transform: rotate(0deg) translateX(0);
+    }
+    75% {
+      transform: rotate(1.5deg) translateX(2px);
+    }
+  }
+
+  /* Gentle vertical movement */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-4px);
+    }
+  }
+
+  /* Neon glow effect for arcade theme */
+  @keyframes neon-pulse {
+    0%, 100% {
+      box-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
+    }
+    50% {
+      box-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
+    }
+  }
+
+  /* Scrollbar styling */
+  .scrollbar-thin::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .scrollbar-thumb-gray-700::-webkit-scrollbar-thumb {
+    background-color: rgb(55 65 81);
+    border-radius: 4px;
+  }
+
+  .scrollbar-thumb-gray-700::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(75 85 99);
+  }
+
+  .scrollbar-track-gray-900::-webkit-scrollbar-track {
+    background-color: rgb(17 24 39);
+    border-radius: 4px;
+  }
+}
+
 /* Retro Arcade Global Styles */
 @layer base {
   body {

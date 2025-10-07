@@ -23,6 +23,25 @@ dist-ssr
 *.sln
 *.sw?
 
+# Vercel
+.vercel
+.vercel.json
+
+# Environment
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Testing
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# Build
+.vite/
+
 # Testing
 coverage
 .nyc_output
