@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Retro Arcade Global Styles */
+@layer base {
+  body {
+    @apply bg-retro-bg text-retro-cyan;
+    font-family: 'Press Start 2P', cursive;
+    image-rendering: pixelated;
+    line-height: 1.8;
+  }
+
+  * {
+    @apply m-0 p-0 box-border;
+  }
+}
+
+/* Arcade Background Effects */
+@layer utilities {
+  .arcade-bg {
+    background: linear-gradient(0deg, #0f0f23 0%, #1a1a2e 100%);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -3;
+  }
+
+  .grid-overlay {
+    background-image: 
+      linear-gradient(rgba(0, 217, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 217, 255, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+    animation: gridScroll 20s linear infinite;
+  }
+
+  .crt-overlay {
+    background: linear-gradient(
+      rgba(18, 16, 16, 0) 50%,
+      rgba(0, 0, 0, 0.25) 50%
+    );
+    background-size: 100% 4px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  @keyframes gridScroll {
+    0% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(50px);
+    }
+  }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-retro-dark;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-retro-cyan border-2 border-retro-dark;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-retro-green;
+}
