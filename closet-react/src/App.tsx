@@ -43,7 +43,7 @@ function App() {
     } else {
       setIsStoreInitialized(false);
     }
-  }, [isAuthenticated, user?.email]);
+  }, [initializeStore, isAuthenticated, user?.email]);
 
   // Show sign-in screen if not authenticated
   if (!isAuthenticated) {
