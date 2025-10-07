@@ -21,6 +21,8 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
   isDragging = false,
   position
 }) => {
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  
   // Get badge color based on category
   const getBadgeColor = () => {
     if (item.tags.includes('polo')) return 'bg-white text-gray-900 border-2 border-gray-300';
@@ -95,6 +97,31 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
     }
   };
 
+  const handleImageClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isFlipped && fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('image/') && onImageUpload) {
+      setIsUploading(true);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const imageUrl = reader.result as string;
+        onImageUpload(item.id, imageUrl);
+        setIsUploading(false);
+      };
+      reader.onerror = () => {
+        console.error('Failed to read file');
+        setIsUploading(false);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleCardClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!isDragging) {
@@ -133,6 +160,16 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
         animationDelay: `${Math.random() * 2}s`,
       }}
     >
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileSelect}
+        className="hidden"
+        aria-label="Upload item photo"
+      />
+      
       <div
         onDoubleClick={handleCardClick}
         className="relative"
@@ -182,7 +219,10 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
               )}
 
               {/* Image */}
-              <div className="flex-1 flex items-center justify-center p-1">
+              <div
+                className="flex-1 flex items-center justify-center p-1 cursor-pointer"
+                onClick={handleImageClick}
+              >
                 {item.imageUrl && item.imageUrl.trim() !== '' && !item.imageUrl.includes('undefined') ? (
                   <img
                     src={item.imageUrl}
@@ -205,9 +245,9 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                     }}
                   />
                 ) : (
-                  <div className="flex flex-col items-center justify-center gap-1">
+                  <div className="flex flex-col items-center justify-center gap-1 hover:scale-105 transition-transform">
                     <Shirt className="h-10 w-10 text-gray-400" />
-                    <p className="text-sm font-bold text-gray-700">Drop photo</p>
+                    <p className="text-sm font-bold text-gray-700">Click or Drop</p>
                   </div>
                 )}
               </div>

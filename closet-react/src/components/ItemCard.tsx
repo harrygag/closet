@@ -15,6 +15,8 @@ interface ItemCardProps {
 
 export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, onImageUpload }) => {
   const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm(`Are you sure you want to delete "${item.name}"?`)) {
@@ -47,24 +49,49 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, onIm
     e.preventDefault();
     setIsDragging(false);
     
-    // For now, just prompt for URL since we're using client-side only
-    const imageUrl = prompt('Paste image URL:');
-    if (imageUrl && onImageUpload) {
-      onImageUpload(item.id, imageUrl);
+    const files = Array.from(e.dataTransfer.files);
+    const imageFile = files.find(file => file.type.startsWith('image/'));
+    
+    if (imageFile && onImageUpload) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const imageUrl = reader.result as string;
+        onImageUpload(item.id, imageUrl);
+      };
+      reader.readAsDataURL(imageFile);
     }
   };
 
-  const handleImageClick = () => {
-    if (!item.imageUrl && onImageUpload) {
-      const imageUrl = prompt('Paste image URL:');
-      if (imageUrl) {
+  const handleImageClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!item.imageUrl && fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('image/') && onImageUpload) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const imageUrl = reader.result as string;
         onImageUpload(item.id, imageUrl);
-      }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
   return (
     <Card className="group relative overflow-hidden hover:border-purple-500/50 transition-colors">
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileSelect}
+        className="hidden"
+      />
+      
       {/* Image Section */}
       <div
         className={clsx(
