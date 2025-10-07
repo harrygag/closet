@@ -13,12 +13,11 @@ interface ClosetHangerProps {
   isDragging?: boolean;
 }
 
-export const ClosetHanger: React.FC<ClosetHangerProps> = ({ 
-  item, 
-  onClick, 
-  onImageUpload, 
+export const ClosetHanger: React.FC<ClosetHangerProps> = ({
+  item,
+  onImageUpload,
   onUpdate,
-  isDragging = false 
+  isDragging = false
 }) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isDropping, setIsDropping] = useState(false);
