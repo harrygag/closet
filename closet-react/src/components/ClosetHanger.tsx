@@ -173,7 +173,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
 
               {/* Image */}
               <div className="flex-1 flex items-center justify-center p-1">
-                {item.imageUrl ? (
+                {item.imageUrl && item.imageUrl.trim() !== '' ? (
                   <img
                     src={item.imageUrl}
                     alt={item.name}
