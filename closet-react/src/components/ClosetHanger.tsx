@@ -139,12 +139,12 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
         >
           {/* Hanger Hook */}
           <div className="flex justify-center">
-            <div className="h-6 w-0.5 bg-gradient-to-b from-gray-500 to-gray-600 rounded-full" />
+            <div className="h-8 w-1 bg-gradient-to-b from-gray-500 to-gray-600 rounded-full" />
           </div>
 
           {/* Hanger Top */}
           <div className="flex justify-center -mt-1">
-            <svg width="60" height="20" viewBox="0 0 60 20">
+            <svg width="120" height="30" viewBox="0 0 60 20">
               <path
                 d="M 30 0 Q 30 8, 22 12 L 8 12 Q 4 12, 4 16 L 4 18 Q 4 20, 6 20 L 54 20 Q 56 20, 56 18 L 56 16 Q 56 12, 52 12 L 38 12 Q 30 8, 30 0"
                 fill="#6B7280"
@@ -156,7 +156,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
 
           {/* Item Card */}
           <div className="flex justify-center -mt-2">
-            <div className="relative flex h-32 w-24 flex-col rounded-lg border-2 border-gray-600 bg-white shadow-xl transition-all duration-300 group-hover:shadow-2xl group-hover:border-purple-500">
+            <div className="relative flex h-56 w-40 flex-col rounded-lg border-2 border-gray-600 bg-white shadow-xl transition-all duration-300 group-hover:shadow-2xl group-hover:border-purple-500">
               {/* Upload indicator */}
               {(isDropping || isUploading) && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-lg z-10">
@@ -177,28 +177,28 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                     className="h-full w-full object-cover rounded"
                   />
                 ) : (
-                  <div className="flex flex-col items-center gap-1 text-gray-400">
-                    <Shirt className="h-10 w-10" />
-                    <p className="text-[10px] text-center">Drop photo</p>
+                  <div className="flex flex-col items-center gap-2 text-gray-400">
+                    <Shirt className="h-16 w-16" />
+                    <p className="text-xs text-center font-medium">Drop photo</p>
                   </div>
                 )}
               </div>
 
               {/* Bottom info bar */}
-              <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-2 py-1 rounded-b-lg">
-                <p className="text-[10px] font-bold text-white truncate text-center">
+              <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-3 py-2 rounded-b-lg">
+                <p className="text-sm font-bold text-white truncate text-center">
                   {item.name}
                 </p>
                 {item.size && (
-                  <p className="text-[9px] text-purple-100 text-center">{item.size}</p>
+                  <p className="text-xs text-purple-100 text-center font-medium">{item.size}</p>
                 )}
               </div>
 
               {/* Status & Marketplace Icons (top right) */}
-              <div className="absolute -top-2 -right-2 flex items-center gap-1">
+              <div className="absolute -top-3 -right-3 flex items-center gap-1.5">
                 <div
                   className={clsx(
-                    'h-4 w-4 rounded-full border-2 border-white shadow-lg',
+                    'h-6 w-6 rounded-full border-2 border-white shadow-lg',
                     hasActiveListings && item.status === 'Active' && 'bg-green-500',
                     (!hasActiveListings || item.status === 'Inactive') && 'bg-yellow-500',
                     item.status === 'SOLD' && 'bg-blue-500'
@@ -206,7 +206,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                 />
                 
                 {marketplaceUrls.length > 0 && (
-                  <div className="flex gap-0.5 bg-gray-900/95 backdrop-blur-sm px-1 py-0.5 rounded-full border border-gray-700 shadow-lg">
+                  <div className="flex gap-1 bg-gray-900/95 backdrop-blur-sm px-2 py-1 rounded-full border border-gray-700 shadow-lg">
                     {marketplaceUrls.slice(0, 3).map((marketplace, index) => {
                       const Icon = MARKETPLACE_ICONS[marketplace.type];
                       const price = getMarketplacePrice(marketplace.type);
@@ -217,13 +217,13 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={(e) => e.stopPropagation()}
-                          className="flex items-center gap-0.5 transition-transform hover:scale-110"
+                          className="flex items-center gap-1 transition-transform hover:scale-110"
                           title={`${marketplace.type}: $${price}`}
                           style={{ color: MARKETPLACE_COLORS[marketplace.type] }}
                         >
-                          <Icon className="h-2.5 w-2.5" />
+                          <Icon className="h-4 w-4" />
                           {price > 0 && (
-                            <span className="text-[9px] font-bold text-white">
+                            <span className="text-xs font-bold text-white">
                               ${price}
                             </span>
                           )}
@@ -237,7 +237,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
               {/* SOLD Badge */}
               {item.status === 'SOLD' && (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="rotate-12 rounded bg-blue-600 px-2 py-1 text-xs font-bold text-white shadow-xl border-2 border-blue-400">
+                  <div className="rotate-12 rounded bg-blue-600 px-4 py-2 text-base font-bold text-white shadow-xl border-2 border-blue-400">
                     SOLD
                   </div>
                 </div>
@@ -247,8 +247,8 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
 
           {/* Hanger ID Badge */}
           {item.hangerId && (
-            <div className="mt-2 flex justify-center">
-              <div className="rounded-full bg-purple-600 px-3 py-1 text-xs font-bold text-white shadow-md">
+            <div className="mt-3 flex justify-center">
+              <div className="rounded-full bg-purple-600 px-4 py-1.5 text-sm font-bold text-white shadow-md">
                 {item.hangerId}
               </div>
             </div>
@@ -266,12 +266,12 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
         >
           {/* Hanger Hook */}
           <div className="flex justify-center">
-            <div className="h-6 w-0.5 bg-gradient-to-b from-gray-500 to-gray-600 rounded-full" />
+            <div className="h-8 w-1 bg-gradient-to-b from-gray-500 to-gray-600 rounded-full" />
           </div>
 
           {/* Hanger Top */}
           <div className="flex justify-center -mt-1">
-            <svg width="60" height="20" viewBox="0 0 60 20">
+            <svg width="120" height="30" viewBox="0 0 60 20">
               <path
                 d="M 30 0 Q 30 8, 22 12 L 8 12 Q 4 12, 4 16 L 4 18 Q 4 20, 6 20 L 54 20 Q 56 20, 56 18 L 56 16 Q 56 12, 52 12 L 38 12 Q 30 8, 30 0"
                 fill="#6B7280"
@@ -283,9 +283,9 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
 
           {/* Edit Form Card */}
           <div className="flex justify-center -mt-2">
-            <div className="w-24 rounded-lg border-2 border-purple-500 bg-gradient-to-br from-gray-800 to-gray-900 p-2 shadow-2xl">
-              <div className="space-y-1.5">
-                <p className="text-[10px] font-bold text-purple-400 text-center mb-1.5">QUICK EDIT</p>
+            <div className="w-40 rounded-lg border-2 border-purple-500 bg-gradient-to-br from-gray-800 to-gray-900 p-3 shadow-2xl">
+              <div className="space-y-2">
+                <p className="text-sm font-bold text-purple-400 text-center mb-2">QUICK EDIT</p>
                 
                 {/* Name */}
                 <input
@@ -293,7 +293,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                   value={editData.name}
                   onChange={(e) => setEditData({ ...editData, name: e.target.value })}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-full rounded bg-gray-700 px-1.5 py-1 text-[10px] text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
+                  className="w-full rounded bg-gray-700 px-2 py-1.5 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
                   placeholder="Item Name"
                 />
                 
@@ -303,7 +303,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                   value={editData.hangerId}
                   onChange={(e) => setEditData({ ...editData, hangerId: e.target.value })}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-full rounded bg-gray-700 px-1.5 py-1 text-[10px] text-white border border-gray-600 focus:border-purple-500 focus:outline-none font-bold"
+                  className="w-full rounded bg-gray-700 px-2 py-1.5 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none font-bold"
                   placeholder="Hanger ID"
                 />
                 
@@ -314,14 +314,15 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                     value={editData.size}
                     onChange={(e) => setEditData({ ...editData, size: e.target.value })}
                     onClick={(e) => e.stopPropagation()}
-                    className="w-full rounded bg-gray-700 px-1.5 py-1 text-[10px] text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
+                    className="w-full rounded bg-gray-700 px-2 py-1.5 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
                     placeholder="Size"
                   />
                   <select
                     value={editData.status}
                     onChange={(e) => setEditData({ ...editData, status: e.target.value as any })}
                     onClick={(e) => e.stopPropagation()}
-                    className="w-full rounded bg-gray-700 px-1 py-1 text-[10px] text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
+                    aria-label="Status"
+                    className="w-full rounded bg-gray-700 px-2 py-1.5 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
                   >
                     <option value="Active">Active</option>
                     <option value="Inactive">Inactive</option>
@@ -331,14 +332,14 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                 
                 {/* Prices */}
                 <div className="space-y-1">
-                  <p className="text-[9px] text-gray-400 font-semibold">PRICES</p>
+                  <p className="text-xs text-gray-400 font-semibold">PRICES</p>
                   <input
                     type="number"
                     step="0.01"
                     value={editData.costPrice || ''}
                     onChange={(e) => setEditData({ ...editData, costPrice: parseFloat(e.target.value) || 0 })}
                     onClick={(e) => e.stopPropagation()}
-                    className="w-full rounded bg-gray-700 px-1.5 py-1 text-[10px] text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
+                    className="w-full rounded bg-gray-700 px-2 py-1.5 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
                     placeholder="Cost $"
                   />
                   <input
@@ -347,7 +348,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                     value={editData.sellingPrice || ''}
                     onChange={(e) => setEditData({ ...editData, sellingPrice: parseFloat(e.target.value) || 0 })}
                     onClick={(e) => e.stopPropagation()}
-                    className="w-full rounded bg-gray-700 px-1.5 py-1 text-[10px] text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
+                    className="w-full rounded bg-gray-700 px-2 py-1.5 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
                     placeholder="Selling $"
                   />
                 </div>
@@ -358,19 +359,19 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                   value={editData.imageUrl || ''}
                   onChange={(e) => setEditData({ ...editData, imageUrl: e.target.value })}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-full rounded bg-gray-700 px-1.5 py-1 text-[10px] text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
+                  className="w-full rounded bg-gray-700 px-2 py-1.5 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
                   placeholder="Image URL or drop file"
                 />
 
                 {/* Marketplace URLs */}
                 <div className="space-y-1">
-                  <p className="text-[9px] text-gray-400 font-semibold">MARKETPLACES</p>
+                  <p className="text-xs text-gray-400 font-semibold">MARKETPLACES</p>
                   <input
                     type="url"
                     value={editData.ebayUrl || ''}
                     onChange={(e) => setEditData({ ...editData, ebayUrl: e.target.value })}
                     onClick={(e) => e.stopPropagation()}
-                    className="w-full rounded bg-gray-700 px-1.5 py-0.5 text-[9px] text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
+                    className="w-full rounded bg-gray-700 px-2 py-1 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
                     placeholder="eBay URL"
                   />
                   <input
@@ -387,7 +388,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                       setEditData({ ...editData, marketplaceUrls: urls });
                     }}
                     onClick={(e) => e.stopPropagation()}
-                    className="w-full rounded bg-gray-700 px-1.5 py-0.5 text-[9px] text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
+                    className="w-full rounded bg-gray-700 px-2 py-1 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
                     placeholder="Mercari URL"
                   />
                   <input
@@ -404,7 +405,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                       setEditData({ ...editData, marketplaceUrls: urls });
                     }}
                     onClick={(e) => e.stopPropagation()}
-                    className="w-full rounded bg-gray-700 px-1.5 py-0.5 text-[9px] text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
+                    className="w-full rounded bg-gray-700 px-2 py-1 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
                     placeholder="Poshmark URL"
                   />
                 </div>
@@ -413,21 +414,21 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                 <div className="flex gap-1 mt-2 pt-2 border-t border-gray-700">
                   <button
                     onClick={handleSave}
-                    className="flex-1 rounded bg-green-600 hover:bg-green-700 px-2 py-1.5 text-[10px] font-bold text-white transition-colors flex items-center justify-center gap-1"
+                    className="flex-1 rounded bg-green-600 hover:bg-green-700 px-2 py-2 text-xs font-bold text-white transition-colors flex items-center justify-center gap-1"
                   >
                     <Save className="h-3 w-3" />
                     Save
                   </button>
                   <button
                     onClick={handleCancel}
-                    className="flex-1 rounded bg-red-600 hover:bg-red-700 px-2 py-1.5 text-[10px] font-bold text-white transition-colors flex items-center justify-center gap-1"
+                    className="flex-1 rounded bg-red-600 hover:bg-red-700 px-2 py-2 text-xs font-bold text-white transition-colors flex items-center justify-center gap-1"
                   >
                     <X className="h-3 w-3" />
                     Cancel
                   </button>
                 </div>
                 
-                <p className="text-[8px] text-center text-gray-500 mt-1">Double-click to flip back</p>
+                <p className="text-xs text-center text-gray-500 mt-1">Double-click to flip back</p>
               </div>
             </div>
           </div>
