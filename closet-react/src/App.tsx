@@ -95,41 +95,70 @@ function App() {
 
   const stats = getStats();
 
+  const [showStats, setShowStats] = useState(false);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
-      {/* Header */}
-      <header className="border-b border-gray-700 bg-gray-900/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <h1 className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-3xl font-bold text-transparent">
-                Virtual Closet
-              </h1>
-              <p className="mt-1 text-sm text-gray-400">
-                Manage your apparel inventory with ease
-              </p>
+      {/* Compact Header */}
+      <header className="sticky top-0 z-50 border-b border-gray-700 bg-gray-900/95 backdrop-blur-sm">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between gap-4">
+            {/* Title */}
+            <h1 className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-xl font-bold text-transparent sm:text-2xl">
+              Virtual Closet
+            </h1>
+            
+            {/* View Mode Tabs - Compact */}
+            <div className="flex gap-1 rounded-lg bg-gray-800 p-1">
+              <button
+                onClick={() => setViewMode('list')}
+                className={`rounded px-3 py-1.5 text-sm font-medium transition-colors ${
+                  viewMode === 'list'
+                    ? 'bg-purple-600 text-white'
+                    : 'text-gray-400 hover:bg-gray-700'
+                }`}
+                title="List View"
+              >
+                <List className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('closet')}
+                className={`rounded px-3 py-1.5 text-sm font-medium transition-colors ${
+                  viewMode === 'closet'
+                    ? 'bg-purple-600 text-white'
+                    : 'text-gray-400 hover:bg-gray-700'
+                }`}
+                title="Closet View"
+              >
+                <Shirt className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setShowStats(!showStats)}
+                className={`rounded px-3 py-1.5 text-sm font-medium transition-colors ${
+                  showStats
+                    ? 'bg-purple-600 text-white'
+                    : 'text-gray-400 hover:bg-gray-700'
+                }`}
+                title="Statistics"
+              >
+                <BarChart3 className="h-4 w-4" />
+              </button>
             </div>
             
-            {/* User Info & Actions */}
-            <div className="flex items-center gap-4">
-              <div className="hidden sm:flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800/50 px-4 py-2">
-                <User className="h-4 w-4 text-purple-400" />
-                <span className="text-sm text-gray-300">{user?.name}</span>
-              </div>
-              
-              <Button onClick={handleAddItem} size="lg">
-                <Plus className="mr-2 h-5 w-5" />
-                Add Item
+            {/* Actions */}
+            <div className="flex items-center gap-2">
+              <Button onClick={handleAddItem} size="sm">
+                <Plus className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Add</span>
               </Button>
               
               <Button
                 onClick={signOut}
                 variant="ghost"
-                size="lg"
-                className="border border-gray-600 hover:bg-gray-800"
+                size="sm"
+                title={user?.name}
               >
-                <LogOut className="h-5 w-5" />
-                <span className="ml-2 hidden sm:inline">Sign Out</span>
+                <LogOut className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -137,52 +166,17 @@ function App() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        {/* View Mode Tabs */}
-        <div className="mb-6 flex gap-2 rounded-lg border border-gray-700 bg-gray-800 p-1">
-          <button
-            onClick={() => setViewMode('list')}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors ${
-              viewMode === 'list'
-                ? 'bg-purple-600 text-white'
-                : 'text-gray-400 hover:bg-gray-700 hover:text-white'
-            }`}
-          >
-            <List className="h-5 w-5" />
-            List View
-          </button>
-          <button
-            onClick={() => setViewMode('closet')}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors ${
-              viewMode === 'closet'
-                ? 'bg-purple-600 text-white'
-                : 'text-gray-400 hover:bg-gray-700 hover:text-white'
-            }`}
-          >
-            <Shirt className="h-5 w-5" />
-            Closet View
-          </button>
-          <button
-            onClick={() => setViewMode('stats')}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors ${
-              viewMode === 'stats'
-                ? 'bg-purple-600 text-white'
-                : 'text-gray-400 hover:bg-gray-700 hover:text-white'
-            }`}
-          >
-            <BarChart3 className="h-5 w-5" />
-            Statistics
-          </button>
-        </div>
+      <main className="container mx-auto px-4 py-4">
+        {/* Collapsible Stats */}
+        {showStats && (
+          <div className="mb-4">
+            <StatsDashboard stats={stats} />
+          </div>
+        )}
 
-        {/* Stats Dashboard - Always visible at top */}
-        <div className="mb-6">
-          <StatsDashboard stats={stats} />
-        </div>
-
-        {/* Search and Filter - Show only in list and closet views */}
+        {/* Compact Search - Show only in list and closet views */}
         {(viewMode === 'list' || viewMode === 'closet') && (
-          <div className="mb-6">
+          <div className="mb-4">
             <SearchAndFilter
               searchQuery={filterOptions.searchQuery}
               onSearchChange={handleSearchChange}
@@ -195,18 +189,18 @@ function App() {
           </div>
         )}
 
-        {/* Content based on view mode */}
-        <div className="mb-6">
-          {viewMode === 'list' && (
+        {/* Content */}
+        {!showStats && viewMode === 'list' && (
             <ItemList
               items={filteredItems}
               isLoading={isLoading}
               onEdit={handleEditItem}
               onDelete={handleDeleteItem}
+              onImageUpload={handleImageUpload}
             />
           )}
 
-          {viewMode === 'closet' && (
+        {!showStats && viewMode === 'closet' && (
             <ClosetView
               items={filteredItems}
               onItemClick={handleEditItem}
@@ -216,76 +210,6 @@ function App() {
             />
           )}
 
-          {viewMode === 'stats' && (
-            <div className="rounded-lg border border-gray-700 bg-gray-800 p-6">
-              <h2 className="mb-4 text-2xl font-bold text-white">Detailed Statistics</h2>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4 text-gray-300">
-                  <div>
-                    <p className="text-sm text-gray-400">Total Items:</p>
-                    <p className="text-2xl font-bold text-white">{stats.totalItems}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400">Active:</p>
-                    <p className="text-2xl font-bold text-green-400">{stats.activeItems}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400">Inactive:</p>
-                    <p className="text-2xl font-bold text-yellow-400">{stats.inactiveItems}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400">Sold:</p>
-                    <p className="text-2xl font-bold text-blue-400">{stats.soldItems}</p>
-                  </div>
-                </div>
-                
-                <div className="border-t border-gray-700 pt-4">
-                  <h3 className="mb-3 text-lg font-semibold text-white">Financial Overview</h3>
-                  <div className="space-y-2 text-gray-300">
-                    <div className="flex justify-between">
-                      <span>Total Inventory Value (Active):</span>
-                      <span className="font-semibold text-yellow-400">
-                        ${stats.totalValue.toFixed(2)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Total Profit (Sold Items):</span>
-                      <span className="font-semibold text-green-400">
-                        ${stats.totalProfit.toFixed(2)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Average Profit Per Item:</span>
-                      <span className="font-semibold text-cyan-400">
-                        ${stats.averageProfit.toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {stats.soldItems > 0 && (
-                  <div className="border-t border-gray-700 pt-4">
-                    <h3 className="mb-3 text-lg font-semibold text-white">Performance Metrics</h3>
-                    <div className="space-y-2 text-gray-300">
-                      <div className="flex justify-between">
-                        <span>Sell-through Rate:</span>
-                        <span className="font-semibold text-purple-400">
-                          {((stats.soldItems / stats.totalItems) * 100).toFixed(1)}%
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Active Inventory:</span>
-                        <span className="font-semibold text-green-400">
-                          {((stats.activeItems / stats.totalItems) * 100).toFixed(1)}%
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
       </main>
 
       {/* Item Form Modal */}

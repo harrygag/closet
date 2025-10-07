@@ -153,6 +153,8 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
     }));
   };
 
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
   return (
     <Modal
       open={open}
@@ -160,21 +162,22 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
       title={editItem ? 'Edit Item' : 'Add New Item'}
       size="lg"
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-3">
+        {/* Essential Fields */}
         <Input
           label="Item Name *"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder="e.g., Nike Arizona Cardinals Salute to Service Hoodie"
+          placeholder="e.g., Nike Cardinals Hoodie"
           required
         />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-3">
           <Input
             label="Size"
             value={formData.size}
             onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-            placeholder="e.g., L, XL"
+            placeholder="L, XL"
           />
 
           <Select
@@ -184,18 +187,27 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
             options={STATUS_OPTIONS}
             required
           />
+          
+          <Input
+            label="Cost"
+            type="number"
+            step="0.01"
+            value={formData.costPrice || ''}
+            onChange={(e) => setFormData({ ...formData, costPrice: parseFloat(e.target.value) || 0 })}
+            placeholder="0.00"
+          />
         </div>
 
-        {/* Tags */}
+        {/* Tags - Always visible but compact */}
         <div>
-          <label className="mb-2 block text-sm font-medium text-gray-300">Tags</label>
-          <div className="flex flex-wrap gap-2">
+          <label className="mb-1.5 block text-sm font-medium text-gray-300">Tags</label>
+          <div className="flex flex-wrap gap-1.5">
             {TAG_OPTIONS.map((tag) => (
               <button
                 key={tag}
                 type="button"
                 onClick={() => handleTagToggle(tag)}
-                className={`rounded px-3 py-1.5 text-sm font-medium transition-colors ${
+                className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
                   formData.tags.includes(tag)
                     ? 'bg-purple-600 text-white'
                     : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
@@ -207,149 +219,143 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
           </div>
         </div>
 
-        {/* Image URL */}
-        <Input
-          label="Image URL"
-          type="url"
-          value={formData.imageUrl}
-          onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-          placeholder="https://example.com/image.jpg or paste S3 URL from Notion"
-        />
 
-        {/* Marketplace URLs with Prices */}
-        <div className="space-y-4">
-          <label className="block text-sm font-medium text-gray-300">Marketplace Listings</label>
-          
-          {/* eBay */}
-          <div className="grid grid-cols-2 gap-3">
+        {/* Advanced Fields Toggle */}
+        <button
+          type="button"
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          className="text-sm text-purple-400 hover:text-purple-300"
+        >
+          {showAdvanced ? '− Hide' : '+ Show'} Advanced Options
+        </button>
+
+        {showAdvanced && (
+          <div className="space-y-3 rounded-lg border border-gray-700 bg-gray-900/50 p-3">
+            {/* Marketplace URLs */}
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                label="eBay URL"
+                type="url"
+                value={formData.ebayUrl}
+                onChange={(e) => setFormData({ ...formData, ebayUrl: e.target.value })}
+                placeholder="https://ebay.com/..."
+              />
+              <Input
+                label="Price"
+                type="number"
+                step="0.01"
+                value={formData.ebayPrice || ''}
+                onChange={(e) => setFormData({ ...formData, ebayPrice: parseFloat(e.target.value) || 0 })}
+                placeholder="0.00"
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                label="Mercari URL"
+                type="url"
+                value={formData.mercariUrl}
+                onChange={(e) => setFormData({ ...formData, mercariUrl: e.target.value })}
+                placeholder="https://mercari.com/..."
+              />
+              <Input
+                label="Price"
+                type="number"
+                step="0.01"
+                value={formData.mercariPrice || ''}
+                onChange={(e) => setFormData({ ...formData, mercariPrice: parseFloat(e.target.value) || 0 })}
+                placeholder="0.00"
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                label="Poshmark URL"
+                type="url"
+                value={formData.poshmarkUrl}
+                onChange={(e) => setFormData({ ...formData, poshmarkUrl: e.target.value })}
+                placeholder="https://poshmark.com/..."
+              />
+              <Input
+                label="Price"
+                type="number"
+                step="0.01"
+                value={formData.poshmarkPrice || ''}
+                onChange={(e) => setFormData({ ...formData, poshmarkPrice: parseFloat(e.target.value) || 0 })}
+                placeholder="0.00"
+              />
+            </div>
+
+            {/* Financial Details */}
+            <div className="grid grid-cols-3 gap-3">
+              <Input
+                label="Selling Price"
+                type="number"
+                step="0.01"
+                value={formData.sellingPrice || ''}
+                onChange={(e) => setFormData({ ...formData, sellingPrice: parseFloat(e.target.value) || 0 })}
+                placeholder="0.00"
+              />
+              <Input
+                label="Fees"
+                type="number"
+                step="0.01"
+                value={formData.ebayFees || ''}
+                onChange={(e) => setFormData({ ...formData, ebayFees: parseFloat(e.target.value) || 0 })}
+                placeholder="0.00"
+              />
+              <Input
+                label="Net Profit"
+                type="number"
+                step="0.01"
+                value={formData.netProfit || ''}
+                onChange={(e) => setFormData({ ...formData, netProfit: parseFloat(e.target.value) || 0 })}
+                placeholder="0.00"
+              />
+            </div>
+
+            {/* Hanger Info */}
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                label="Hanger Status"
+                value={formData.hangerStatus}
+                onChange={(e) => setFormData({ ...formData, hangerStatus: e.target.value })}
+                placeholder="In Use"
+              />
+              <Input
+                label="Hanger ID"
+                value={formData.hangerId}
+                onChange={(e) => setFormData({ ...formData, hangerId: e.target.value })}
+                placeholder="A1, B2"
+              />
+            </div>
+
             <Input
-              label="eBay URL"
-              type="url"
-              value={formData.ebayUrl}
-              onChange={(e) => setFormData({ ...formData, ebayUrl: e.target.value })}
-              placeholder="https://ebay.com/itm/..."
+              label="Date"
+              type="date"
+              value={formData.dateField}
+              onChange={(e) => setFormData({ ...formData, dateField: e.target.value })}
             />
+
             <Input
-              label="eBay Price"
-              type="number"
-              step="0.01"
-              value={formData.ebayPrice || ''}
-              onChange={(e) => setFormData({ ...formData, ebayPrice: parseFloat(e.target.value) || 0 })}
-              placeholder="0.00"
+              label="Image URL"
+              type="url"
+              value={formData.imageUrl}
+              onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+              placeholder="https://..."
+            />
+
+            <TextArea
+              label="Notes"
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              placeholder="Additional notes..."
+              rows={2}
             />
           </div>
-          
-          {/* Mercari */}
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              label="Mercari URL"
-              type="url"
-              value={formData.mercariUrl}
-              onChange={(e) => setFormData({ ...formData, mercariUrl: e.target.value })}
-              placeholder="https://mercari.com/us/item/..."
-            />
-            <Input
-              label="Mercari Price"
-              type="number"
-              step="0.01"
-              value={formData.mercariPrice || ''}
-              onChange={(e) => setFormData({ ...formData, mercariPrice: parseFloat(e.target.value) || 0 })}
-              placeholder="0.00"
-            />
-          </div>
-          
-          {/* Poshmark */}
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              label="Poshmark URL"
-              type="url"
-              value={formData.poshmarkUrl}
-              onChange={(e) => setFormData({ ...formData, poshmarkUrl: e.target.value })}
-              placeholder="https://poshmark.com/listing/..."
-            />
-            <Input
-              label="Poshmark Price"
-              type="number"
-              step="0.01"
-              value={formData.poshmarkPrice || ''}
-              onChange={(e) => setFormData({ ...formData, poshmarkPrice: parseFloat(e.target.value) || 0 })}
-              placeholder="0.00"
-            />
-          </div>
-        </div>
+        )}
 
-        <div className="grid grid-cols-2 gap-4">
-          <Input
-            label="Cost Price"
-            type="number"
-            step="0.01"
-            value={formData.costPrice || ''}
-            onChange={(e) => setFormData({ ...formData, costPrice: parseFloat(e.target.value) || 0 })}
-            placeholder="0.00"
-          />
-
-          <Input
-            label="Selling Price"
-            type="number"
-            step="0.01"
-            value={formData.sellingPrice || ''}
-            onChange={(e) => setFormData({ ...formData, sellingPrice: parseFloat(e.target.value) || 0 })}
-            placeholder="0.00"
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <Input
-            label="eBay Fees"
-            type="number"
-            step="0.01"
-            value={formData.ebayFees || ''}
-            onChange={(e) => setFormData({ ...formData, ebayFees: parseFloat(e.target.value) || 0 })}
-            placeholder="0.00"
-          />
-
-          <Input
-            label="Net Profit"
-            type="number"
-            step="0.01"
-            value={formData.netProfit || ''}
-            onChange={(e) => setFormData({ ...formData, netProfit: parseFloat(e.target.value) || 0 })}
-            placeholder="0.00"
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <Input
-            label="Hanger Status"
-            value={formData.hangerStatus}
-            onChange={(e) => setFormData({ ...formData, hangerStatus: e.target.value })}
-            placeholder="e.g., In Use"
-          />
-
-          <Input
-            label="Hanger ID"
-            value={formData.hangerId}
-            onChange={(e) => setFormData({ ...formData, hangerId: e.target.value })}
-            placeholder="e.g., A1, B2"
-          />
-        </div>
-
-        <Input
-          label="Date Field"
-          type="date"
-          value={formData.dateField}
-          onChange={(e) => setFormData({ ...formData, dateField: e.target.value })}
-        />
-
-        <TextArea
-          label="Notes"
-          value={formData.notes}
-          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-          placeholder="Additional notes about this item..."
-          rows={3}
-        />
-
-        <div className="flex justify-end gap-2 pt-4">
+        <div className="flex justify-end gap-2 pt-3 border-t border-gray-700">
           <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
