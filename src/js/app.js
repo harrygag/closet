@@ -7,6 +7,7 @@ class ResellerCloset {
         this.uiService = new UIService();
         this.bulkService = new BulkOperationsService();
         this.closetViewService = new ClosetViewService(this.itemService); // Sprint 8
+        this.animationService = new AnimationService(); // UI Enhancement
         this.bulkModeActive = false;
         // Sprint 8: Load saved view from localStorage, default to 'cards'
         this.currentView = localStorage.getItem('currentView') || 'cards';

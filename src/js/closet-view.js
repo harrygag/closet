@@ -236,8 +236,61 @@ class ClosetViewService {
         return this.currentView;
     }
 
-    // Setup drag-and-drop event listeners
+    // Setup drag-and-drop event listeners (Enhanced with SortableJS if available)
     setupDragAndDrop(containerElement) {
+        // Use SortableJS if available for enhanced drag-drop
+        if (typeof Sortable !== 'undefined') {
+            this.setupEnhancedDragAndDrop(containerElement);
+        } else {
+            this.setupBasicDragAndDrop(containerElement);
+        }
+    }
+
+    // Enhanced drag-and-drop with SortableJS
+    setupEnhancedDragAndDrop(containerElement) {
+        const closetSections = containerElement.querySelectorAll('.closet-items-row');
+        
+        closetSections.forEach(section => {
+            new Sortable(section, {
+                group: 'closet-items',
+                animation: 200,
+                ghostClass: 'sortable-ghost',
+                dragClass: 'sortable-drag',
+                chosenClass: 'sortable-chosen',
+                handle: '.hanger-item',
+                onEnd: (evt) => {
+                    // Get item IDs
+                    const movedItemId = evt.item.dataset.itemId;
+                    const movedItem = this.itemService.getItem(movedItemId);
+                    
+                    if (movedItem) {
+                        // Update item's category based on new section
+                        const newSection = evt.to.closest('.closet-section');
+                        const newType = newSection ? newSection.dataset.sectionType : null;
+                        
+                        // Re-render to reflect changes
+                        if (typeof window.app !== 'undefined') {
+                            window.app.render();
+                        }
+                    }
+                }
+            });
+        });
+
+        // Setup click to edit
+        containerElement.addEventListener('click', (e) => {
+            const hangerItem = e.target.closest('.hanger-item');
+            if (hangerItem) {
+                const itemId = hangerItem.dataset.itemId;
+                if (typeof window.app !== 'undefined') {
+                    window.app.viewItem(itemId);
+                }
+            }
+        });
+    }
+
+    // Basic drag-and-drop fallback (original implementation)
+    setupBasicDragAndDrop(containerElement) {
         let draggedItem = null;
 
         // Drag start
