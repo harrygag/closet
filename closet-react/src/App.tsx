@@ -34,10 +34,10 @@ function App() {
   const [editingItem, setEditingItem] = useState<Item | null>(null);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      initializeStore();
+    if (isAuthenticated && user?.email) {
+      initializeStore(user.email);
     }
-  }, [initializeStore, isAuthenticated]);
+  }, [initializeStore, isAuthenticated, user?.email]);
 
   // Show sign-in screen if not authenticated
   if (!isAuthenticated) {
@@ -197,7 +197,11 @@ function App() {
           )}
 
           {viewMode === 'closet' && (
-            <ClosetView items={filteredItems} onItemClick={handleEditItem} />
+            <ClosetView
+              items={filteredItems}
+              onItemClick={handleEditItem}
+              onAddItem={handleAddItem}
+            />
           )}
 
           {viewMode === 'stats' && (

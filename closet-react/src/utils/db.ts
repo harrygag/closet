@@ -10,15 +10,38 @@ interface ClosetDB extends DBSchema {
   };
 }
 
-const DB_NAME = 'closet-db';
 const DB_VERSION = 1;
 
 let dbInstance: IDBPDatabase<ClosetDB> | null = null;
+let currentUserEmail: string | null = null;
 
-export const initDB = async (): Promise<IDBPDatabase<ClosetDB>> => {
+/**
+ * Get user-specific database name
+ */
+const getUserDBName = (userEmail: string): string => {
+  // Sanitize email for use in DB name
+  const sanitized = userEmail.replace(/[^a-zA-Z0-9]/g, '_');
+  return `closet_db_${sanitized}`;
+};
+
+export const initDB = async (userEmail?: string): Promise<IDBPDatabase<ClosetDB>> => {
+  // If a user email is provided and it's different, close existing DB and switch
+  if (userEmail && userEmail !== currentUserEmail) {
+    if (dbInstance) {
+      dbInstance.close();
+      dbInstance = null;
+    }
+    currentUserEmail = userEmail;
+  }
+
   if (dbInstance) return dbInstance;
 
-  dbInstance = await openDB<ClosetDB>(DB_NAME, DB_VERSION, {
+  if (!currentUserEmail) {
+    throw new Error('User email is required to initialize database');
+  }
+
+  const dbName = getUserDBName(currentUserEmail);
+  dbInstance = await openDB<ClosetDB>(dbName, DB_VERSION, {
     upgrade(db) {
       // Create items store
       const itemsStore = db.createObjectStore('items', { keyPath: 'id' });
