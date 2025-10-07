@@ -13,7 +13,15 @@ interface ClosetHangerProps {
 }
 
 export const ClosetHanger: React.FC<ClosetHangerProps> = ({ item, onClick, isDragging = false }) => {
+  // Parse marketplace URLs with prices
   const marketplaceUrls = parseMarketplaceUrls(item.ebayUrl, item.marketplaceUrls?.map(m => m.url));
+  
+  // Get marketplace data with prices
+  const getMarketplacePrice = (type: string) => {
+    if (type === 'ebay') return item.sellingPrice;
+    const marketplace = item.marketplaceUrls?.find(m => m.type === type);
+    return marketplace?.price || 0;
+  };
 
   return (
     <div
@@ -86,41 +94,47 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({ item, onClick, isDra
             <Shirt className="h-12 w-12 text-white" />
           )}
 
-          {/* Status indicator dot */}
-          <div
-            className={clsx(
-              'absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-gray-800',
-              item.status === 'Active' && 'bg-green-500',
-              item.status === 'Inactive' && 'bg-yellow-500',
-              item.status === 'SOLD' && 'bg-blue-500'
-            )}
-          />
-
-          {/* Marketplace icons overlay */}
-          {marketplaceUrls.length > 0 && (
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-1 bg-gray-900/90 backdrop-blur-sm px-2 py-1 rounded-full border border-gray-700">
-              {marketplaceUrls.slice(0, 3).map((marketplace, index) => {
-                const Icon = MARKETPLACE_ICONS[marketplace.type];
-                return (
-                  <a
-                    key={index}
-                    href={marketplace.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="transition-transform hover:scale-125"
-                    title={marketplace.type}
-                    style={{ color: MARKETPLACE_COLORS[marketplace.type] }}
-                  >
-                    <Icon className="h-3 w-3" />
-                  </a>
-                );
-              })}
-              {marketplaceUrls.length > 3 && (
-                <span className="text-xs text-gray-400">+{marketplaceUrls.length - 3}</span>
+          {/* Status indicator dot and marketplace icons */}
+          <div className="absolute -top-1 -right-1 flex items-center gap-1">
+            {/* Status dot - green only if has marketplace URLs */}
+            <div
+              className={clsx(
+                'h-3 w-3 rounded-full border-2 border-gray-800',
+                item.status === 'Active' && marketplaceUrls.length > 0 && 'bg-green-500',
+                (item.status === 'Inactive' || (item.status === 'Active' && marketplaceUrls.length === 0)) && 'bg-yellow-500',
+                item.status === 'SOLD' && 'bg-blue-500'
               )}
-            </div>
-          )}
+            />
+            
+            {/* Marketplace icons with prices - only show when URLs exist */}
+            {marketplaceUrls.length > 0 && (
+              <div className="flex gap-1 bg-gray-900/95 backdrop-blur-sm px-1.5 py-0.5 rounded-full border border-gray-700">
+                {marketplaceUrls.slice(0, 3).map((marketplace, index) => {
+                  const Icon = MARKETPLACE_ICONS[marketplace.type];
+                  const price = getMarketplacePrice(marketplace.type);
+                  return (
+                    <a
+                      key={index}
+                      href={marketplace.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex items-center gap-0.5 transition-transform hover:scale-110"
+                      title={`${marketplace.type}: $${price}`}
+                      style={{ color: MARKETPLACE_COLORS[marketplace.type] }}
+                    >
+                      <Icon className="h-2.5 w-2.5" />
+                      {price > 0 && (
+                        <span className="text-[10px] font-bold text-white">
+                          ${price}
+                        </span>
+                      )}
+                    </a>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

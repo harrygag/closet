@@ -27,9 +27,13 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
     hangerStatus: '',
     hangerId: '',
     tags: [] as ItemTag[],
+    imageUrl: '',
     ebayUrl: '',
+    ebayPrice: 0,
     mercariUrl: '',
+    mercariPrice: 0,
     poshmarkUrl: '',
+    poshmarkPrice: 0,
     costPrice: 0,
     sellingPrice: 0,
     ebayFees: 0,
@@ -41,8 +45,12 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
   useEffect(() => {
     if (editItem) {
       // Extract marketplace URLs from the marketplaceUrls array
-      const mercariUrl = editItem.marketplaceUrls?.find(m => m.type === 'mercari')?.url || '';
-      const poshmarkUrl = editItem.marketplaceUrls?.find(m => m.type === 'poshmark')?.url || '';
+      const mercariData = editItem.marketplaceUrls?.find(m => m.type === 'mercari');
+      const poshmarkData = editItem.marketplaceUrls?.find(m => m.type === 'poshmark');
+      const mercariUrl = mercariData?.url || '';
+      const mercariPrice = mercariData?.price || 0;
+      const poshmarkUrl = poshmarkData?.url || '';
+      const poshmarkPrice = poshmarkData?.price || 0;
       
       setFormData({
         name: editItem.name,
@@ -51,9 +59,13 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
         hangerStatus: editItem.hangerStatus,
         hangerId: editItem.hangerId,
         tags: editItem.tags,
+        imageUrl: editItem.imageUrl || '',
         ebayUrl: editItem.ebayUrl,
+        ebayPrice: editItem.sellingPrice, // Use sellingPrice as eBay price
         mercariUrl,
+        mercariPrice,
         poshmarkUrl,
+        poshmarkPrice,
         costPrice: editItem.costPrice,
         sellingPrice: editItem.sellingPrice,
         ebayFees: editItem.ebayFees,
@@ -74,9 +86,13 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
         hangerStatus: hangerIdFromStorage ? 'In Use' : '',
         hangerId: hangerIdFromStorage || '',
         tags: categoryFromStorage ? [categoryFromStorage as ItemTag] : [],
+        imageUrl: '',
         ebayUrl: '',
+        ebayPrice: 0,
         mercariUrl: '',
+        mercariPrice: 0,
         poshmarkUrl: '',
+        poshmarkPrice: 0,
         costPrice: 0,
         sellingPrice: 0,
         ebayFees: 0,
@@ -97,10 +113,18 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
     // Build marketplaceUrls array from individual URL fields
     const marketplaceUrls = [];
     if (formData.mercariUrl) {
-      marketplaceUrls.push({ type: 'mercari' as const, url: formData.mercariUrl });
+      marketplaceUrls.push({
+        type: 'mercari' as const,
+        url: formData.mercariUrl,
+        price: formData.mercariPrice || 0
+      });
     }
     if (formData.poshmarkUrl) {
-      marketplaceUrls.push({ type: 'poshmark' as const, url: formData.poshmarkUrl });
+      marketplaceUrls.push({
+        type: 'poshmark' as const,
+        url: formData.poshmarkUrl,
+        price: formData.poshmarkPrice || 0
+      });
     }
     
     const itemData = {
@@ -108,8 +132,8 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
       marketplaceUrls,
     };
     
-    // Remove the temporary URL fields
-    const { mercariUrl, poshmarkUrl, ...finalData } = itemData;
+    // Remove the temporary URL and price fields
+    const { mercariUrl, mercariPrice, poshmarkUrl, poshmarkPrice, ebayPrice, ...finalData } = itemData;
     
     if (editItem) {
       onSubmit({ ...editItem, ...finalData });
@@ -183,30 +207,75 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
           </div>
         </div>
 
-        {/* Marketplace URLs */}
-        <div className="space-y-3">
-          <label className="block text-sm font-medium text-gray-300">Marketplace URLs</label>
-          <Input
-            label="eBay"
-            type="url"
-            value={formData.ebayUrl}
-            onChange={(e) => setFormData({ ...formData, ebayUrl: e.target.value })}
-            placeholder="https://ebay.com/itm/..."
-          />
-          <Input
-            label="Mercari"
-            type="url"
-            value={formData.mercariUrl}
-            onChange={(e) => setFormData({ ...formData, mercariUrl: e.target.value })}
-            placeholder="https://mercari.com/us/item/..."
-          />
-          <Input
-            label="Poshmark"
-            type="url"
-            value={formData.poshmarkUrl}
-            onChange={(e) => setFormData({ ...formData, poshmarkUrl: e.target.value })}
-            placeholder="https://poshmark.com/listing/..."
-          />
+        {/* Image URL */}
+        <Input
+          label="Image URL"
+          type="url"
+          value={formData.imageUrl}
+          onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+          placeholder="https://example.com/image.jpg or paste S3 URL from Notion"
+        />
+
+        {/* Marketplace URLs with Prices */}
+        <div className="space-y-4">
+          <label className="block text-sm font-medium text-gray-300">Marketplace Listings</label>
+          
+          {/* eBay */}
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label="eBay URL"
+              type="url"
+              value={formData.ebayUrl}
+              onChange={(e) => setFormData({ ...formData, ebayUrl: e.target.value })}
+              placeholder="https://ebay.com/itm/..."
+            />
+            <Input
+              label="eBay Price"
+              type="number"
+              step="0.01"
+              value={formData.ebayPrice || ''}
+              onChange={(e) => setFormData({ ...formData, ebayPrice: parseFloat(e.target.value) || 0 })}
+              placeholder="0.00"
+            />
+          </div>
+          
+          {/* Mercari */}
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label="Mercari URL"
+              type="url"
+              value={formData.mercariUrl}
+              onChange={(e) => setFormData({ ...formData, mercariUrl: e.target.value })}
+              placeholder="https://mercari.com/us/item/..."
+            />
+            <Input
+              label="Mercari Price"
+              type="number"
+              step="0.01"
+              value={formData.mercariPrice || ''}
+              onChange={(e) => setFormData({ ...formData, mercariPrice: parseFloat(e.target.value) || 0 })}
+              placeholder="0.00"
+            />
+          </div>
+          
+          {/* Poshmark */}
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label="Poshmark URL"
+              type="url"
+              value={formData.poshmarkUrl}
+              onChange={(e) => setFormData({ ...formData, poshmarkUrl: e.target.value })}
+              placeholder="https://poshmark.com/listing/..."
+            />
+            <Input
+              label="Poshmark Price"
+              type="number"
+              step="0.01"
+              value={formData.poshmarkPrice || ''}
+              onChange={(e) => setFormData({ ...formData, poshmarkPrice: parseFloat(e.target.value) || 0 })}
+              placeholder="0.00"
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">

@@ -88,6 +88,21 @@ export const ClosetView: React.FC<ClosetViewProps> = ({ items, onItemClick, onAd
       setSortedItems((items) => {
         const oldIndex = items.findIndex((item) => item.id === active.id);
         const newIndex = items.findIndex((item) => item.id === over.id);
+        
+        // Get the items being swapped
+        const draggedItem = items[oldIndex];
+        const targetItem = items[newIndex];
+        
+        // Swap hanger IDs if both items have them
+        if (draggedItem.hangerId && targetItem.hangerId) {
+          const tempHangerId = draggedItem.hangerId;
+          draggedItem.hangerId = targetItem.hangerId;
+          targetItem.hangerId = tempHangerId;
+          
+          // Update items in the store (we'll need to call onItemClick or add an update callback)
+          // For now, just swap positions in the array
+        }
+        
         return arrayMove(items, oldIndex, newIndex);
       });
     }

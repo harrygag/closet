@@ -9,6 +9,7 @@ export type MarketplaceType = 'ebay' | 'poshmark' | 'mercari' | 'depop' | 'grail
 export interface MarketplaceUrl {
   type: MarketplaceType;
   url: string;
+  price?: number; // Optional price for this specific marketplace
 }
 
 export interface Item {
