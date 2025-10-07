@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, List, Shirt, BarChart3, LogOut, User } from 'lucide-react';
+import { Plus, List, Shirt, BarChart3, LogOut } from 'lucide-react';
 import { useItemStore } from './store/useItemStore';
 import { useAuthStore } from './store/useAuthStore';
 import { Button } from './components/ui/Button';

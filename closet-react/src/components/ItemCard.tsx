@@ -3,7 +3,7 @@ import { Edit2, Trash2, ExternalLink, ImageIcon, Upload } from 'lucide-react';
 import type { Item } from '../types/item';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from './ui/Card';
 import { Button } from './ui/Button';
-import { formatCurrency, formatRelativeDate, getStatusColor, getTagColor, truncateText } from '../utils/formatters';
+import { formatCurrency, getStatusColor, truncateText } from '../utils/formatters';
 import { clsx } from 'clsx';
 
 interface ItemCardProps {
