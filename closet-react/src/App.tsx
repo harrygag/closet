@@ -33,33 +33,15 @@ function App() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
 
-  const [isStoreInitialized, setIsStoreInitialized] = useState(false);
-
   useEffect(() => {
     if (isAuthenticated && user?.email) {
-      initializeStore(user.email).then(() => {
-        setIsStoreInitialized(true);
-      });
-    } else {
-      setIsStoreInitialized(false);
+      initializeStore(user.email);
     }
-  }, [initializeStore, isAuthenticated, user?.email]);
+  }, [isAuthenticated, user?.email]);
 
   // Show sign-in screen if not authenticated
   if (!isAuthenticated) {
     return <SignIn />;
-  }
-
-  // Show loading while initializing store after sign-in
-  if (!isStoreInitialized) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
-        <div className="text-center">
-          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-purple-500 border-t-transparent"></div>
-          <p className="text-gray-400">Loading your closet...</p>
-        </div>
-      </div>
-    );
   }
 
   const handleAddItem = () => {
