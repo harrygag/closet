@@ -152,12 +152,12 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
         >
           {/* Hanger Hook */}
           <div className="flex justify-center">
-            <div className="h-8 w-1 bg-gradient-to-b from-gray-500 to-gray-600 rounded-full" />
+            <div className="h-6 w-0.5 bg-gradient-to-b from-gray-500 to-gray-600 rounded-full" />
           </div>
 
           {/* Hanger Top */}
           <div className="flex justify-center -mt-1">
-            <svg width="120" height="30" viewBox="0 0 60 20">
+            <svg width="60" height="20" viewBox="0 0 60 20">
               <path
                 d="M 30 0 Q 30 8, 22 12 L 8 12 Q 4 12, 4 16 L 4 18 Q 4 20, 6 20 L 54 20 Q 56 20, 56 18 L 56 16 Q 56 12, 52 12 L 38 12 Q 30 8, 30 0"
                 fill="#6B7280"
@@ -167,9 +167,9 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
             </svg>
           </div>
 
-          {/* Item Card - Same size, larger fonts on mobile */}
+          {/* Item Card - ORIGINAL SIZE with bigger mobile fonts */}
           <div className="flex justify-center -mt-2">
-            <div className="relative flex h-56 w-40 flex-col rounded-lg border-2 border-gray-600 bg-white shadow-xl transition-all duration-300 group-hover:shadow-2xl group-hover:border-purple-500">
+            <div className="relative flex h-32 w-24 flex-col rounded-lg border-2 border-gray-600 bg-white shadow-xl transition-all duration-300 group-hover:shadow-2xl group-hover:border-purple-500">
               {/* Upload indicator */}
               {(isDropping || isUploading) && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-lg z-10">
@@ -205,28 +205,28 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                     }}
                   />
                 ) : (
-                  <div className="flex flex-col items-center justify-center gap-2">
-                    <Shirt className="h-16 w-16 text-gray-400" />
-                    <p className="text-sm sm:text-xs text-center font-bold text-gray-700">Drop photo</p>
+                  <div className="flex flex-col items-center justify-center gap-1">
+                    <Shirt className="h-10 w-10 text-gray-400" />
+                    <p className="text-sm font-bold text-gray-700">Drop photo</p>
                   </div>
                 )}
               </div>
 
-              {/* Bottom info bar - Larger text on mobile */}
-              <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-3 py-2 rounded-b-lg">
-                <p className="text-sm font-bold text-white truncate text-center leading-tight">
+              {/* Bottom info bar - Bigger font */}
+              <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-2 py-1 rounded-b-lg">
+                <p className="text-sm font-bold text-white truncate text-center">
                   {item.name}
                 </p>
                 {item.size && (
-                  <p className="text-sm sm:text-xs text-purple-100 text-center font-medium">{item.size}</p>
+                  <p className="text-xs text-purple-100 text-center">{item.size}</p>
                 )}
               </div>
 
               {/* Status & Marketplace Icons (top right) */}
-              <div className="absolute -top-3 -right-3 flex items-center gap-1.5">
+              <div className="absolute -top-2 -right-2 flex items-center gap-1">
                 <div
                   className={clsx(
-                    'h-6 w-6 rounded-full border-2 border-white shadow-lg',
+                    'h-4 w-4 rounded-full border-2 border-white shadow-lg',
                     hasActiveListings && item.status === 'Active' && 'bg-green-500',
                     (!hasActiveListings || item.status === 'Inactive') && 'bg-yellow-500',
                     item.status === 'SOLD' && 'bg-blue-500'
@@ -234,7 +234,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                 />
                 
                 {marketplaceUrls.length > 0 && (
-                  <div className="flex gap-1 bg-gray-900/95 backdrop-blur-sm px-2 py-1 rounded-full border border-gray-700 shadow-lg">
+                  <div className="flex gap-0.5 bg-gray-900/95 backdrop-blur-sm px-1 py-0.5 rounded-full border border-gray-700 shadow-lg">
                     {marketplaceUrls.slice(0, 3).map((marketplace, index) => {
                       const Icon = MARKETPLACE_ICONS[marketplace.type];
                       const price = getMarketplacePrice(marketplace.type);
@@ -245,13 +245,13 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={(e) => e.stopPropagation()}
-                          className="flex items-center gap-1 transition-transform active:scale-95 sm:hover:scale-110"
+                          className="flex items-center gap-0.5 transition-transform hover:scale-110"
                           title={`${marketplace.type}: $${price}`}
                           style={{ color: MARKETPLACE_COLORS[marketplace.type] }}
                         >
-                          <Icon className="h-4 w-4" />
+                          <Icon className="h-2.5 w-2.5" />
                           {price > 0 && (
-                            <span className="text-xs font-bold text-white">
+                            <span className="text-[10px] font-bold text-white">
                               ${price}
                             </span>
                           )}
@@ -265,7 +265,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
               {/* SOLD Badge */}
               {item.status === 'SOLD' && (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="rotate-12 rounded bg-blue-600 px-4 py-2 text-base font-bold text-white shadow-xl border-2 border-blue-400">
+                  <div className="rotate-12 rounded bg-blue-600 px-2 py-1 text-sm font-bold text-white shadow-xl border-2 border-blue-400">
                     SOLD
                   </div>
                 </div>
