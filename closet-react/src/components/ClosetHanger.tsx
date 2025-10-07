@@ -223,26 +223,12 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                 className="flex-1 flex items-center justify-center p-1 cursor-pointer"
                 onClick={handleImageClick}
               >
-                {item.imageUrl && item.imageUrl.trim() !== '' && !item.imageUrl.includes('undefined') ? (
+                {item.imageUrl && item.imageUrl.trim() !== '' ? (
                   <img
                     src={item.imageUrl}
                     alt={item.name}
                     className="h-full w-full object-cover rounded"
-                    onError={(e) => {
-                      // If image fails to load, hide it
-                      e.currentTarget.style.display = 'none';
-                      const parent = e.currentTarget.parentElement;
-                      if (parent) {
-                        parent.innerHTML = `
-                          <div class="flex flex-col items-center justify-center gap-2">
-                            <svg class="h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-                            </svg>
-                            <p class="text-xs text-center font-bold text-gray-700">Drop photo</p>
-                          </div>
-                        `;
-                      }
-                    }}
+                    key={item.imageUrl}
                   />
                 ) : (
                   <div className="flex flex-col items-center justify-center gap-1 hover:scale-105 transition-transform">

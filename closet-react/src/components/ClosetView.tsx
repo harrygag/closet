@@ -219,7 +219,7 @@ export const ClosetView: React.FC<ClosetViewProps> = ({ items, onItemClick, onIm
             onDragEnd={handleDragEnd}
           >
             <SortableContext items={rackItems.map(i => i.id)} strategy={horizontalListSortingStrategy}>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-4 gap-6">
                 {rackItems.map((item, index) => (
                   <div key={item.id}>
                     <SortableHanger
