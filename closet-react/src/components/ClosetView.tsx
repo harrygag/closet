@@ -35,9 +35,10 @@ interface SortableHangerProps {
   onItemClick: (item: Item) => void;
   onImageUpload?: (itemId: string, imageUrl: string) => void;
   onUpdate?: (item: Item) => void;
+  position?: number;
 }
 
-const SortableHanger: React.FC<SortableHangerProps> = ({ item, onItemClick, onImageUpload, onUpdate }) => {
+const SortableHanger: React.FC<SortableHangerProps> = ({ item, onItemClick, onImageUpload, onUpdate, position }) => {
   const {
     attributes,
     listeners,
@@ -60,6 +61,7 @@ const SortableHanger: React.FC<SortableHangerProps> = ({ item, onItemClick, onIm
         onImageUpload={onImageUpload}
         onUpdate={onUpdate}
         isDragging={isDragging}
+        position={position}
       />
     </div>
   );
@@ -204,13 +206,14 @@ export const ClosetView: React.FC<ClosetViewProps> = ({ items, onItemClick, onIm
           >
             <SortableContext items={rackItems.map(i => i.id)} strategy={horizontalListSortingStrategy}>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-                {rackItems.map((item) => (
+                {rackItems.map((item, index) => (
                   <div key={item.id}>
                     <SortableHanger
                       item={item}
                       onItemClick={onItemClick}
                       onImageUpload={onImageUpload}
                       onUpdate={onUpdate}
+                      position={index + 1}
                     />
                   </div>
                 ))}

@@ -11,13 +11,15 @@ interface ClosetHangerProps {
   onImageUpload?: (itemId: string, imageUrl: string) => void;
   onUpdate?: (item: Item) => void;
   isDragging?: boolean;
+  position?: number;
 }
 
 export const ClosetHanger: React.FC<ClosetHangerProps> = ({
   item,
   onImageUpload,
   onUpdate,
-  isDragging = false
+  isDragging = false,
+  position
 }) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isDropping, setIsDropping] = useState(false);
@@ -112,7 +114,8 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
       className={clsx(
         'group relative cursor-pointer transition-all duration-300',
         isDragging && 'opacity-50 scale-95',
-        isDropping && 'ring-2 ring-purple-500 ring-offset-2 ring-offset-gray-800'
+        isDropping && 'ring-2 ring-purple-500 ring-offset-2 ring-offset-gray-800',
+        isFlipped && 'z-50'
       )}
       style={{
         perspective: '1000px',
@@ -177,9 +180,9 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                     className="h-full w-full object-cover rounded"
                   />
                 ) : (
-                  <div className="flex flex-col items-center gap-2 text-gray-400">
-                    <Shirt className="h-16 w-16" />
-                    <p className="text-xs text-center font-medium">Drop photo</p>
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Shirt className="h-16 w-16 text-gray-400" />
+                    <p className="text-xs text-center font-bold text-gray-700">Drop photo</p>
                   </div>
                 )}
               </div>
@@ -246,13 +249,12 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
           </div>
 
           {/* Hanger ID Badge */}
-          {item.hangerId && (
-            <div className="mt-3 flex justify-center">
-              <div className="rounded-full bg-purple-600 px-4 py-1.5 text-sm font-bold text-white shadow-md">
-                {item.hangerId}
-              </div>
+          {/* Auto-numbered position badge */}
+          <div className="mt-3 flex justify-center">
+            <div className="rounded-full bg-purple-600 px-4 py-1.5 text-sm font-bold text-white shadow-md">
+              {item.hangerId || (position ? `#${position}` : '')}
             </div>
-          )}
+          </div>
         </div>
 
         {/* BACK SIDE - Quick Edit Form */}
