@@ -163,8 +163,22 @@ export const ClosetView: React.FC<ClosetViewProps> = ({ items, onItemClick, onIm
   };
 
   const renderRack = (rack: typeof RACKS[0]) => {
-    // Get items for this category
-    const rackItems = sortedItems.filter((item) => item.tags.includes(rack.category));
+    // Get items for this category and sort them by hangerId
+    const rackItems = sortedItems
+      .filter((item) => item.tags.includes(rack.category))
+      .sort((a, b) => {
+        // Sort by hangerId if both have them
+        if (a.hangerId && b.hangerId) {
+          // Extract numbers from hanger IDs (H1, L32, etc.)
+          const aNum = parseInt(a.hangerId.match(/\d+$/)?.[0] || '0');
+          const bNum = parseInt(b.hangerId.match(/\d+$/)?.[0] || '0');
+          return aNum - bNum;
+        }
+        // Items without hangerId go to the end
+        if (!a.hangerId) return 1;
+        if (!b.hangerId) return -1;
+        return 0;
+      });
 
     return (
       <div key={rack.number} className="mb-10">

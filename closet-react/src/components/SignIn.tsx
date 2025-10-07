@@ -36,6 +36,7 @@ export function SignIn() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     
     if (validateForm()) {
       signIn(email.trim(), name.trim());
