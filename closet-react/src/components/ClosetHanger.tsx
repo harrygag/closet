@@ -587,8 +587,42 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                     value={editData.ebayUrl || ''}
                     onChange={(e) => setEditData({ ...editData, ebayUrl: e.target.value })}
                     onClick={(e) => e.stopPropagation()}
-                    className="w-full rounded bg-gray-700 px-2 py-1 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
+                    className="w-full rounded bg-gray-700 px-2 py-1 text-[10px] text-white border border-gray-600 focus:border-blue-500 focus:outline-none"
                     placeholder="eBay URL"
+                  />
+                  <input
+                    type="url"
+                    value={editData.marketplaceUrls?.find(m => m.type === 'mercari')?.url || ''}
+                    onChange={(e) => {
+                      const urls = editData.marketplaceUrls || [];
+                      const mercariIndex = urls.findIndex(m => m.type === 'mercari');
+                      if (mercariIndex >= 0) {
+                        urls[mercariIndex] = { ...urls[mercariIndex], url: e.target.value };
+                      } else {
+                        urls.push({ type: 'mercari', url: e.target.value });
+                      }
+                      setEditData({ ...editData, marketplaceUrls: urls });
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-full rounded bg-gray-700 px-2 py-1 text-[10px] text-white border border-gray-600 focus:border-orange-500 focus:outline-none"
+                    placeholder="Mercari URL"
+                  />
+                  <input
+                    type="url"
+                    value={editData.marketplaceUrls?.find(m => m.type === 'poshmark')?.url || ''}
+                    onChange={(e) => {
+                      const urls = editData.marketplaceUrls || [];
+                      const poshIndex = urls.findIndex(m => m.type === 'poshmark');
+                      if (poshIndex >= 0) {
+                        urls[poshIndex] = { ...urls[poshIndex], url: e.target.value };
+                      } else {
+                        urls.push({ type: 'poshmark', url: e.target.value });
+                      }
+                      setEditData({ ...editData, marketplaceUrls: urls });
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-full rounded bg-gray-700 px-2 py-1 text-[10px] text-white border border-gray-600 focus:border-pink-500 focus:outline-none"
+                    placeholder="Poshmark URL"
                   />
                 </div>
 

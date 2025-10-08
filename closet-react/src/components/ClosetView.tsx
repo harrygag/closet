@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SkeletonCard } from './SkeletonCard';
 import {
@@ -39,7 +39,7 @@ interface SortableHangerProps {
   position?: number;
 }
 
-const SortableHanger: React.FC<SortableHangerProps> = ({ item, onItemClick, onImageUpload, onUpdate, position }) => {
+const SortableHanger: React.FC<SortableHangerProps> = memo(({ item, onItemClick, onImageUpload, onUpdate, position }) => {
   const {
     attributes,
     listeners,
@@ -66,7 +66,9 @@ const SortableHanger: React.FC<SortableHangerProps> = ({ item, onItemClick, onIm
       />
     </div>
   );
-};
+});
+
+SortableHanger.displayName = 'SortableHanger';
 
 // Define the 6 racks by category
 const RACKS: { number: number; category: ItemTag; label: string }[] = [
