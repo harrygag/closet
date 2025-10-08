@@ -290,6 +290,9 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
               {/* Marketplace section - integrated into card */}
               {marketplaceUrls.length > 0 && (
                 <div className="border-t border-gray-300 bg-gray-50 px-2 py-1.5 rounded-b-lg">
+                  <div className="text-[8px] text-center text-gray-500 mb-1">
+                    Found {marketplaceUrls.length} marketplace(s)
+                  </div>
                   <div className="flex justify-center gap-2">
                     {marketplaceUrls.slice(0, 3).map((marketplace, index) => {
                       const Icon = MARKETPLACE_ICONS[marketplace.type];
@@ -312,11 +315,9 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                           <div style={{ color: MARKETPLACE_COLORS[marketplace.type] }}>
                             <Icon className="h-3 w-3" />
                           </div>
-                          {netProfit > 0 && (
-                            <span className="text-[9px] font-bold text-green-600">
-                              ${netProfit}
-                            </span>
-                          )}
+                          <span className="text-[9px] font-bold text-green-600">
+                            ${netProfit > 0 ? netProfit : listPrice}
+                          </span>
                         </a>
                       );
                     })}
