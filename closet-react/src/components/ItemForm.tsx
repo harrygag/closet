@@ -111,30 +111,39 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Build marketplaceUrls array from individual URL fields
+    // Build marketplaceUrls array from individual URL and PRICE fields
     const marketplaceUrls = [];
-    if (formData.mercariUrl) {
+    
+    // Add Mercari if URL exists
+    if (formData.mercariUrl && formData.mercariUrl.trim()) {
       marketplaceUrls.push({
         type: 'mercari' as const,
-        url: formData.mercariUrl,
-        price: formData.mercariPrice || 0
+        url: formData.mercariUrl.trim(),
+        price: Number(formData.mercariPrice) || 0
       });
     }
-    if (formData.poshmarkUrl) {
+    
+    // Add Poshmark if URL exists
+    if (formData.poshmarkUrl && formData.poshmarkUrl.trim()) {
       marketplaceUrls.push({
         type: 'poshmark' as const,
-        url: formData.poshmarkUrl,
-        price: formData.poshmarkPrice || 0
+        url: formData.poshmarkUrl.trim(),
+        price: Number(formData.poshmarkPrice) || 0
       });
     }
+    
+    console.log('Form Submit - Built marketplace URLs:', marketplaceUrls);
     
     const itemData = {
       ...formData,
       marketplaceUrls,
+      sellingPrice: Number(formData.ebayPrice) || Number(formData.sellingPrice) || 0
     };
     
     // Remove the temporary URL and price fields
     const { mercariUrl, mercariPrice, poshmarkUrl, poshmarkPrice, ebayPrice, ...finalData } = itemData;
+    
+    console.log('Final data being saved:', finalData);
     
     if (editItem) {
       onSubmit({ ...editItem, ...finalData });
