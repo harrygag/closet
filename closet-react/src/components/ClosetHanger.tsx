@@ -437,17 +437,9 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
           )}
 
           {/* Footer - Marketplaces */}
-          <div className={`px-3 py-1.5 border-t-2 transition-all duration-300 ${
-            item.ebayUrl || (item.marketplaceUrls && item.marketplaceUrls.length > 0)
-              ? 'bg-gradient-to-r from-blue-500 via-orange-500 to-pink-500 border-yellow-600'
-              : 'bg-gray-200 border-gray-400'
-          }`}>
+          <div className="px-2.5 py-1.5 border-t-2 border-gray-400">
             <div className="flex items-center justify-between">
-              <span className={`text-[9px] font-bold ${
-                item.ebayUrl || (item.marketplaceUrls && item.marketplaceUrls.length > 0)
-                  ? 'text-white drop-shadow-md'
-                  : 'text-gray-700'
-              }`}>MARKETPLACES</span>
+              <span className="text-[9px] font-bold text-gray-700">MARKETPLACES</span>
               <div className="flex gap-1.5">
                 {/* eBay - Blue circle */}
                 <div
