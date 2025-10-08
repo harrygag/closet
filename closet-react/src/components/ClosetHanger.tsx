@@ -458,24 +458,6 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                   title={item.ebayUrl ? 'Click to copy eBay URL' : 'Not listed on eBay'}
                 />
 
-                {/* Mercari - Orange circle */}
-                <div
-                  className={`w-5 h-5 rounded-full transition-all border-2 ${
-                    item.marketplaceUrls?.some(m => m.type === 'mercari' && m.url)
-                      ? 'bg-orange-500 border-orange-600 hover:scale-110 cursor-pointer shadow-md'
-                      : 'bg-white border-gray-400'
-                  }`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const url = item.marketplaceUrls?.find(m => m.type === 'mercari' && m.url)?.url;
-                    if (url) {
-                      navigator.clipboard.writeText(url);
-                      toast.success('Mercari link copied');
-                    }
-                  }}
-                  title={item.marketplaceUrls?.some(m => m.type === 'mercari' && m.url) ? 'Click to copy Mercari URL' : 'Not listed on Mercari'}
-                />
-
                 {/* Poshmark - Pink circle */}
                 <div
                   className={`w-5 h-5 rounded-full transition-all border-2 ${
@@ -492,6 +474,24 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                     }
                   }}
                   title={item.marketplaceUrls?.some(m => m.type === 'poshmark' && m.url) ? 'Click to copy Poshmark URL' : 'Not listed on Poshmark'}
+                />
+
+                {/* Depop - Red circle */}
+                <div
+                  className={`w-5 h-5 rounded-full transition-all border-2 ${
+                    item.marketplaceUrls?.some(m => m.type === 'depop' && m.url)
+                      ? 'bg-red-500 border-red-600 hover:scale-110 cursor-pointer shadow-md'
+                      : 'bg-white border-gray-400'
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const url = item.marketplaceUrls?.find(m => m.type === 'depop' && m.url)?.url;
+                    if (url) {
+                      navigator.clipboard.writeText(url);
+                      toast.success('Depop link copied');
+                    }
+                  }}
+                  title={item.marketplaceUrls?.some(m => m.type === 'depop' && m.url) ? 'Click to copy Depop URL' : 'Not listed on Depop'}
                 />
               </div>
             </div>
@@ -592,20 +592,20 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                   />
                   <input
                     type="url"
-                    value={editData.marketplaceUrls?.find(m => m.type === 'mercari')?.url || ''}
+                    value={editData.marketplaceUrls?.find(m => m.type === 'depop')?.url || ''}
                     onChange={(e) => {
                       const urls = editData.marketplaceUrls || [];
-                      const mercariIndex = urls.findIndex(m => m.type === 'mercari');
-                      if (mercariIndex >= 0) {
-                        urls[mercariIndex] = { ...urls[mercariIndex], url: e.target.value };
+                      const depopIndex = urls.findIndex(m => m.type === 'depop');
+                      if (depopIndex >= 0) {
+                        urls[depopIndex] = { ...urls[depopIndex], url: e.target.value };
                       } else {
-                        urls.push({ type: 'mercari', url: e.target.value });
+                        urls.push({ type: 'depop', url: e.target.value });
                       }
                       setEditData({ ...editData, marketplaceUrls: urls });
                     }}
                     onClick={(e) => e.stopPropagation()}
-                    className="w-full rounded bg-gray-700 px-2 py-1 text-[10px] text-white border border-gray-600 focus:border-orange-500 focus:outline-none"
-                    placeholder="Mercari URL"
+                    className="w-full rounded bg-gray-700 px-2 py-1 text-[10px] text-white border border-gray-600 focus:border-red-500 focus:outline-none"
+                    placeholder="Depop URL"
                   />
                   <input
                     type="url"
