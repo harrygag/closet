@@ -1,7 +1,7 @@
 // Flippable playing card hanger component
 import React, { useState } from 'react';
-import type { Item } from '../types/item';
-import { parseMarketplaceUrls, MARKETPLACE_ICONS, MARKETPLACE_COLORS } from '../utils/marketplace';
+import type { Item, MarketplaceUrl } from '../types/item';
+import { MARKETPLACE_ICONS, MARKETPLACE_COLORS } from '../utils/marketplace';
 import { clsx } from 'clsx';
 import { Shirt, Upload, Save, X } from 'lucide-react';
 
@@ -38,13 +38,22 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
   const [isUploading, setIsUploading] = useState(false);
   const [editData, setEditData] = useState(item);
 
-  const marketplaceUrls = parseMarketplaceUrls(item.ebayUrl, item.marketplaceUrls?.map(m => m.url));
+  // Build complete marketplace list with eBay + others
+  const marketplaceUrls: MarketplaceUrl[] = [];
   
-  const getMarketplacePrice = (type: string) => {
-    if (type === 'ebay') return item.sellingPrice;
-    const marketplace = item.marketplaceUrls?.find(m => m.type === type);
-    return marketplace?.price || 0;
-  };
+  // Add eBay if URL exists
+  if (item.ebayUrl && item.ebayUrl.trim()) {
+    marketplaceUrls.push({
+      type: 'ebay',
+      url: item.ebayUrl,
+      price: item.sellingPrice
+    });
+  }
+  
+  // Add other marketplaces from marketplaceUrls array
+  if (item.marketplaceUrls && item.marketplaceUrls.length > 0) {
+    marketplaceUrls.push(...item.marketplaceUrls);
+  }
 
   const hasActiveListings = marketplaceUrls.length > 0;
 
@@ -280,10 +289,10 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                 />
                 
                 {marketplaceUrls.length > 0 && (
-                  <div className="flex gap-0.5 bg-gray-900/95 backdrop-blur-sm px-1 py-0.5 rounded-full border border-gray-700 shadow-lg">
+                  <div className="flex flex-col gap-0.5 bg-gray-900/95 backdrop-blur-sm px-1.5 py-1 rounded border border-gray-700 shadow-lg">
                     {marketplaceUrls.slice(0, 3).map((marketplace, index) => {
                       const Icon = MARKETPLACE_ICONS[marketplace.type];
-                      const price = getMarketplacePrice(marketplace.type);
+                      const price = marketplace.price || 0;
                       return (
                         <a
                           key={index}
@@ -291,11 +300,11 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={(e) => e.stopPropagation()}
-                          className="flex items-center gap-0.5 transition-transform hover:scale-110"
+                          className="flex items-center gap-1 transition-transform hover:scale-105"
                           title={`${marketplace.type}: $${price}`}
                           style={{ color: MARKETPLACE_COLORS[marketplace.type] }}
                         >
-                          <Icon className="h-2.5 w-2.5" />
+                          <Icon className="h-3 w-3" />
                           {price > 0 && (
                             <span className="text-[10px] font-bold text-white">
                               ${price}
