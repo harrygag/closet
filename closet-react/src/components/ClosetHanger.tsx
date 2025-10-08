@@ -508,9 +508,9 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
           }}
         >
           {/* Edit Form Card */}
-          <div className="flex justify-center">
+          <div className="flex justify-center" onClick={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>
             <div className="w-48 rounded-lg border-2 border-purple-500 bg-gradient-to-br from-gray-800 to-gray-900 p-3 shadow-2xl">
-              <div className="space-y-2">
+              <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
                 <p className="text-sm font-bold text-purple-400 text-center mb-2">QUICK EDIT</p>
                 
                 {/* Name */}
@@ -519,8 +519,13 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                   value={editData.name}
                   onChange={(e) => setEditData({ ...editData, name: e.target.value })}
                   onClick={(e) => e.stopPropagation()}
+                  onFocus={(e) => e.stopPropagation()}
+                  onBlur={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  onKeyUp={(e) => e.stopPropagation()}
                   className="w-full rounded bg-gray-700 px-2 py-1.5 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
                   placeholder="Item Name"
+                  autoFocus
                 />
                 
                 {/* Hanger ID */}
@@ -529,6 +534,8 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                   value={editData.hangerId}
                   onChange={(e) => setEditData({ ...editData, hangerId: e.target.value })}
                   onClick={(e) => e.stopPropagation()}
+                  onFocus={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
                   className="w-full rounded bg-gray-700 px-2 py-1.5 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none font-bold"
                   placeholder="Hanger ID"
                 />
@@ -540,6 +547,8 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                     value={editData.size}
                     onChange={(e) => setEditData({ ...editData, size: e.target.value })}
                     onClick={(e) => e.stopPropagation()}
+                    onFocus={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
                     className="w-full rounded bg-gray-700 px-2 py-1.5 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
                     placeholder="Size"
                   />
@@ -547,6 +556,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                     value={editData.status}
                     onChange={(e) => setEditData({ ...editData, status: e.target.value as any })}
                     onClick={(e) => e.stopPropagation()}
+                    onFocus={(e) => e.stopPropagation()}
                     aria-label="Status"
                     className="w-full rounded bg-gray-700 px-2 py-1.5 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
                   >
@@ -565,6 +575,8 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                     value={editData.costPrice || ''}
                     onChange={(e) => setEditData({ ...editData, costPrice: parseFloat(e.target.value) || 0 })}
                     onClick={(e) => e.stopPropagation()}
+                    onFocus={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
                     className="w-full rounded bg-gray-700 px-2 py-1.5 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
                     placeholder="Cost $"
                   />
@@ -574,6 +586,8 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                     value={editData.sellingPrice || ''}
                     onChange={(e) => setEditData({ ...editData, sellingPrice: parseFloat(e.target.value) || 0 })}
                     onClick={(e) => e.stopPropagation()}
+                    onFocus={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
                     className="w-full rounded bg-gray-700 px-2 py-1.5 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
                     placeholder="Selling $"
                   />
@@ -587,25 +601,10 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                     value={editData.ebayUrl || ''}
                     onChange={(e) => setEditData({ ...editData, ebayUrl: e.target.value })}
                     onClick={(e) => e.stopPropagation()}
+                    onFocus={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
                     className="w-full rounded bg-gray-700 px-2 py-1 text-[10px] text-white border border-gray-600 focus:border-blue-500 focus:outline-none"
                     placeholder="eBay URL"
-                  />
-                  <input
-                    type="url"
-                    value={editData.marketplaceUrls?.find(m => m.type === 'depop')?.url || ''}
-                    onChange={(e) => {
-                      const urls = editData.marketplaceUrls || [];
-                      const depopIndex = urls.findIndex(m => m.type === 'depop');
-                      if (depopIndex >= 0) {
-                        urls[depopIndex] = { ...urls[depopIndex], url: e.target.value };
-                      } else {
-                        urls.push({ type: 'depop', url: e.target.value });
-                      }
-                      setEditData({ ...editData, marketplaceUrls: urls });
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-full rounded bg-gray-700 px-2 py-1 text-[10px] text-white border border-gray-600 focus:border-red-500 focus:outline-none"
-                    placeholder="Depop URL"
                   />
                   <input
                     type="url"
@@ -621,8 +620,29 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                       setEditData({ ...editData, marketplaceUrls: urls });
                     }}
                     onClick={(e) => e.stopPropagation()}
+                    onFocus={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
                     className="w-full rounded bg-gray-700 px-2 py-1 text-[10px] text-white border border-gray-600 focus:border-pink-500 focus:outline-none"
                     placeholder="Poshmark URL"
+                  />
+                  <input
+                    type="url"
+                    value={editData.marketplaceUrls?.find(m => m.type === 'depop')?.url || ''}
+                    onChange={(e) => {
+                      const urls = editData.marketplaceUrls || [];
+                      const depopIndex = urls.findIndex(m => m.type === 'depop');
+                      if (depopIndex >= 0) {
+                        urls[depopIndex] = { ...urls[depopIndex], url: e.target.value };
+                      } else {
+                        urls.push({ type: 'depop', url: e.target.value });
+                      }
+                      setEditData({ ...editData, marketplaceUrls: urls });
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    onFocus={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                    className="w-full rounded bg-gray-700 px-2 py-1 text-[10px] text-white border border-gray-600 focus:border-red-500 focus:outline-none"
+                    placeholder="Depop URL"
                   />
                 </div>
 
