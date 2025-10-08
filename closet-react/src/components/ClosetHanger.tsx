@@ -74,13 +74,13 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
   const daysSinceList = Math.floor((today.getTime() - listingDate.getTime()) / (1000 * 60 * 60 * 24));
   const daysListed = daysSinceList;
   
-  // HP Calculation (31 days = 310 HP, counts down 10 HP per day)
+  // HP Calculation (31 days countdown - HP = days remaining)
   const DAYS_UNTIL_ELIMINATION = 31;
   
   const getHP = (): number => {
     const daysRemaining = DAYS_UNTIL_ELIMINATION - daysListed;
     if (daysRemaining <= 0) return 0;
-    return daysRemaining * 10;
+    return daysRemaining; // HP directly equals days remaining
   };
   
   const isEliminated = (): boolean => {
