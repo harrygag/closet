@@ -229,9 +229,11 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
             </svg>
           </div>
 
-          {/* Item Card - ORIGINAL SIZE with bigger mobile fonts */}
+          {/* Item Card - Extended with marketplace section */}
           <div className="flex justify-center -mt-2">
-            <div className="relative flex h-32 w-24 flex-col rounded-lg border-2 border-gray-600 bg-white shadow-xl transition-all duration-300 group-hover:shadow-2xl group-hover:border-purple-500">
+            <div className="relative flex flex-col rounded-lg border-2 border-gray-600 bg-white shadow-xl transition-all duration-300 group-hover:shadow-2xl group-hover:border-purple-500 w-24">
+              {/* Main card content */}
+              <div className="flex flex-col h-32">
               {/* Upload indicator */}
               {(isDropping || isUploading) && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-lg z-10">
@@ -263,19 +265,52 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                 )}
               </div>
 
-              {/* Bottom info bar - Bigger font */}
-              <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-2 py-1 rounded-b-lg">
-                <p
-                  className="text-sm font-bold text-white truncate text-center cursor-pointer hover:bg-white/10 rounded px-1 transition-colors"
-                  onDoubleClick={handleTitleDoubleClick}
-                  title="Double-click to copy"
-                >
-                  {item.name}
-                </p>
-                {item.size && (
-                  <p className="text-xs text-purple-100 text-center">{item.size}</p>
-                )}
+                {/* Bottom info bar - Bigger font */}
+                <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-2 py-1">
+                  <p
+                    className="text-sm font-bold text-white truncate text-center cursor-pointer hover:bg-white/10 rounded px-1 transition-colors"
+                    onDoubleClick={handleTitleDoubleClick}
+                    title="Double-click to copy"
+                  >
+                    {item.name}
+                  </p>
+                  {item.size && (
+                    <p className="text-xs text-purple-100 text-center">{item.size}</p>
+                  )}
+                </div>
               </div>
+
+              {/* Marketplace section - integrated into card */}
+              {marketplaceUrls.length > 0 && (
+                <div className="border-t border-gray-300 bg-gray-50 px-2 py-1.5 rounded-b-lg">
+                  <div className="flex justify-center gap-2">
+                    {marketplaceUrls.slice(0, 3).map((marketplace, index) => {
+                      const Icon = MARKETPLACE_ICONS[marketplace.type];
+                      const price = marketplace.price || 0;
+                      return (
+                        <a
+                          key={index}
+                          href={marketplace.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="flex flex-col items-center gap-0.5 transition-transform hover:scale-110"
+                          title={`${marketplace.type}: $${price}`}
+                        >
+                          <div style={{ color: MARKETPLACE_COLORS[marketplace.type] }}>
+                            <Icon className="h-3 w-3" />
+                          </div>
+                          {price > 0 && (
+                            <span className="text-[9px] font-bold text-gray-800">
+                              ${price}
+                            </span>
+                          )}
+                        </a>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Hanger ID Badge (top right) */}
               <div className="absolute -top-3 -right-3">
@@ -309,38 +344,6 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
               )}
             </div>
           </div>
-
-          {/* Marketplace Icons - Clean layout below card */}
-          {marketplaceUrls.length > 0 && (
-            <div className="mt-2 flex justify-center">
-              <div className="flex gap-2 bg-gray-800/90 backdrop-blur-sm px-3 py-2 rounded-lg border border-gray-600 shadow-lg">
-                {marketplaceUrls.slice(0, 3).map((marketplace, index) => {
-                  const Icon = MARKETPLACE_ICONS[marketplace.type];
-                  const price = marketplace.price || 0;
-                  return (
-                    <a
-                      key={index}
-                      href={marketplace.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="flex flex-col items-center gap-1 transition-transform hover:scale-110"
-                      title={`${marketplace.type}: $${price}`}
-                    >
-                      <div style={{ color: MARKETPLACE_COLORS[marketplace.type] }}>
-                        <Icon className="h-4 w-4" />
-                      </div>
-                      {price > 0 && (
-                        <span className="text-xs font-bold text-white">
-                          ${price}
-                        </span>
-                      )}
-                    </a>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* BACK SIDE - Quick Edit Form */}
