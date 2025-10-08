@@ -601,8 +601,11 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                     value={editData.ebayUrl || ''}
                     onChange={(e) => setEditData({ ...editData, ebayUrl: e.target.value })}
                     onClick={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onDoubleClick={(e) => e.stopPropagation()}
                     onFocus={(e) => e.stopPropagation()}
                     onKeyDown={(e) => e.stopPropagation()}
+                    onKeyUp={(e) => e.stopPropagation()}
                     className="w-full rounded bg-gray-700 px-2 py-1 text-[10px] text-white border border-gray-600 focus:border-blue-500 focus:outline-none"
                     placeholder="eBay URL"
                   />
@@ -620,8 +623,11 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                       setEditData({ ...editData, marketplaceUrls: urls });
                     }}
                     onClick={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onDoubleClick={(e) => e.stopPropagation()}
                     onFocus={(e) => e.stopPropagation()}
                     onKeyDown={(e) => e.stopPropagation()}
+                    onKeyUp={(e) => e.stopPropagation()}
                     className="w-full rounded bg-gray-700 px-2 py-1 text-[10px] text-white border border-gray-600 focus:border-pink-500 focus:outline-none"
                     placeholder="Poshmark URL"
                   />
@@ -639,8 +645,11 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                       setEditData({ ...editData, marketplaceUrls: urls });
                     }}
                     onClick={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onDoubleClick={(e) => e.stopPropagation()}
                     onFocus={(e) => e.stopPropagation()}
                     onKeyDown={(e) => e.stopPropagation()}
+                    onKeyUp={(e) => e.stopPropagation()}
                     className="w-full rounded bg-gray-700 px-2 py-1 text-[10px] text-white border border-gray-600 focus:border-red-500 focus:outline-none"
                     placeholder="Depop URL"
                   />
