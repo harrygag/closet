@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Accessibility: Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Custom scrollbar styles for closet view */
 @layer utilities {
   .scrollbar-thin::-webkit-scrollbar {
@@ -16,6 +28,16 @@
   .scrollbar-track-gray-700::-webkit-scrollbar-track {
     background-color: rgb(55 65 81);
     border-radius: 9999px;
+  }
+}
+
+/* Pokemon card sway animation */
+@keyframes sway {
+  0%, 100% {
+    transform: rotate(-1deg);
+  }
+  50% {
+    transform: rotate(1deg);
   }
 }
 

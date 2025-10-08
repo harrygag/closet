@@ -44,18 +44,18 @@ export function SignIn() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-900 px-4">
       <div className="w-full max-w-md">
         {/* Logo/Header */}
         <div className="mb-8 text-center">
-          <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500">
-            <LogIn className="h-8 w-8 text-white" />
+          <div className="mb-4 inline-flex h-20 w-20 items-center justify-center rounded-full bg-gray-800 border-2 border-gray-600">
+            <span className="text-5xl">⚡</span>
           </div>
-          <h1 className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-4xl font-bold text-transparent">
-            Virtual Closet
+          <h1 className="bg-gradient-to-r from-gray-300 via-white to-gray-400 bg-clip-text text-4xl font-bold text-transparent">
+            Pokemon Closet Trainer
           </h1>
           <p className="mt-2 text-gray-400">
-            Manage your apparel inventory with ease
+            Manage your Pokemon card collection
           </p>
         </div>
 

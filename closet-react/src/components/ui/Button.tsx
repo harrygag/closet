@@ -1,10 +1,12 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { clsx } from 'clsx';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   children: React.ReactNode;
+  loading?: boolean;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -13,6 +15,7 @@ export const Button: React.FC<ButtonProps> = ({
   className,
   children,
   disabled,
+  loading = false,
   ...props
 }) => {
   const baseStyles = 'inline-flex items-center justify-center rounded-lg font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
@@ -30,13 +33,34 @@ export const Button: React.FC<ButtonProps> = ({
     lg: 'px-6 py-3 text-lg',
   };
 
+  const { 
+    onDrag, 
+    onDragStart, 
+    onDragEnd, 
+    onAnimationStart, 
+    onAnimationEnd, 
+    onTransitionEnd,
+    ...motionProps 
+  } = props;
+  
   return (
-    <button
+    <motion.button
       className={clsx(baseStyles, variantStyles[variant], sizeStyles[size], className)}
-      disabled={disabled}
-      {...props}
+      disabled={disabled || loading}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+      {...motionProps}
     >
-      {children}
-    </button>
+      {loading ? (
+        <motion.div
+          className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        />
+      ) : (
+        children
+      )}
+    </motion.button>
   );
 };

@@ -1,10 +1,25 @@
-// Flippable playing card hanger component
+// Flippable Pokemon card hanger component
 import React, { useState } from 'react';
-import type { Item, MarketplaceUrl } from '../types/item';
-import { MARKETPLACE_ICONS, MARKETPLACE_COLORS } from '../utils/marketplace';
-import { calculateMarketplaceFees } from '../utils/marketplace-fees';
+import type { Item, ItemTag } from '../types/item';
 import { clsx } from 'clsx';
-import { Shirt, Upload, Save, X } from 'lucide-react';
+import { Save, X, Image as ImageIcon } from 'lucide-react';
+
+// Pokemon energy types for each category
+const ENERGY_TYPES: Record<ItemTag, { symbol: string; color: string; name: string }> = {
+  'Hoodie': { symbol: '🔥', color: 'text-red-500', name: 'Fire' },
+  'Jersey': { symbol: '⚡', color: 'text-yellow-500', name: 'Electric' },
+  'polo': { symbol: '💧', color: 'text-blue-500', name: 'Water' },
+  'Pullover/Jackets': { symbol: '🌿', color: 'text-green-500', name: 'Grass' },
+  'T-shirts': { symbol: '💨', color: 'text-gray-400', name: 'Flying' },
+  'Bottoms': { symbol: '🪨', color: 'text-orange-600', name: 'Fighting' },
+};
+
+// Toast notification helper
+const toast = {
+  success: (message: string) => {
+    console.log('✓', message);
+  }
+};
 
 interface ClosetHangerProps {
   item: Item;
@@ -20,49 +35,106 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
   onImageUpload,
   onUpdate,
   isDragging = false,
-  position
 }) => {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  
-  // Get badge color based on category
-  const getBadgeColor = () => {
-    if (item.tags.includes('polo')) return 'bg-white text-gray-900 border-2 border-gray-300';
-    if (item.tags.includes('Hoodie')) return 'bg-pink-500 text-white';
-    if (item.tags.includes('T-shirts')) return 'bg-blue-500 text-white';
-    if (item.tags.includes('Jersey')) return 'bg-green-500 text-white';
-    if (item.tags.includes('Pullover/Jackets')) return 'bg-red-500 text-white';
-    if (item.tags.includes('Bottoms')) return 'bg-orange-500 text-white';
-    return 'bg-purple-600 text-white'; // Default
-  };
   const [isFlipped, setIsFlipped] = useState(false);
   const [isDropping, setIsDropping] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [editData, setEditData] = useState(item);
-
-  // Build complete marketplace list with eBay + others
-  const marketplaceUrls: MarketplaceUrl[] = [];
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   
-  // Add eBay if URL exists
-  if (item.ebayUrl && item.ebayUrl.trim()) {
-    marketplaceUrls.push({
-      type: 'ebay',
-      url: item.ebayUrl,
-      price: item.sellingPrice
-    });
-  }
+  // Get energy type based on primary tag
+  const energyType = item.tags.length > 0 
+    ? ENERGY_TYPES[item.tags[0]] 
+    : { symbol: '⭐', color: 'text-purple-500', name: 'Normal' };
   
-  // Add other marketplaces from marketplaceUrls array
-  if (item.marketplaceUrls && item.marketplaceUrls.length > 0) {
-    marketplaceUrls.push(...item.marketplaceUrls);
-  }
+  // Image gallery - support up to 5 images stored as JSON in notes field
+  const getImageGallery = (): string[] => {
+    try {
+      if (item.notes && item.notes.startsWith('[')) {
+        const parsed = JSON.parse(item.notes);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(img => img && typeof img === 'string');
+        }
+      }
+    } catch {}
+    return item.imageUrl ? [item.imageUrl] : [];
+  };
+  
+  const imageGallery = getImageGallery();
 
-  // Debug logging
-  console.log('Item:', item.name);
-  console.log('eBay URL:', item.ebayUrl, 'Price:', item.sellingPrice);
-  console.log('Marketplace URLs:', item.marketplaceUrls);
-  console.log('Combined URLs:', marketplaceUrls);
-
-  const hasActiveListings = marketplaceUrls.length > 0;
+  // Calculate days since listing (use dateField or dateAdded)
+  const getListingDate = () => {
+    const dateStr = item.dateField || item.dateAdded;
+    if (!dateStr) return new Date();
+    return new Date(dateStr);
+  };
+  
+  const listingDate = getListingDate();
+  const today = new Date();
+  const daysSinceList = Math.floor((today.getTime() - listingDate.getTime()) / (1000 * 60 * 60 * 24));
+  const daysListed = daysSinceList;
+  
+  // HP Calculation (31 days = 310 HP, counts down 10 HP per day)
+  const DAYS_UNTIL_ELIMINATION = 31;
+  
+  const getHP = (): number => {
+    const daysRemaining = DAYS_UNTIL_ELIMINATION - daysListed;
+    if (daysRemaining <= 0) return 0;
+    return daysRemaining * 10;
+  };
+  
+  const isEliminated = (): boolean => {
+    return daysListed >= DAYS_UNTIL_ELIMINATION;
+  };
+  
+  // Warning system
+  const getWarnings = (): { type: 'red' | 'yellow'; message: string }[] => {
+    const warnings: { type: 'red' | 'yellow'; message: string }[] = [];
+    
+    // RED warnings (critical)
+    if (item.status === 'Inactive') {
+      warnings.push({ type: 'red', message: 'Item is Inactive' });
+    }
+    if (!item.ebayUrl && (!item.marketplaceUrls || item.marketplaceUrls.length === 0)) {
+      warnings.push({ type: 'red', message: 'No marketplace URL' });
+    }
+    if (!item.sellingPrice || item.sellingPrice === 0) {
+      warnings.push({ type: 'red', message: 'No price set' });
+    }
+    
+    // YELLOW warnings (minor)
+    if (!item.imageUrl && imageGallery.length === 0) {
+      warnings.push({ type: 'yellow', message: 'No images' });
+    }
+    if (!item.size) {
+      warnings.push({ type: 'yellow', message: 'No size' });
+    }
+    if (!item.hangerId) {
+      warnings.push({ type: 'yellow', message: 'No hanger ID' });
+    }
+    
+    return warnings;
+  };
+  
+  const warnings = getWarnings();
+  const hasRedWarnings = warnings.some(w => w.type === 'red');
+  const hasYellowWarnings = warnings.some(w => w.type === 'yellow');
+  
+  // Format helpers
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+  
+  const formatDays = (days: number): string => {
+    if (days === 0) return 'today';
+    if (days === 1) return '1 day ago';
+    return `${days} days ago`;
+  };
 
   // Sync editData when item prop changes
   React.useEffect(() => {
@@ -93,46 +165,40 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
     const imageFile = files.find(file => file.type.startsWith('image/'));
 
     if (imageFile && onImageUpload) {
-      setIsUploading(true);
       try {
         const reader = new FileReader();
         reader.onloadend = () => {
           const imageUrl = reader.result as string;
           onImageUpload(item.id, imageUrl);
-          setIsUploading(false);
-        };
-        reader.onerror = () => {
-          console.error('Failed to read file');
-          setIsUploading(false);
         };
         reader.readAsDataURL(imageFile);
       } catch (error) {
         console.error('Failed to upload image:', error);
-        setIsUploading(false);
       }
     }
   };
 
-  const handleImageClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!isFlipped && fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const file = e.target.files?.[0];
     if (file && file.type.startsWith('image/') && onImageUpload) {
-      setIsUploading(true);
       const reader = new FileReader();
       reader.onloadend = () => {
         const imageUrl = reader.result as string;
-        onImageUpload(item.id, imageUrl);
-        setIsUploading(false);
-      };
-      reader.onerror = () => {
-        console.error('Failed to read file');
-        setIsUploading(false);
+        
+        // Update image gallery
+        const newGallery = [...imageGallery];
+        newGallery[index] = imageUrl;
+        
+        // Store gallery in notes field as JSON
+        const updatedItem = {
+          ...item,
+          imageUrl: newGallery[0] || '',
+          notes: JSON.stringify(newGallery.filter(img => img))
+        };
+        
+        if (onUpdate) {
+          onUpdate(updatedItem);
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -143,6 +209,11 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
     if (!isDragging) {
       setIsFlipped(!isFlipped);
     }
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsFlipped(!isFlipped);
   };
 
   const handleSave = (e: React.MouseEvent) => {
@@ -157,22 +228,6 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
     e.stopPropagation();
     setEditData(item);
     setIsFlipped(false);
-  };
-
-  const handleTitleDoubleClick = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      await navigator.clipboard.writeText(item.name);
-      // Visual feedback - could add a toast notification here
-      const target = e.currentTarget as HTMLElement;
-      const originalText = target.textContent;
-      target.textContent = '✓ Copied!';
-      setTimeout(() => {
-        target.textContent = originalText;
-      }, 1000);
-    } catch (err) {
-      console.error('Failed to copy:', err);
-    }
   };
 
   return (
@@ -197,7 +252,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        onChange={handleFileSelect}
+        onChange={(e) => handleFileSelect(e, selectedImageIndex)}
         className="hidden"
         aria-label="Upload item photo"
       />
@@ -211,150 +266,240 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
           transition: 'transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)',
         }}
       >
-        {/* FRONT SIDE */}
+        {/* FRONT SIDE - Pokemon Card */}
         <div
-          className="w-full"
+          className="relative rounded-xl overflow-hidden shadow-xl border-[8px] border-yellow-400"
+          onDoubleClick={handleDoubleClick}
           style={{
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden',
+            background: '#FFFACD',
+            width: '200px',
+            maxWidth: '85vw',
           }}
         >
-          {/* Hanger Hook */}
-          <div className="flex justify-center">
-            <div className="h-6 w-0.5 bg-gradient-to-b from-gray-500 to-gray-600 rounded-full" />
+          {/* Header - Name, Energy Type (left), and HP (right) */}
+          <div className="px-2.5 py-1 pb-0">
+            <div className="flex justify-between items-start">
+              {/* Left: Energy Type Symbol */}
+              <div className="flex items-center gap-1">
+                <span className="text-lg leading-none">{energyType.symbol}</span>
+              </div>
+              
+              {/* Right: HP */}
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <span className="text-xs text-gray-700 font-bold">HP</span>
+                <span className={`font-bold text-lg leading-none ${isEliminated() ? 'text-gray-500' : 'text-red-600'}`}>
+                  {isEliminated() ? "0" : getHP()}
+                </span>
+              </div>
+            </div>
+            
+            {/* Item Name - below energy and HP */}
+            <h3 className="text-gray-900 font-bold text-sm leading-tight mt-0.5" style={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}>
+              {item.name}
+            </h3>
+            
+            {isEliminated() && (
+              <div className="text-[7px] text-red-600 font-bold text-center bg-red-100 rounded px-1 mt-0.5">
+                ELIMINATED - RELIST NOW
+              </div>
+            )}
           </div>
 
-          {/* Hanger Top */}
-          <div className="flex justify-center -mt-1">
-            <svg width="60" height="20" viewBox="0 0 60 20">
-              <path
-                d="M 30 0 Q 30 8, 22 12 L 8 12 Q 4 12, 4 16 L 4 18 Q 4 20, 6 20 L 54 20 Q 56 20, 56 18 L 56 16 Q 56 12, 52 12 L 38 12 Q 30 8, 30 0"
-                fill="#6B7280"
-                stroke="#4B5563"
-                strokeWidth="0.5"
-              />
-            </svg>
-          </div>
-
-          {/* Item Card - Extended with marketplace section */}
-          <div className="flex justify-center -mt-2">
-            <div className="relative flex flex-col rounded-lg border-2 border-gray-600 bg-white shadow-xl transition-all duration-300 group-hover:shadow-2xl group-hover:border-purple-500 w-24">
-              {/* Main card content */}
-              <div className="flex flex-col h-32">
-              {/* Upload indicator */}
-              {(isDropping || isUploading) && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-lg z-10">
-                  {isUploading ? (
-                    <div className="text-white text-xs font-bold">Uploading...</div>
-                  ) : (
-                    <Upload className="h-10 w-10 text-purple-400 animate-bounce" />
-                  )}
-                </div>
-              )}
-
-              {/* Image */}
-              <div
-                className="flex-1 flex items-center justify-center p-1 cursor-pointer"
-                onClick={handleImageClick}
-              >
-                {item.imageUrl && item.imageUrl.trim() !== '' ? (
-                  <img
-                    src={item.imageUrl}
-                    alt={item.name}
-                    className="h-full w-full object-cover rounded"
-                    key={item.imageUrl}
-                  />
-                ) : (
-                  <div className="flex flex-col items-center justify-center gap-1 hover:scale-105 transition-transform">
-                    <Shirt className="h-10 w-10 text-gray-400" />
-                    <p className="text-sm font-bold text-gray-700">Click or Drop</p>
-                  </div>
-                )}
-              </div>
-
-                {/* Bottom info bar - Bigger font */}
-                <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-2 py-1">
-                  <p
-                    className="text-sm font-bold text-white truncate text-center cursor-pointer hover:bg-white/10 rounded px-1 transition-colors"
-                    onDoubleClick={handleTitleDoubleClick}
-                    title="Double-click to copy"
-                  >
-                    {item.name}
-                  </p>
-                  {item.size && (
-                    <p className="text-xs text-purple-100 text-center">{item.size}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Marketplace section - integrated into card */}
-              {marketplaceUrls.length > 0 && (
-                <div className="border-t border-gray-300 bg-gray-50 px-2 py-1.5 rounded-b-lg">
-                  <div className="text-[8px] text-center text-gray-500 mb-1">
-                    Found {marketplaceUrls.length} marketplace(s)
-                  </div>
-                  <div className="flex justify-center gap-2">
-                    {marketplaceUrls.slice(0, 3).map((marketplace, index) => {
-                      const Icon = MARKETPLACE_ICONS[marketplace.type];
-                      const listPrice = marketplace.price || 0;
-                      const calc = listPrice > 0 ? calculateMarketplaceFees(marketplace.type, listPrice) : null;
-                      const netProfit = calc?.netProfit || 0;
-                      
-                      console.log(`${marketplace.type}: List $${listPrice} → Net $${netProfit}`);
-                      
-                      return (
-                        <a
-                          key={index}
-                          href={marketplace.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="flex flex-col items-center gap-0.5 transition-transform hover:scale-110"
-                          title={`${marketplace.type}: $${listPrice} → $${netProfit} net`}
-                        >
-                          <div style={{ color: MARKETPLACE_COLORS[marketplace.type] }}>
-                            <Icon className="h-3 w-3" />
-                          </div>
-                          <span className="text-[9px] font-bold text-green-600">
-                            ${netProfit > 0 ? netProfit : listPrice}
-                          </span>
-                        </a>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Hanger ID Badge (top right) */}
-              <div className="absolute -top-3 -right-3">
-                <div className={clsx(
-                  'rounded-full px-3 py-1 text-xs font-bold shadow-lg border-2 border-white',
-                  getBadgeColor()
-                )}>
-                  {item.hangerId || (position ? `#${position}` : '?')}
-                </div>
-              </div>
-
-              {/* Status Dot (top left) */}
-              <div className="absolute -top-2 -left-2">
-                <div
-                  className={clsx(
-                    'h-4 w-4 rounded-full border-2 border-white shadow-lg',
-                    hasActiveListings && item.status === 'Active' && 'bg-green-500',
-                    (!hasActiveListings || item.status === 'Inactive') && 'bg-yellow-500',
-                    item.status === 'SOLD' && 'bg-blue-500'
-                  )}
+          {/* Main Image */}
+          <div className="px-2.5">
+            <div className="relative h-28 bg-gradient-to-br from-white to-gray-100 rounded border border-gray-300 overflow-hidden cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+                document.getElementById(`main-file-input-${item.id}`)?.click();
+              }}
+            >
+              {imageGallery[selectedImageIndex] ? (
+                <img
+                  src={imageGallery[selectedImageIndex]}
+                  alt={item.name}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
                 />
-              </div>
-
-              {/* SOLD Badge */}
-              {item.status === 'SOLD' && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="rotate-12 rounded bg-blue-600 px-2 py-1 text-sm font-bold text-white shadow-xl border-2 border-blue-400">
-                    SOLD
-                  </div>
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center">
+                  <ImageIcon className="w-8 h-8 text-gray-400 mb-1" />
+                  <span className="text-[9px] text-gray-500 font-medium">Tap to add</span>
                 </div>
               )}
+              <input
+                id={`main-file-input-${item.id}`}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(e) => handleFileSelect(e, selectedImageIndex)}
+                aria-label={`Upload photo ${selectedImageIndex + 1} for ${item.name}`}
+              />
+            </div>
+            
+            {/* Thumbnails */}
+            <div className="flex gap-0.5 mt-1 mb-1">
+              {[0, 1, 2, 3, 4].map((idx) => (
+                <div
+                  key={idx}
+                  className={clsx(
+                    "w-6 h-6 rounded border cursor-pointer overflow-hidden flex-shrink-0",
+                    selectedImageIndex === idx ? "border-blue-600 border-2" : "border-gray-400"
+                  )}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (imageGallery[idx]) {
+                      setSelectedImageIndex(idx);
+                    } else {
+                      document.getElementById(`thumb-input-${item.id}-${idx}`)?.click();
+                    }
+                  }}
+                >
+                  {imageGallery[idx] ? (
+                    <img src={imageGallery[idx]} alt="" className="w-full h-full object-cover" loading="lazy" />
+                  ) : (
+                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                      <ImageIcon className="w-3 h-3 text-gray-400" />
+                    </div>
+                  )}
+                  <input
+                    id={`thumb-input-${item.id}-${idx}`}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => handleFileSelect(e, idx)}
+                    aria-label={`Upload photo ${idx + 1} for ${item.name}`}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Attacks */}
+          <div className="px-2.5 py-1 space-y-1">
+            {/* Attack 1 - Hanger ID & Size */}
+            <div className="flex items-start gap-1.5 border-b border-gray-300 pb-1">
+              <span className="text-[10px] flex-shrink-0 pt-0.5">{energyType.symbol}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-start">
+                  <div className="min-w-0">
+                    <div className="text-gray-900 font-bold text-[9px]">Hanger ID</div>
+                    <div className="text-gray-600 text-[7px] mt-0.5">Size: {item.size || 'N/A'}</div>
+                  </div>
+                  <div className="text-purple-600 font-bold text-sm leading-none flex-shrink-0 ml-1.5">
+                    {item.hangerId || '-'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Attack 2 - Price */}
+            <div className="flex items-start gap-1.5">
+              <div className="flex gap-0.5 flex-shrink-0 pt-0.5">
+                <span className="text-[10px]">{energyType.symbol}</span>
+                <span className="text-[10px]">{energyType.symbol}</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-start">
+                  <div className="min-w-0">
+                    <div className="text-gray-900 font-bold text-[9px]">Sale Price</div>
+                    <div className="text-gray-600 text-[7px] mt-0.5">Listed {formatDays(daysListed)}</div>
+                  </div>
+                  <div className="text-red-600 font-bold text-sm leading-none flex-shrink-0 ml-1.5">
+                    {formatCurrency(item.sellingPrice || 0)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Warning Icons - Top Right Corner */}
+          {(hasRedWarnings || hasYellowWarnings) && (
+            <div className="absolute top-1 right-1 z-10 flex gap-0.5" title={warnings.map(w => w.message).join(', ')}>
+              {hasRedWarnings && (
+                <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center shadow-md border-2 border-white">
+                  <span className="text-white text-[10px] font-bold">!</span>
+                </div>
+              )}
+              {hasYellowWarnings && !hasRedWarnings && (
+                <div className="w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center shadow-md border-2 border-white">
+                  <span className="text-black text-[10px] font-bold">⚠</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Footer - Marketplaces */}
+          <div className="px-3 py-1.5 border-t border-gray-400">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-700 text-[9px] font-bold">MARKETPLACES</span>
+              <div className="flex gap-1">
+                {/* eBay */}
+                <div
+                  className={`w-6 h-6 rounded transition-all flex items-center justify-center ${
+                    item.ebayUrl ? 'bg-blue-500 hover:bg-blue-600 cursor-pointer shadow-sm' : 'bg-gray-300'
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (item.ebayUrl) {
+                      navigator.clipboard.writeText(item.ebayUrl);
+                      toast.success('eBay link copied');
+                    }
+                  }}
+                  title={item.ebayUrl ? 'eBay' : 'Not on eBay'}
+                >
+                  <span className={`text-[10px] font-bold ${item.ebayUrl ? 'text-white' : 'text-gray-500'}`}>e</span>
+                </div>
+
+                {/* Mercari */}
+                <div
+                  className={`w-6 h-6 rounded transition-all flex items-center justify-center ${
+                    item.marketplaceUrls?.some(m => m.type === 'mercari' && m.url)
+                      ? 'bg-orange-500 hover:bg-orange-600 cursor-pointer shadow-sm' : 'bg-gray-300'
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const url = item.marketplaceUrls?.find(m => m.type === 'mercari' && m.url)?.url;
+                    if (url) {
+                      navigator.clipboard.writeText(url);
+                      toast.success('Mercari link copied');
+                    }
+                  }}
+                  title={item.marketplaceUrls?.some(m => m.type === 'mercari' && m.url) ? 'Mercari' : 'Not on Mercari'}
+                >
+                  <span className={`text-[10px] font-bold ${
+                    item.marketplaceUrls?.some(m => m.type === 'mercari' && m.url) ? 'text-white' : 'text-gray-500'
+                  }`}>M</span>
+                </div>
+
+                {/* Poshmark */}
+                <div
+                  className={`w-6 h-6 rounded transition-all flex items-center justify-center ${
+                    item.marketplaceUrls?.some(m => m.type === 'poshmark' && m.url)
+                      ? 'bg-pink-500 hover:bg-pink-600 cursor-pointer shadow-sm' : 'bg-gray-300'
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const url = item.marketplaceUrls?.find(m => m.type === 'poshmark' && m.url)?.url;
+                    if (url) {
+                      navigator.clipboard.writeText(url);
+                      toast.success('Poshmark link copied');
+                    }
+                  }}
+                  title={item.marketplaceUrls?.some(m => m.type === 'poshmark' && m.url) ? 'Poshmark' : 'Not on Poshmark'}
+                >
+                  <span className={`text-[10px] font-bold ${
+                    item.marketplaceUrls?.some(m => m.type === 'poshmark' && m.url) ? 'text-white' : 'text-gray-500'
+                  }`}>P</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -368,26 +513,9 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
             transform: 'rotateY(180deg)',
           }}
         >
-          {/* Hanger Hook */}
-          <div className="flex justify-center">
-            <div className="h-8 w-1 bg-gradient-to-b from-gray-500 to-gray-600 rounded-full" />
-          </div>
-
-          {/* Hanger Top */}
-          <div className="flex justify-center -mt-1">
-            <svg width="120" height="30" viewBox="0 0 60 20">
-              <path
-                d="M 30 0 Q 30 8, 22 12 L 8 12 Q 4 12, 4 16 L 4 18 Q 4 20, 6 20 L 54 20 Q 56 20, 56 18 L 56 16 Q 56 12, 52 12 L 38 12 Q 30 8, 30 0"
-                fill="#6B7280"
-                stroke="#4B5563"
-                strokeWidth="0.5"
-              />
-            </svg>
-          </div>
-
           {/* Edit Form Card */}
-          <div className="flex justify-center -mt-2">
-            <div className="w-40 rounded-lg border-2 border-purple-500 bg-gradient-to-br from-gray-800 to-gray-900 p-3 shadow-2xl">
+          <div className="flex justify-center">
+            <div className="w-48 rounded-lg border-2 border-purple-500 bg-gradient-to-br from-gray-800 to-gray-900 p-3 shadow-2xl">
               <div className="space-y-2">
                 <p className="text-sm font-bold text-purple-400 text-center mb-2">QUICK EDIT</p>
                 
@@ -456,16 +584,6 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                     placeholder="Selling $"
                   />
                 </div>
-                
-                {/* Image URL */}
-                <input
-                  type="url"
-                  value={editData.imageUrl || ''}
-                  onChange={(e) => setEditData({ ...editData, imageUrl: e.target.value })}
-                  onClick={(e) => e.stopPropagation()}
-                  className="w-full rounded bg-gray-700 px-2 py-1.5 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
-                  placeholder="Image URL or drop file"
-                />
 
                 {/* Marketplace URLs */}
                 <div className="space-y-1">
@@ -477,40 +595,6 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                     onClick={(e) => e.stopPropagation()}
                     className="w-full rounded bg-gray-700 px-2 py-1 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
                     placeholder="eBay URL"
-                  />
-                  <input
-                    type="url"
-                    value={editData.marketplaceUrls?.find(m => m.type === 'mercari')?.url || ''}
-                    onChange={(e) => {
-                      const urls = editData.marketplaceUrls || [];
-                      const mercariIndex = urls.findIndex(m => m.type === 'mercari');
-                      if (mercariIndex >= 0) {
-                        urls[mercariIndex] = { ...urls[mercariIndex], url: e.target.value };
-                      } else {
-                        urls.push({ type: 'mercari', url: e.target.value });
-                      }
-                      setEditData({ ...editData, marketplaceUrls: urls });
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-full rounded bg-gray-700 px-2 py-1 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
-                    placeholder="Mercari URL"
-                  />
-                  <input
-                    type="url"
-                    value={editData.marketplaceUrls?.find(m => m.type === 'poshmark')?.url || ''}
-                    onChange={(e) => {
-                      const urls = editData.marketplaceUrls || [];
-                      const poshIndex = urls.findIndex(m => m.type === 'poshmark');
-                      if (poshIndex >= 0) {
-                        urls[poshIndex] = { ...urls[poshIndex], url: e.target.value };
-                      } else {
-                        urls.push({ type: 'poshmark', url: e.target.value });
-                      }
-                      setEditData({ ...editData, marketplaceUrls: urls });
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-full rounded bg-gray-700 px-2 py-1 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
-                    placeholder="Poshmark URL"
                   />
                 </div>
 

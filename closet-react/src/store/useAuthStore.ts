@@ -1,43 +1,78 @@
-// Authentication store for user session management
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
-interface User {
-  email: string;
+export interface User {
+  id: string;
   name: string;
-  joinedDate: string;
+  email: string;
+  createdAt: number;
+  lastLogin: number;
 }
 
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
-  
-  // Actions
-  signIn: (email: string, name: string) => void;
+  isLoading: boolean;
+  signIn: (name: string, email: string) => void;
   signOut: () => void;
+  updateUser: (updates: Partial<User>) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       isAuthenticated: false,
+      isLoading: false,
 
-      signIn: (email: string, name: string) => {
+      signIn: (name: string, email: string) => {
+        set({ isLoading: true });
+        
+        // Create user with secure data
         const user: User = {
-          email,
-          name,
-          joinedDate: new Date().toISOString(),
+          id: crypto.randomUUID(),
+          name: name.trim(),
+          email: email.trim().toLowerCase(),
+          createdAt: Date.now(),
+          lastLogin: Date.now(),
         };
-        set({ user, isAuthenticated: true });
+
+        set({ 
+          user, 
+          isAuthenticated: true, 
+          isLoading: false 
+        });
       },
 
       signOut: () => {
-        set({ user: null, isAuthenticated: false });
+        set({ 
+          user: null, 
+          isAuthenticated: false, 
+          isLoading: false 
+        });
+      },
+
+      updateUser: (updates: Partial<User>) => {
+        const currentUser = get().user;
+        if (currentUser) {
+          set({
+            user: {
+              ...currentUser,
+              ...updates,
+              lastLogin: Date.now(),
+            }
+          });
+        }
       },
     }),
     {
       name: 'closet-auth-storage',
+      storage: createJSONStorage(() => localStorage),
+      // Only persist essential user data
+      partialize: (state) => ({
+        user: state.user,
+        isAuthenticated: state.isAuthenticated,
+      }),
     }
   )
 );
