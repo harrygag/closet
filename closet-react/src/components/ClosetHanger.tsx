@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import type { Item, MarketplaceUrl } from '../types/item';
 import { MARKETPLACE_ICONS, MARKETPLACE_COLORS } from '../utils/marketplace';
+import { calculateMarketplaceFees } from '../utils/marketplace-fees';
 import { clsx } from 'clsx';
 import { Shirt, Upload, Save, X } from 'lucide-react';
 
@@ -54,6 +55,12 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
   if (item.marketplaceUrls && item.marketplaceUrls.length > 0) {
     marketplaceUrls.push(...item.marketplaceUrls);
   }
+
+  // Debug logging
+  console.log('Item:', item.name);
+  console.log('eBay URL:', item.ebayUrl, 'Price:', item.sellingPrice);
+  console.log('Marketplace URLs:', item.marketplaceUrls);
+  console.log('Combined URLs:', marketplaceUrls);
 
   const hasActiveListings = marketplaceUrls.length > 0;
 
@@ -286,7 +293,12 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                   <div className="flex justify-center gap-2">
                     {marketplaceUrls.slice(0, 3).map((marketplace, index) => {
                       const Icon = MARKETPLACE_ICONS[marketplace.type];
-                      const price = marketplace.price || 0;
+                      const listPrice = marketplace.price || 0;
+                      const calc = listPrice > 0 ? calculateMarketplaceFees(marketplace.type, listPrice) : null;
+                      const netProfit = calc?.netProfit || 0;
+                      
+                      console.log(`${marketplace.type}: List $${listPrice} → Net $${netProfit}`);
+                      
                       return (
                         <a
                           key={index}
@@ -295,14 +307,14 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                           rel="noopener noreferrer"
                           onClick={(e) => e.stopPropagation()}
                           className="flex flex-col items-center gap-0.5 transition-transform hover:scale-110"
-                          title={`${marketplace.type}: $${price}`}
+                          title={`${marketplace.type}: $${listPrice} → $${netProfit} net`}
                         >
                           <div style={{ color: MARKETPLACE_COLORS[marketplace.type] }}>
                             <Icon className="h-3 w-3" />
                           </div>
-                          {price > 0 && (
-                            <span className="text-[9px] font-bold text-gray-800">
-                              ${price}
+                          {netProfit > 0 && (
+                            <span className="text-[9px] font-bold text-green-600">
+                              ${netProfit}
                             </span>
                           )}
                         </a>
