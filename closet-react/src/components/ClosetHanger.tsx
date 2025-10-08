@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import type { Item } from '../types/item';
 import { parseMarketplaceUrls, MARKETPLACE_ICONS, MARKETPLACE_COLORS } from '../utils/marketplace';
-import { calculateMarketplaceFees } from '../utils/marketplace-fees';
 import { clsx } from 'clsx';
 import { Shirt, Upload, Save, X } from 'lucide-react';
 
