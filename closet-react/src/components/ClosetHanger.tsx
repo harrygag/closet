@@ -6,12 +6,12 @@ import { Save, X, Image as ImageIcon } from 'lucide-react';
 
 // Pokemon energy types for each category
 const ENERGY_TYPES: Record<ItemTag, { symbol: string; color: string; name: string }> = {
-  'Hoodie': { symbol: '🔥', color: 'text-red-500', name: 'Fire' },
-  'Jersey': { symbol: '⚡', color: 'text-yellow-500', name: 'Electric' },
-  'polo': { symbol: '💧', color: 'text-blue-500', name: 'Water' },
-  'Pullover/Jackets': { symbol: '🌿', color: 'text-green-500', name: 'Grass' },
-  'T-shirts': { symbol: '💨', color: 'text-gray-400', name: 'Flying' },
-  'Bottoms': { symbol: '🪨', color: 'text-orange-600', name: 'Fighting' },
+  'Hoodie': { symbol: '🔮', color: 'text-purple-500', name: 'Psychic' },
+  'Jersey': { symbol: '🌿', color: 'text-green-500', name: 'Grass' },
+  'polo': { symbol: '⭐', color: 'text-gray-500', name: 'Normal' },
+  'Pullover/Jackets': { symbol: '🔥', color: 'text-red-500', name: 'Fire' },
+  'T-shirts': { symbol: '💧', color: 'text-blue-500', name: 'Water' },
+  'Bottoms': { symbol: '🌙', color: 'text-indigo-600', name: 'Dark' },
 };
 
 // Toast notification helper
