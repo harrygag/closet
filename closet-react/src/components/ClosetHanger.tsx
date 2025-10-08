@@ -437,14 +437,24 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
           )}
 
           {/* Footer - Marketplaces */}
-          <div className="px-3 py-1.5 border-t border-gray-400">
+          <div className={`px-3 py-1.5 border-t-2 transition-all duration-300 ${
+            item.ebayUrl || (item.marketplaceUrls && item.marketplaceUrls.length > 0)
+              ? 'bg-gradient-to-r from-blue-500 via-orange-500 to-pink-500 border-yellow-600'
+              : 'bg-gray-200 border-gray-400'
+          }`}>
             <div className="flex items-center justify-between">
-              <span className="text-gray-700 text-[9px] font-bold">MARKETPLACES</span>
-              <div className="flex gap-1">
-                {/* eBay */}
+              <span className={`text-[9px] font-bold ${
+                item.ebayUrl || (item.marketplaceUrls && item.marketplaceUrls.length > 0)
+                  ? 'text-white drop-shadow-md'
+                  : 'text-gray-700'
+              }`}>MARKETPLACES</span>
+              <div className="flex gap-1.5">
+                {/* eBay - Blue circle */}
                 <div
-                  className={`w-6 h-6 rounded transition-all flex items-center justify-center ${
-                    item.ebayUrl ? 'bg-blue-500 hover:bg-blue-600 cursor-pointer shadow-sm' : 'bg-gray-300'
+                  className={`w-5 h-5 rounded-full transition-all border-2 ${
+                    item.ebayUrl
+                      ? 'bg-blue-500 border-blue-600 hover:scale-110 cursor-pointer shadow-md'
+                      : 'bg-white border-gray-400'
                   }`}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -453,16 +463,15 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                       toast.success('eBay link copied');
                     }
                   }}
-                  title={item.ebayUrl ? 'eBay' : 'Not on eBay'}
-                >
-                  <span className={`text-[10px] font-bold ${item.ebayUrl ? 'text-white' : 'text-gray-500'}`}>e</span>
-                </div>
+                  title={item.ebayUrl ? 'Click to copy eBay URL' : 'Not listed on eBay'}
+                />
 
-                {/* Mercari */}
+                {/* Mercari - Orange circle */}
                 <div
-                  className={`w-6 h-6 rounded transition-all flex items-center justify-center ${
+                  className={`w-5 h-5 rounded-full transition-all border-2 ${
                     item.marketplaceUrls?.some(m => m.type === 'mercari' && m.url)
-                      ? 'bg-orange-500 hover:bg-orange-600 cursor-pointer shadow-sm' : 'bg-gray-300'
+                      ? 'bg-orange-500 border-orange-600 hover:scale-110 cursor-pointer shadow-md'
+                      : 'bg-white border-gray-400'
                   }`}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -472,18 +481,15 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                       toast.success('Mercari link copied');
                     }
                   }}
-                  title={item.marketplaceUrls?.some(m => m.type === 'mercari' && m.url) ? 'Mercari' : 'Not on Mercari'}
-                >
-                  <span className={`text-[10px] font-bold ${
-                    item.marketplaceUrls?.some(m => m.type === 'mercari' && m.url) ? 'text-white' : 'text-gray-500'
-                  }`}>M</span>
-                </div>
+                  title={item.marketplaceUrls?.some(m => m.type === 'mercari' && m.url) ? 'Click to copy Mercari URL' : 'Not listed on Mercari'}
+                />
 
-                {/* Poshmark */}
+                {/* Poshmark - Pink circle */}
                 <div
-                  className={`w-6 h-6 rounded transition-all flex items-center justify-center ${
+                  className={`w-5 h-5 rounded-full transition-all border-2 ${
                     item.marketplaceUrls?.some(m => m.type === 'poshmark' && m.url)
-                      ? 'bg-pink-500 hover:bg-pink-600 cursor-pointer shadow-sm' : 'bg-gray-300'
+                      ? 'bg-pink-500 border-pink-600 hover:scale-110 cursor-pointer shadow-md'
+                      : 'bg-white border-gray-400'
                   }`}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -493,12 +499,8 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                       toast.success('Poshmark link copied');
                     }
                   }}
-                  title={item.marketplaceUrls?.some(m => m.type === 'poshmark' && m.url) ? 'Poshmark' : 'Not on Poshmark'}
-                >
-                  <span className={`text-[10px] font-bold ${
-                    item.marketplaceUrls?.some(m => m.type === 'poshmark' && m.url) ? 'text-white' : 'text-gray-500'
-                  }`}>P</span>
-                </div>
+                  title={item.marketplaceUrls?.some(m => m.type === 'poshmark' && m.url) ? 'Click to copy Poshmark URL' : 'Not listed on Poshmark'}
+                />
               </div>
             </div>
           </div>
