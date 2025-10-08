@@ -289,7 +289,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                 />
                 
                 {marketplaceUrls.length > 0 && (
-                  <div className="flex flex-col gap-0.5 bg-gray-900/95 backdrop-blur-sm px-1.5 py-1 rounded border border-gray-700 shadow-lg">
+                  <div className="flex flex-col gap-1.5 bg-gray-900/95 backdrop-blur-sm px-2 py-1.5 rounded-lg border border-gray-700 shadow-lg">
                     {marketplaceUrls.slice(0, 3).map((marketplace, index) => {
                       const Icon = MARKETPLACE_ICONS[marketplace.type];
                       const price = marketplace.price || 0;
@@ -300,13 +300,13 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={(e) => e.stopPropagation()}
-                          className="flex items-center gap-1 transition-transform hover:scale-105"
+                          className="flex items-center gap-1.5 transition-transform hover:scale-105"
                           title={`${marketplace.type}: $${price}`}
                           style={{ color: MARKETPLACE_COLORS[marketplace.type] }}
                         >
-                          <Icon className="h-3 w-3" />
+                          <Icon className="h-3.5 w-3.5" />
                           {price > 0 && (
-                            <span className="text-[10px] font-bold text-white">
+                            <span className="text-[11px] font-bold text-white">
                               ${price}
                             </span>
                           )}
