@@ -206,6 +206,11 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
 
   const handleCardClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    // Don't flip if clicking on input, select, or button
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'INPUT' || target.tagName === 'SELECT' || target.tagName === 'BUTTON') {
+      return;
+    }
     if (!isDragging) {
       setIsFlipped(!isFlipped);
     }
@@ -213,6 +218,11 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
 
   const handleDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    // Don't flip if double-clicking on input, select, or button
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'INPUT' || target.tagName === 'SELECT' || target.tagName === 'BUTTON') {
+      return;
+    }
     setIsFlipped(!isFlipped);
   };
 
@@ -258,7 +268,6 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
       />
       
       <div
-        onDoubleClick={handleCardClick}
         className="relative"
         style={{
           transformStyle: 'preserve-3d',
@@ -564,6 +573,24 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                     <option value="Inactive">Inactive</option>
                     <option value="SOLD">SOLD</option>
                   </select>
+                </div>
+                
+                {/* Listed Date */}
+                <div className="space-y-1">
+                  <p className="text-xs text-gray-400 font-semibold">LISTED DATE</p>
+                  <input
+                    type="date"
+                    value={editData.dateField || editData.dateAdded || ''}
+                    onChange={(e) => setEditData({ ...editData, dateField: e.target.value })}
+                    onClick={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onDoubleClick={(e) => e.stopPropagation()}
+                    onFocus={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                    onKeyUp={(e) => e.stopPropagation()}
+                    aria-label="Date listed"
+                    className="w-full rounded bg-gray-700 px-2 py-1.5 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
+                  />
                 </div>
                 
                 {/* Prices */}
