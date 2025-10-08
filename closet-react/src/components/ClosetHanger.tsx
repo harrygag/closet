@@ -277,11 +277,21 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                 )}
               </div>
 
-              {/* Status Badge (top right) */}
-              <div className="absolute -top-2 -right-2">
+              {/* Hanger ID Badge (top right) */}
+              <div className="absolute -top-3 -right-3">
+                <div className={clsx(
+                  'rounded-full px-3 py-1 text-xs font-bold shadow-lg border-2 border-white',
+                  getBadgeColor()
+                )}>
+                  {item.hangerId || (position ? `#${position}` : '?')}
+                </div>
+              </div>
+
+              {/* Status Dot (top left) */}
+              <div className="absolute -top-2 -left-2">
                 <div
                   className={clsx(
-                    'h-5 w-5 rounded-full border-2 border-white shadow-lg',
+                    'h-4 w-4 rounded-full border-2 border-white shadow-lg',
                     hasActiveListings && item.status === 'Active' && 'bg-green-500',
                     (!hasActiveListings || item.status === 'Inactive') && 'bg-yellow-500',
                     item.status === 'SOLD' && 'bg-blue-500'
@@ -297,16 +307,6 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                   </div>
                 </div>
               )}
-            </div>
-          </div>
-
-          {/* Auto-numbered position badge with color coding */}
-          <div className="mt-3 flex justify-center">
-            <div className={clsx(
-              'rounded-full px-4 py-1.5 text-sm font-bold shadow-md',
-              getBadgeColor()
-            )}>
-              {item.hangerId || (position ? `#${position}` : '')}
             </div>
           </div>
 
