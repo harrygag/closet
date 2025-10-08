@@ -204,18 +204,6 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
     }
   };
 
-  const handleCardClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    // Don't flip if clicking on input, select, or button
-    const target = e.target as HTMLElement;
-    if (target.tagName === 'INPUT' || target.tagName === 'SELECT' || target.tagName === 'BUTTON') {
-      return;
-    }
-    if (!isDragging) {
-      setIsFlipped(!isFlipped);
-    }
-  };
-
   const handleDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     // Don't flip if double-clicking on input, select, or button
