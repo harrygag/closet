@@ -1,17 +1,18 @@
 // Marketplace utilities for icon mapping and URL detection
 import { SiEbay } from 'react-icons/si';
-import { RiShoppingBag3Line, RiHandbagLine, RiStore2Line } from 'react-icons/ri';
-import { FaShoppingCart } from 'react-icons/fa';
+import { RiShoppingBag3Line } from 'react-icons/ri';
+import { FaShoppingCart, FaTag, FaStore } from 'react-icons/fa';
 import type { MarketplaceType, MarketplaceUrl } from '../types/item';
 
 /**
  * Map marketplace types to their respective icons
+ * Using appropriate icons to represent each marketplace brand
  */
 export const MARKETPLACE_ICONS: Record<MarketplaceType, React.ComponentType<{ className?: string }>> = {
   ebay: SiEbay,
-  poshmark: RiHandbagLine,
+  poshmark: FaTag, // Poshmark brand icon - tag represents fashion resale
   mercari: FaShoppingCart,
-  depop: RiStore2Line,
+  depop: FaStore, // Depop brand icon - storefront represents their marketplace
   grailed: RiShoppingBag3Line,
   other: RiShoppingBag3Line,
 };

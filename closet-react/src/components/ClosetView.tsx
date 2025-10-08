@@ -219,9 +219,9 @@ export const ClosetView: React.FC<ClosetViewProps> = ({ items, onItemClick, onIm
             onDragEnd={handleDragEnd}
           >
             <SortableContext items={rackItems.map(i => i.id)} strategy={horizontalListSortingStrategy}>
-              <div className="grid grid-cols-4 gap-6">
+              <div className="flex overflow-x-auto gap-6 pb-4 scrollbar-thin scrollbar-thumb-purple-600 scrollbar-track-gray-700">
                 {rackItems.map((item, index) => (
-                  <div key={item.id}>
+                  <div key={item.id} className="flex-shrink-0 w-72">
                     <SortableHanger
                       item={item}
                       onItemClick={onItemClick}

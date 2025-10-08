@@ -2,6 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom scrollbar styles for closet view */
+@layer utilities {
+  .scrollbar-thin::-webkit-scrollbar {
+    height: 8px;
+  }
+  
+  .scrollbar-thumb-purple-600::-webkit-scrollbar-thumb {
+    background-color: rgb(147 51 234);
+    border-radius: 9999px;
+  }
+  
+  .scrollbar-track-gray-700::-webkit-scrollbar-track {
+    background-color: rgb(55 65 81);
+    border-radius: 9999px;
+  }
+}
+
 @layer utilities {
   /* Sway animation for hanging clothes */
   @keyframes sway {
