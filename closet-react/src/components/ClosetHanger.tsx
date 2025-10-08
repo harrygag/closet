@@ -271,8 +271,8 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden',
             background: '#FFFACD',
-            width: '200px',
-            maxWidth: '85vw',
+            width: 'min(200px, 90vw)', // Mobile-optimized: scales down to 90% viewport width on small screens
+            maxWidth: '200px',
           }}
         >
           {/* Header - Name, Energy Type (left), and HP (right) */}
@@ -310,7 +310,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
 
           {/* Main Image */}
           <div className="px-2.5">
-            <div className="relative h-28 bg-gradient-to-br from-white to-gray-100 rounded border border-gray-300 overflow-hidden cursor-pointer"
+            <div className="relative h-28 bg-gradient-to-br from-white to-gray-100 rounded border border-gray-300 overflow-hidden cursor-pointer touch-manipulation active:scale-95 transition-transform"
               onClick={(e) => {
                 e.stopPropagation();
                 document.getElementById(`main-file-input-${item.id}`)?.click();
@@ -440,9 +440,9 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
               <div className="flex gap-1.5">
                 {/* eBay - Blue circle */}
                 <div
-                  className={`w-5 h-5 rounded-full transition-all border-2 ${
+                  className={`w-6 h-6 sm:w-5 sm:h-5 rounded-full transition-all border-2 ${
                     item.ebayUrl
-                      ? 'bg-blue-500 border-blue-600 hover:scale-110 cursor-pointer shadow-md'
+                      ? 'bg-blue-500 border-blue-600 hover:scale-110 cursor-pointer shadow-md active:scale-95'
                       : 'bg-white border-gray-400'
                   }`}
                   onClick={(e) => {
@@ -457,9 +457,9 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
 
                 {/* Poshmark - Pink circle */}
                 <div
-                  className={`w-5 h-5 rounded-full transition-all border-2 ${
+                  className={`w-6 h-6 sm:w-5 sm:h-5 rounded-full transition-all border-2 ${
                     item.marketplaceUrls?.some(m => m.type === 'poshmark' && m.url)
-                      ? 'bg-pink-500 border-pink-600 hover:scale-110 cursor-pointer shadow-md'
+                      ? 'bg-pink-500 border-pink-600 hover:scale-110 cursor-pointer shadow-md active:scale-95'
                       : 'bg-white border-gray-400'
                   }`}
                   onClick={(e) => {
@@ -475,9 +475,9 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
 
                 {/* Depop - Red circle */}
                 <div
-                  className={`w-5 h-5 rounded-full transition-all border-2 ${
+                  className={`w-6 h-6 sm:w-5 sm:h-5 rounded-full transition-all border-2 ${
                     item.marketplaceUrls?.some(m => m.type === 'depop' && m.url)
-                      ? 'bg-red-500 border-red-600 hover:scale-110 cursor-pointer shadow-md'
+                      ? 'bg-red-500 border-red-600 hover:scale-110 cursor-pointer shadow-md active:scale-95'
                       : 'bg-white border-gray-400'
                   }`}
                   onClick={(e) => {
@@ -504,9 +504,9 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
             transform: 'rotateY(180deg)',
           }}
         >
-          {/* Edit Form Card */}
+          {/* Edit Form Card - Mobile optimized with scroll */}
           <div className="flex justify-center" onClick={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>
-            <div className="w-48 rounded-lg border-2 border-purple-500 bg-gradient-to-br from-gray-800 to-gray-900 p-3 shadow-2xl">
+            <div className="w-full max-w-[90vw] sm:w-48 rounded-lg border-2 border-purple-500 bg-gradient-to-br from-gray-800 to-gray-900 p-3 shadow-2xl max-h-[80vh] overflow-y-auto">
               <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
                 <p className="text-sm font-bold text-purple-400 text-center mb-2">QUICK EDIT</p>
                 
@@ -670,18 +670,18 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                   />
                 </div>
 
-                {/* Action Buttons */}
+                {/* Action Buttons - Larger touch targets for mobile */}
                 <div className="flex gap-1 mt-2 pt-2 border-t border-gray-700">
                   <button
                     onClick={handleSave}
-                    className="flex-1 rounded bg-green-600 hover:bg-green-700 px-2 py-2 text-xs font-bold text-white transition-colors flex items-center justify-center gap-1"
+                    className="flex-1 rounded bg-green-600 hover:bg-green-700 active:bg-green-800 px-2 py-3 sm:py-2 text-xs font-bold text-white transition-colors flex items-center justify-center gap-1 touch-manipulation"
                   >
                     <Save className="h-3 w-3" />
                     Save
                   </button>
                   <button
                     onClick={handleCancel}
-                    className="flex-1 rounded bg-red-600 hover:bg-red-700 px-2 py-2 text-xs font-bold text-white transition-colors flex items-center justify-center gap-1"
+                    className="flex-1 rounded bg-red-600 hover:bg-red-700 active:bg-red-800 px-2 py-3 sm:py-2 text-xs font-bold text-white transition-colors flex items-center justify-center gap-1 touch-manipulation"
                   >
                     <X className="h-3 w-3" />
                     Cancel
