@@ -3,6 +3,7 @@ import type { Item, ItemTag, ItemStatus } from '../types/item';
 import { Modal } from './ui/Modal';
 import { Input, TextArea, Select } from './ui/Input';
 import { Button } from './ui/Button';
+import { calculateMarketplaceFees } from '../utils/marketplace-fees';
 
 interface ItemFormProps {
   open: boolean;
@@ -231,59 +232,91 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
 
         {showAdvanced && (
           <div className="space-y-3 rounded-lg border border-gray-700 bg-gray-900/50 p-3">
-            {/* Marketplace URLs */}
-            <div className="grid grid-cols-2 gap-3">
-              <Input
-                label="eBay URL"
-                type="url"
-                value={formData.ebayUrl}
-                onChange={(e) => setFormData({ ...formData, ebayUrl: e.target.value })}
-                placeholder="https://ebay.com/..."
-              />
-              <Input
-                label="Price"
-                type="number"
-                step="0.01"
-                value={formData.ebayPrice || ''}
-                onChange={(e) => setFormData({ ...formData, ebayPrice: parseFloat(e.target.value) || 0 })}
-                placeholder="0.00"
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-3">
-              <Input
-                label="Mercari URL"
-                type="url"
-                value={formData.mercariUrl}
-                onChange={(e) => setFormData({ ...formData, mercariUrl: e.target.value })}
-                placeholder="https://mercari.com/..."
-              />
-              <Input
-                label="Price"
-                type="number"
-                step="0.01"
-                value={formData.mercariPrice || ''}
-                onChange={(e) => setFormData({ ...formData, mercariPrice: parseFloat(e.target.value) || 0 })}
-                placeholder="0.00"
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-3">
-              <Input
-                label="Poshmark URL"
-                type="url"
-                value={formData.poshmarkUrl}
-                onChange={(e) => setFormData({ ...formData, poshmarkUrl: e.target.value })}
-                placeholder="https://poshmark.com/..."
-              />
-              <Input
-                label="Price"
-                type="number"
-                step="0.01"
-                value={formData.poshmarkPrice || ''}
-                onChange={(e) => setFormData({ ...formData, poshmarkPrice: parseFloat(e.target.value) || 0 })}
-                placeholder="0.00"
-              />
+            {/* Marketplace URLs with Fee Calculations */}
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  label="eBay URL"
+                  type="url"
+                  value={formData.ebayUrl}
+                  onChange={(e) => setFormData({ ...formData, ebayUrl: e.target.value })}
+                  placeholder="https://ebay.com/..."
+                />
+                <div>
+                  <Input
+                    label="List Price"
+                    type="number"
+                    step="0.01"
+                    value={formData.ebayPrice || ''}
+                    onChange={(e) => setFormData({ ...formData, ebayPrice: parseFloat(e.target.value) || 0 })}
+                    placeholder="0.00"
+                  />
+                  {formData.ebayPrice > 0 && (
+                    <div className="mt-1 text-xs text-gray-400">
+                      {(() => {
+                        const calc = calculateMarketplaceFees('ebay', formData.ebayPrice);
+                        return `Net: $${calc.netProfit} (${calc.breakdown})`;
+                      })()}
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  label="Mercari URL"
+                  type="url"
+                  value={formData.mercariUrl}
+                  onChange={(e) => setFormData({ ...formData, mercariUrl: e.target.value })}
+                  placeholder="https://mercari.com/..."
+                />
+                <div>
+                  <Input
+                    label="List Price"
+                    type="number"
+                    step="0.01"
+                    value={formData.mercariPrice || ''}
+                    onChange={(e) => setFormData({ ...formData, mercariPrice: parseFloat(e.target.value) || 0 })}
+                    placeholder="0.00"
+                  />
+                  {formData.mercariPrice > 0 && (
+                    <div className="mt-1 text-xs text-gray-400">
+                      {(() => {
+                        const calc = calculateMarketplaceFees('mercari', formData.mercariPrice);
+                        return `Net: $${calc.netProfit} (${calc.breakdown})`;
+                      })()}
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  label="Poshmark URL"
+                  type="url"
+                  value={formData.poshmarkUrl}
+                  onChange={(e) => setFormData({ ...formData, poshmarkUrl: e.target.value })}
+                  placeholder="https://poshmark.com/..."
+                />
+                <div>
+                  <Input
+                    label="List Price"
+                    type="number"
+                    step="0.01"
+                    value={formData.poshmarkPrice || ''}
+                    onChange={(e) => setFormData({ ...formData, poshmarkPrice: parseFloat(e.target.value) || 0 })}
+                    placeholder="0.00"
+                  />
+                  {formData.poshmarkPrice > 0 && (
+                    <div className="mt-1 text-xs text-gray-400">
+                      {(() => {
+                        const calc = calculateMarketplaceFees('poshmark', formData.poshmarkPrice);
+                        return `Net: $${calc.netProfit} (${calc.breakdown})`;
+                      })()}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Financial Details */}
