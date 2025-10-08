@@ -277,44 +277,16 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                 )}
               </div>
 
-              {/* Status & Marketplace Icons (top right) */}
-              <div className="absolute -top-2 -right-2 flex items-center gap-1">
+              {/* Status Badge (top right) */}
+              <div className="absolute -top-2 -right-2">
                 <div
                   className={clsx(
-                    'h-4 w-4 rounded-full border-2 border-white shadow-lg',
+                    'h-5 w-5 rounded-full border-2 border-white shadow-lg',
                     hasActiveListings && item.status === 'Active' && 'bg-green-500',
                     (!hasActiveListings || item.status === 'Inactive') && 'bg-yellow-500',
                     item.status === 'SOLD' && 'bg-blue-500'
                   )}
                 />
-                
-                {marketplaceUrls.length > 0 && (
-                  <div className="flex flex-col gap-1.5 bg-gray-900/95 backdrop-blur-sm px-2 py-1.5 rounded-lg border border-gray-700 shadow-lg">
-                    {marketplaceUrls.slice(0, 3).map((marketplace, index) => {
-                      const Icon = MARKETPLACE_ICONS[marketplace.type];
-                      const price = marketplace.price || 0;
-                      return (
-                        <a
-                          key={index}
-                          href={marketplace.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="flex items-center gap-1.5 transition-transform hover:scale-105"
-                          title={`${marketplace.type}: $${price}`}
-                          style={{ color: MARKETPLACE_COLORS[marketplace.type] }}
-                        >
-                          <Icon className="h-3.5 w-3.5" />
-                          {price > 0 && (
-                            <span className="text-[11px] font-bold text-white">
-                              ${price}
-                            </span>
-                          )}
-                        </a>
-                      );
-                    })}
-                  </div>
-                )}
               </div>
 
               {/* SOLD Badge */}
@@ -337,6 +309,38 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
               {item.hangerId || (position ? `#${position}` : '')}
             </div>
           </div>
+
+          {/* Marketplace Icons - Clean layout below card */}
+          {marketplaceUrls.length > 0 && (
+            <div className="mt-2 flex justify-center">
+              <div className="flex gap-2 bg-gray-800/90 backdrop-blur-sm px-3 py-2 rounded-lg border border-gray-600 shadow-lg">
+                {marketplaceUrls.slice(0, 3).map((marketplace, index) => {
+                  const Icon = MARKETPLACE_ICONS[marketplace.type];
+                  const price = marketplace.price || 0;
+                  return (
+                    <a
+                      key={index}
+                      href={marketplace.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex flex-col items-center gap-1 transition-transform hover:scale-110"
+                      title={`${marketplace.type}: $${price}`}
+                    >
+                      <div style={{ color: MARKETPLACE_COLORS[marketplace.type] }}>
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      {price > 0 && (
+                        <span className="text-xs font-bold text-white">
+                          ${price}
+                        </span>
+                      )}
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* BACK SIDE - Quick Edit Form */}
