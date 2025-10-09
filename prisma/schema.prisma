@@ -21,10 +21,10 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Token budgets and limits
-  dailyTokenBudget   Int @default(100000)
-  monthlyTokenBudget Int @default(1000000)
-  tokensUsedToday    Int @default(0)
-  tokensUsedMonth    Int @default(0)
+  dailyTokenBudget   Int      @default(100000)
+  monthlyTokenBudget Int      @default(1000000)
+  tokensUsedToday    Int      @default(0)
+  tokensUsedMonth    Int      @default(0)
   lastTokenResetAt   DateTime @default(now())
 
   // Marketplace integrations
@@ -33,9 +33,13 @@ model User {
   grailedAccessToken  String?
   mercariAccessToken  String?
 
-  items         Item[]
-  aiJobs        AIJob[]
-  managerAudits ManagerAudit[]
+  items               Item[]
+  aiJobs              AIJob[]
+  managerAudits       ManagerAudit[]
+  publishJobs         PublishJob[]
+  publishPlans        PublishPlan[]
+  marketplaceAccounts MarketplaceAccount[]
+  csvExports          CSVExport[]
 
   @@index([email])
   @@index([role])
@@ -77,12 +81,12 @@ model Item {
   conditionNotes       String?
 
   // AI-generated content
-  normalizedTags       String[] @default([])
-  aiCache              Json     @default("{}") // keyed by jobType_promptVersion
-  pendingSuggestions   Json     @default("[]") // array of suggestions awaiting seller confirmation
-  lastAiRunAt          DateTime?
-  lastNormalizedAt     DateTime?
-  lastEmbeddingRunAt   DateTime?
+  normalizedTags     String[]  @default([])
+  aiCache            Json      @default("{}") // keyed by jobType_promptVersion
+  pendingSuggestions Json      @default("[]") // array of suggestions awaiting seller confirmation
+  lastAiRunAt        DateTime?
+  lastNormalizedAt   DateTime?
+  lastEmbeddingRunAt DateTime?
 
   // Embeddings (pgvector)
   embedding      Unsupported("vector(1536)")?
@@ -93,19 +97,21 @@ model Item {
   imageKeys String[] @default([]) // S3 keys
 
   // Listing status
-  listedEbay      Boolean @default(false)
-  listedPoshmark  Boolean @default(false)
-  listedGrailed   Boolean @default(false)
-  listedMercari   Boolean @default(false)
-  ebayListingId   String?
-  poshmarkListId  String?
-  grailedListId   String?
-  mercariListId   String?
-  daysRemaining   Int? // HP mechanic: days until 30-day period ends
-  listedDate      DateTime? // When first listed
+  listedEbay     Boolean   @default(false)
+  listedPoshmark Boolean   @default(false)
+  listedGrailed  Boolean   @default(false)
+  listedMercari  Boolean   @default(false)
+  ebayListingId  String?
+  poshmarkListId String?
+  grailedListId  String?
+  mercariListId  String?
+  daysRemaining  Int? // HP mechanic: days until 30-day period ends
+  listedDate     DateTime? // When first listed
 
-  aiJobs AIJob[]
-  tags   ItemTag[]
+  aiJobs       AIJob[]
+  tags         ItemTag[]
+  publishJobs  PublishJob[]
+  publishPlans PublishPlan[]
 
   @@index([userId])
   @@index([category])
@@ -114,11 +120,11 @@ model Item {
 }
 
 model Tag {
-  id        String    @id @default(cuid())
-  name      String    @unique
-  normalized String   @unique // lowercase, trimmed
-  createdAt DateTime  @default(now())
-  items     ItemTag[]
+  id         String    @id @default(cuid())
+  name       String    @unique
+  normalized String    @unique // lowercase, trimmed
+  createdAt  DateTime  @default(now())
+  items      ItemTag[]
 
   @@index([normalized])
 }
@@ -165,13 +171,13 @@ model AIJob {
   costEstimate Float   @default(0) // in USD
 
   // Manager workflow
-  linearIssueId    String? // Linear issue ID if created
-  linearIssueUrl   String?
-  managerActions   Json    @default("[]") // array of { action, actorId, timestamp, reason }
-  needsReview      Boolean @default(false)
-  managerApproved  Boolean @default(false)
-  appliedAt        DateTime?
-  appliedByUserId  String?
+  linearIssueId   String? // Linear issue ID if created
+  linearIssueUrl  String?
+  managerActions  Json      @default("[]") // array of { action, actorId, timestamp, reason }
+  needsReview     Boolean   @default(false)
+  managerApproved Boolean   @default(false)
+  appliedAt       DateTime?
+  appliedByUserId String?
 
   aiLogs        AILog[]
   managerAudits ManagerAudit[]
@@ -211,25 +217,27 @@ model AILog {
   aijob     AIJob    @relation(fields: [aijobId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 
-  modelName      String
-  promptLength   Int // in characters
-  requestBytes   Int
-  responseBytes  Int
-  tokensUsed     Int
-  costEstimate   Float // in USD
-  latencyMs      Int?
+  modelName     String
+  promptLength  Int // in characters
+  requestBytes  Int
+  responseBytes Int
+  tokensUsed    Int
+  costEstimate  Float // in USD
+  latencyMs     Int?
 
   @@index([aijobId])
   @@index([createdAt])
 }
 
 model ManagerAudit {
-  id        String   @id @default(cuid())
-  aijobId   String?
-  aijob     AIJob?   @relation(fields: [aijobId], references: [id], onDelete: SetNull)
-  actorId   String
-  actor     User     @relation(fields: [actorId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  id           String      @id @default(cuid())
+  aijobId      String?
+  aijob        AIJob?      @relation(fields: [aijobId], references: [id], onDelete: SetNull)
+  publishJobId String?
+  publishJob   PublishJob? @relation("PublishJobAudits", fields: [publishJobId], references: [id], onDelete: SetNull)
+  actorId      String
+  actor        User        @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  createdAt    DateTime    @default(now())
 
   actionType    ManagerActionType
   actionPayload Json // { reason, changes, etc }
@@ -237,6 +245,7 @@ model ManagerAudit {
   userAgent     String?
 
   @@index([aijobId])
+  @@index([publishJobId])
   @@index([actorId])
   @@index([createdAt])
 }
@@ -250,6 +259,9 @@ enum ManagerActionType {
   APPLY_TO_ITEM
   BULK_APPROVE
   BULK_REJECT
+  APPROVE_PUBLISH
+  REJECT_PUBLISH
+  CANCEL_PUBLISH
 }
 
 model Prompt {
@@ -259,12 +271,12 @@ model Prompt {
   createdAt DateTime @default(now())
 
   // Metadata
-  jobType      AIJobType
-  mcpRequired  Boolean @default(false) // must create Linear issue
-  impactLevel  ImpactLevel @default(LOW)
-  modelName    String @default("claude-sonnet-4.5")
-  temperature  Float  @default(0.2)
-  maxTokens    Int    @default(2000)
+  jobType     AIJobType
+  mcpRequired Boolean     @default(false) // must create Linear issue
+  impactLevel ImpactLevel @default(LOW)
+  modelName   String      @default("claude-sonnet-4.5")
+  temperature Float       @default(0.2)
+  maxTokens   Int         @default(2000)
 
   @@index([version])
   @@index([jobType])
@@ -287,9 +299,195 @@ model LinearSync {
   aijobId    String? // optional link to AIJob
   status     String // open, in_progress, done, canceled
   assigneeId String?
-  priority   Int     @default(0)
+  priority   Int      @default(0)
   labels     String[]
 
   @@index([issueId])
   @@index([status])
+}
+
+model PublishJob {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId    String
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Publish plan
+  planId               String? // Links to publish plan if created via prepare flow
+  marketplace          Marketplace
+  marketplaceAccountId String? // Which connected account to use
+  publishType          PublishType @default(CREATE) // CREATE, UPDATE, DELETE
+
+  // Listing payload
+  inputPayload Json // Normalized listing data (title, desc, price, images, etc.)
+  inputHash    String // SHA256(inputPayload + marketplace + publishType) for idempotency
+
+  // Execution
+  status      PublishJobStatus @default(PENDING)
+  attempts    Int              @default(0)
+  maxAttempts Int              @default(3)
+  availableAt DateTime         @default(now()) // For exponential backoff
+
+  // Results
+  externalListingId String? // Marketplace's listing ID
+  externalUrl       String? // Direct link to listing
+  errorText         String? // Error message if failed
+  errorCode         String? // Marketplace error code
+
+  // Cost & Rate Limiting
+  costEstimate       Float   @default(0) // Estimated marketplace fees
+  actualCost         Float   @default(0) // Actual fees charged
+  rateLimitHit       Boolean @default(false)
+  circuitBreakerOpen Boolean @default(false)
+
+  // Manager workflow
+  managerApproved  Boolean @default(false)
+  managerActions   Json    @default("[]") // Array of manager actions
+  requiresApproval Boolean @default(false) // If true, needs manager approval before execute
+
+  // Audit
+  publishLogs   PublishLog[]
+  managerAudits ManagerAudit[] @relation("PublishJobAudits")
+
+  @@index([userId])
+  @@index([itemId])
+  @@index([marketplace])
+  @@index([status])
+  @@index([inputHash])
+  @@index([availableAt])
+  @@index([externalListingId])
+}
+
+enum PublishJobStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  NEEDS_REVIEW
+  FAILED
+  CANCELLED
+}
+
+enum PublishType {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+enum Marketplace {
+  EBAY
+  POSHMARK
+  GRAILED
+  MERCARI
+  DEPOP
+  SHOPIFY
+  ETSY
+  FACEBOOK_MARKETPLACE
+  OFFERUP
+  VINTED
+}
+
+model PublishLog {
+  id           String     @id @default(cuid())
+  publishJobId String
+  publishJob   PublishJob @relation(fields: [publishJobId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+
+  marketplace    Marketplace
+  requestMethod  String // POST, PUT, DELETE
+  requestUrl     String
+  requestHeaders Json // Sanitized (no secrets)
+  requestBody    Json // Sanitized
+  responseStatus Int
+  responseBody   Json
+  latencyMs      Int?
+  errorMessage   String?
+
+  @@index([publishJobId])
+  @@index([marketplace])
+  @@index([createdAt])
+}
+
+model PublishPlan {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId    String
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  expiresAt DateTime // Plans expire after 15 minutes
+
+  // Plan details
+  marketplaces      Marketplace[]
+  inputPayload      Json // Original listing data
+  validationResults Json // Per-marketplace validation { ebay: { valid, warnings, errors }, ... }
+  estimatedFees     Json // Per-marketplace fee estimates
+  consentToken      String        @unique // One-time token for execute
+
+  // Status
+  executed   Boolean   @default(false)
+  executedAt DateTime?
+
+  @@index([userId])
+  @@index([itemId])
+  @@index([consentToken])
+  @@index([expiresAt])
+}
+
+model MarketplaceAccount {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  marketplace       Marketplace
+  accountName       String // User-friendly name
+  externalAccountId String? // Marketplace's user/seller ID
+
+  // OAuth tokens (encrypted at rest in production)
+  accessToken    String?
+  refreshToken   String?
+  tokenExpiresAt DateTime?
+
+  // Status
+  isActive   Boolean   @default(true)
+  lastSyncAt DateTime?
+  lastError  String?
+
+  // Rate limiting
+  dailyPublishCount Int      @default(0)
+  dailyPublishLimit Int      @default(100)
+  lastResetAt       DateTime @default(now())
+
+  // Circuit breaker
+  failureCount        Int       @default(0)
+  circuitBreakerOpen  Boolean   @default(false)
+  circuitBreakerUntil DateTime?
+
+  @@unique([userId, marketplace, externalAccountId])
+  @@index([userId])
+  @@index([marketplace])
+  @@index([isActive])
+}
+
+model CSVExport {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  marketplace Marketplace
+  itemIds     String[] // Items included in export
+  fileName    String
+  fileUrl     String // S3 URL
+  expiresAt   DateTime // Download link expires
+
+  downloadCount Int @default(0)
+
+  @@index([userId])
+  @@index([marketplace])
+  @@index([createdAt])
 }
