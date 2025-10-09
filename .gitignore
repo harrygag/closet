@@ -4,3 +4,8 @@ node_modules/
 *.log
 docs/archived/
 scripts/archived/
+
+/generated/prisma
+
+# Claude Code local settings (contains secrets)
+.claude/settings.local.json
