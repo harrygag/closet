@@ -1,10 +1,10 @@
 {
   "version": 2,
   "name": "virtual-closet-arcade",
-  "buildCommand": "cd closet-react && npm install && npm run build",
-  "outputDirectory": "closet-react/dist",
-  "installCommand": "cd closet-react && npm install",
-  "framework": "vite",
+  "buildCommand": "prisma generate && next build",
+  "outputDirectory": ".next",
+  "installCommand": "npm install",
+  "framework": "nextjs",
   "headers": [
     {
       "source": "/sw.js",
