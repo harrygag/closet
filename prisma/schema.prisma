@@ -16,9 +16,12 @@ model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String?
+  phone     String?
+  avatar    String? // Profile picture URL
   role      UserRole @default(SELLER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  lastLoginAt DateTime?
 
   // Token budgets and limits
   dailyTokenBudget   Int      @default(100000)
@@ -40,9 +43,48 @@ model User {
   publishPlans        PublishPlan[]
   marketplaceAccounts MarketplaceAccount[]
   csvExports          CSVExport[]
+  magicLinks          MagicLink[]
+  sessions            Session[]
 
   @@index([email])
   @@index([role])
+}
+
+// Magic Link Authentication (Passwordless)
+model MagicLink {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique // Cryptographically secure random token
+  email     String
+  createdAt DateTime @default(now())
+  expiresAt DateTime // Typically 15 minutes
+  usedAt    DateTime?
+  ipAddress String?
+  userAgent String?
+
+  @@index([token])
+  @@index([email])
+  @@index([expiresAt])
+  @@index([userId])
+}
+
+// User Sessions
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique // JWT or random session token
+  createdAt DateTime @default(now())
+  expiresAt DateTime // Typically 30 days
+  lastActiveAt DateTime @default(now())
+  ipAddress String?
+  userAgent String?
+  deviceInfo String? // Browser, OS, device type
+
+  @@index([token])
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 enum UserRole {

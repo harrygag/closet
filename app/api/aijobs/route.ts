@@ -7,12 +7,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import crypto from 'crypto';
+import { requireAuth } from '@/src/lib/auth';
 
 const prisma = new PrismaClient();
 
 // Input validation schema
 const CreateAIJobSchema = z.object({
-  userId: z.string(),
   itemId: z.string().optional(),
   jobType: z.enum(['NORMALIZE', 'PRICE_SUGGESTION', 'CONDITION_GRADE', 'GENERATE_LISTINGS', 'GENERATE_EMBEDDING', 'BULK_NORMALIZE', 'BULK_PRICE']),
   inputPayload: z.record(z.any()),
@@ -21,10 +21,13 @@ const CreateAIJobSchema = z.object({
 
 /**
  * POST /api/aijobs
- * Create a new AI job
+ * Create a new AI job (requires authentication)
  */
 export async function POST(request: NextRequest) {
   try {
+    // Require authentication
+    const currentUser = await requireAuth(request);
+
     const body = await request.json();
 
     // Validate input
@@ -32,7 +35,7 @@ export async function POST(request: NextRequest) {
 
     // Check user token quota
     const user = await prisma.user.findUnique({
-      where: { id: validated.userId },
+      where: { id: currentUser.id },
     });
 
     if (!user) {
@@ -82,7 +85,7 @@ export async function POST(request: NextRequest) {
     // Create new job
     const job = await prisma.aIJob.create({
       data: {
-        userId: validated.userId,
+        userId: currentUser.id, // Use authenticated user ID
         itemId: validated.itemId,
         jobType: validated.jobType,
         inputPayload: validated.inputPayload,
@@ -120,22 +123,26 @@ export async function POST(request: NextRequest) {
 
 /**
  * GET /api/aijobs
- * List AI jobs with filters
+ * List AI jobs with filters (requires authentication)
  */
 export async function GET(request: NextRequest) {
   try {
+    // Require authentication
+    const currentUser = await requireAuth(request);
+
     const { searchParams } = new URL(request.url);
 
-    const userId = searchParams.get('userId');
     const itemId = searchParams.get('itemId');
     const status = searchParams.get('status');
     const jobType = searchParams.get('jobType');
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    const where: any = {};
+    // Always filter by current user's jobs
+    const where: any = {
+      userId: currentUser.id,
+    };
 
-    if (userId) where.userId = userId;
     if (itemId) where.itemId = itemId;
     if (status) where.status = status;
     if (jobType) where.jobType = jobType;
