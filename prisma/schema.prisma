@@ -30,11 +30,10 @@ model User {
   tokensUsedMonth    Int      @default(0)
   lastTokenResetAt   DateTime @default(now())
 
-  items         Item[]
-  aiJobs        AIJob[]
-  managerAudits ManagerAudit[]
-  magicLinks    MagicLink[]
-  sessions      Session[]
+  items      Item[]
+  aiJobs     AIJob[]
+  magicLinks MagicLink[]
+  sessions   Session[]
 
   @@index([email])
   @@index([role])
@@ -207,17 +206,12 @@ model AIJob {
   tokensUsed   Int     @default(0)
   costEstimate Float   @default(0) // in USD
 
-  // Manager workflow (for human-in-the-loop review)
-  linearIssueId   String? // Linear issue ID if created
-  linearIssueUrl  String?
-  managerActions  Json      @default("[]") // array of { action, actorId, timestamp, reason }
-  needsReview     Boolean   @default(false)
-  managerApproved Boolean   @default(false)
-  appliedAt       DateTime?
-  appliedByUserId String?
+  // User review workflow
+  needsReview Boolean   @default(false) // Low confidence, needs user review
+  appliedAt   DateTime? // When user applied the suggestion
+  reviewedAt  DateTime? // When user reviewed/dismissed the suggestion
 
-  aiLogs        AILog[]
-  managerAudits ManagerAudit[]
+  aiLogs AILog[]
 
   @@index([userId])
   @@index([itemId])
@@ -242,10 +236,10 @@ enum AIJobStatus {
   PENDING
   PROCESSING
   SUCCEEDED
-  NEEDS_REVIEW
+  NEEDS_REVIEW // Low confidence - user should review
   FAILED
-  MANAGER_APPROVED
-  REJECTED
+  APPLIED // User applied the suggestion
+  DISMISSED // User dismissed the suggestion
 }
 
 model AILog {
@@ -264,75 +258,4 @@ model AILog {
 
   @@index([aijobId])
   @@index([createdAt])
-}
-
-model ManagerAudit {
-  id        String   @id @default(cuid())
-  aijobId   String?
-  aijob     AIJob?   @relation(fields: [aijobId], references: [id], onDelete: SetNull)
-  actorId   String
-  actor     User     @relation(fields: [actorId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-
-  actionType    ManagerActionType
-  actionPayload Json // { reason, changes, etc }
-  ipAddress     String?
-  userAgent     String?
-
-  @@index([aijobId])
-  @@index([actorId])
-  @@index([createdAt])
-}
-
-enum ManagerActionType {
-  APPROVE
-  REJECT
-  EDIT_SUGGESTION
-  CREATE_LINEAR_ISSUE
-  RETRY_JOB
-  APPLY_TO_ITEM
-  BULK_APPROVE
-  BULK_REJECT
-}
-
-model Prompt {
-  id        String   @id @default(cuid())
-  version   String   @unique // e.g., "price_v1", "normalize_v2"
-  template  String // actual prompt template
-  createdAt DateTime @default(now())
-
-  // Metadata
-  jobType     AIJobType
-  mcpRequired Boolean     @default(false) // must create Linear issue
-  impactLevel ImpactLevel @default(LOW)
-  modelName   String      @default("gpt-4o-mini")
-  temperature Float       @default(0.2)
-  maxTokens   Int         @default(2000)
-
-  @@index([version])
-  @@index([jobType])
-}
-
-enum ImpactLevel {
-  LOW
-  MEDIUM
-  HIGH
-  CRITICAL
-}
-
-model LinearSync {
-  id        String   @id @default(cuid())
-  issueId   String   @unique // Linear issue ID
-  issueUrl  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  aijobId    String? // optional link to AIJob
-  status     String // open, in_progress, done, canceled
-  assigneeId String?
-  priority   Int      @default(0)
-  labels     String[]
-
-  @@index([issueId])
-  @@index([status])
 }

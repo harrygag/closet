@@ -37,7 +37,7 @@ Virtual Closet Arcade is an AI-powered platform for managing clothing inventory 
   - Inventory value tracking
   - Export to CSV
 
-- **📋 Linear MCP Integration**
+- **📋 Review Queue**
   - Human-in-the-loop review workflow
   - Automatic issue creation for low-confidence AI suggestions
   - Manager approval system with audit trails
@@ -418,7 +418,7 @@ Required in Vercel:
 - `DATABASE_URL` - PostgreSQL connection string (Supabase/Neon)
 - `OPENAI_API_KEY` - OpenAI API key
 - `RESEND_API_KEY` - Email API key (optional)
-- `LINEAR_API_KEY` - Linear MCP key (optional)
+- `LINEAR_API_KEY` - 
 - `NEXT_PUBLIC_APP_URL` - Production URL
 - `AI_WORKER_SERVICE_TOKEN` - Worker auth token
 

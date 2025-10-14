@@ -146,15 +146,15 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Linear MCP */}
+            {/* Review Queue */}
             <div className="p-6 bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-xl">
-              <div className="text-2xl mb-3">📋</div>
-              <h3 className="text-white font-semibold text-lg mb-2">Linear MCP Integration</h3>
+              <div className="text-2xl mb-3">✅</div>
+              <h3 className="text-white font-semibold text-lg mb-2">Review Queue</h3>
               <p className="text-gray-300 text-sm mb-4">
-                Human-in-the-loop review workflow for AI suggestions that need approval
+                Review low-confidence AI suggestions before applying them to your items
               </p>
               <div className="text-green-400 text-sm font-medium">
-                Configured
+                Smart filtering
               </div>
             </div>
           </div>

@@ -167,11 +167,11 @@ export default function LoginPage() {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-green-400">✓</span>
-            <span>Publish to 10+ marketplaces</span>
+            <span>Smart inventory tracking & analytics</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-green-400">✓</span>
-            <span>Linear MCP integration for approvals</span>
+            <span>Semantic search with vector embeddings</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-green-400">✓</span>
