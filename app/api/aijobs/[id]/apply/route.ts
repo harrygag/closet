@@ -25,8 +25,6 @@ export async function POST(
     // Require authentication
     const currentUser = await requireAuth(request);
 
-    const body = await request.json();
-    const validated = ApplySchema.parse(body);
 
     // Get the job
     const job = await prisma.aIJob.findUnique({
