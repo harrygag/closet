@@ -18,7 +18,7 @@ export default function Home() {
         </h1>
 
         <p className="text-center text-gray-300 mb-8">
-          AI-Powered Clothing Reseller Platform
+          AI-Powered Clothing Inventory Tracker & Analytics
         </p>
 
         <div className="space-y-4">
@@ -32,25 +32,36 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="bg-white/10 rounded-lg p-4 border border-purple-500/20">
-            <h3 className="font-semibold mb-2">Available Endpoints:</h3>
-            <ul className="text-sm space-y-1 text-gray-300">
-              <li>• <code className="bg-black/30 px-2 py-1 rounded">POST /api/aijobs</code> - Create AI job</li>
-              <li>• <code className="bg-black/30 px-2 py-1 rounded">GET /api/aijobs</code> - List jobs</li>
-              <li>• <code className="bg-black/30 px-2 py-1 rounded">POST /api/aijobs/process</code> - Process jobs</li>
-              <li>• <code className="bg-black/30 px-2 py-1 rounded">POST /api/aijobs/[id]/apply</code> - Apply suggestion</li>
-            </ul>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white/10 rounded-lg p-4 border border-purple-500/20">
+              <div className="text-2xl mb-2">📦</div>
+              <h3 className="font-semibold text-sm">Smart Storage</h3>
+              <p className="text-xs text-gray-400 mt-1">Track inventory & profits</p>
+            </div>
+            <div className="bg-white/10 rounded-lg p-4 border border-orange-500/20">
+              <div className="text-2xl mb-2">🤖</div>
+              <h3 className="font-semibold text-sm">AI Analysis</h3>
+              <p className="text-xs text-gray-400 mt-1">Pricing & condition</p>
+            </div>
+            <div className="bg-white/10 rounded-lg p-4 border border-blue-500/20">
+              <div className="text-2xl mb-2">🔍</div>
+              <h3 className="font-semibold text-sm">Semantic Search</h3>
+              <p className="text-xs text-gray-400 mt-1">Vector embeddings</p>
+            </div>
+            <div className="bg-white/10 rounded-lg p-4 border border-green-500/20">
+              <div className="text-2xl mb-2">📊</div>
+              <h3 className="font-semibold text-sm">Analytics</h3>
+              <p className="text-xs text-gray-400 mt-1">Costs & metrics</p>
+            </div>
           </div>
 
-          <div className="bg-gradient-to-r from-pink-500/20 to-purple-500/20 rounded-lg p-4 border border-pink-500/30">
-            <h3 className="font-semibold mb-2">🚀 Features:</h3>
+          <div className="bg-white/10 rounded-lg p-4 border border-purple-500/20">
+            <h3 className="font-semibold mb-2">API Endpoints:</h3>
             <ul className="text-sm space-y-1 text-gray-300">
-              <li>✅ AI-powered normalization</li>
-              <li>✅ Smart price suggestions</li>
-              <li>✅ Condition grading</li>
-              <li>✅ Marketplace publishing (10 platforms)</li>
-              <li>✅ Linear MCP integration</li>
-              <li>✅ OpenAI GPT-4o-mini</li>
+              <li>• <code className="bg-black/30 px-2 py-1 rounded text-xs">POST /api/auth/login</code> - Passwordless sign-in</li>
+              <li>• <code className="bg-black/30 px-2 py-1 rounded text-xs">POST /api/aijobs</code> - Create AI job</li>
+              <li>• <code className="bg-black/30 px-2 py-1 rounded text-xs">GET /api/aijobs</code> - List your jobs</li>
+              <li>• <code className="bg-black/30 px-2 py-1 rounded text-xs">POST /api/aijobs/[id]/apply</code> - Apply AI suggestion</li>
             </ul>
           </div>
 

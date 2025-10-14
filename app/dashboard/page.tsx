@@ -107,59 +107,56 @@ export default function DashboardPage() {
           <h2 className="text-2xl font-bold text-white mb-6">Available Features</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* AI Jobs */}
-            <a
-              href="/api/aijobs"
-              className="p-6 bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-xl hover:border-purple-400/50 transition"
-            >
-              <div className="text-2xl mb-3">🤖</div>
-              <h3 className="text-white font-semibold text-lg mb-2">AI Jobs API</h3>
+            {/* Inventory Tracking */}
+            <div className="p-6 bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-xl">
+              <div className="text-2xl mb-3">📦</div>
+              <h3 className="text-white font-semibold text-lg mb-2">Inventory Tracking</h3>
               <p className="text-gray-300 text-sm mb-4">
-                Create and manage AI jobs for pricing, condition grading, and normalization
+                Track your clothing items with purchase dates, costs, and sold prices
               </p>
               <div className="text-purple-400 text-sm font-medium">
+                Smart storage & analytics
+              </div>
+            </div>
+
+            {/* AI-Powered Analysis */}
+            <a
+              href="/api/aijobs"
+              className="p-6 bg-gradient-to-br from-orange-500/20 to-yellow-500/20 border border-orange-500/30 rounded-xl hover:border-orange-400/50 transition"
+            >
+              <div className="text-2xl mb-3">🤖</div>
+              <h3 className="text-white font-semibold text-lg mb-2">AI Analysis</h3>
+              <p className="text-gray-300 text-sm mb-4">
+                AI-powered pricing, condition grading, and brand normalization
+              </p>
+              <div className="text-orange-400 text-sm font-medium">
                 POST /api/aijobs →
               </div>
             </a>
 
-            {/* Marketplace Publishing */}
-            <div className="p-6 bg-gradient-to-br from-orange-500/20 to-yellow-500/20 border border-orange-500/30 rounded-xl">
-              <div className="text-2xl mb-3">🏪</div>
-              <h3 className="text-white font-semibold text-lg mb-2">Marketplace Publishing</h3>
+            {/* Semantic Search */}
+            <div className="p-6 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30 rounded-xl">
+              <div className="text-2xl mb-3">🔍</div>
+              <h3 className="text-white font-semibold text-lg mb-2">Semantic Search</h3>
               <p className="text-gray-300 text-sm mb-4">
-                Publish listings to eBay, Poshmark, Depop, and 7 more marketplaces
+                Vector embeddings for finding similar items and smart recommendations
               </p>
-              <div className="text-orange-400 text-sm font-medium">
-                Coming soon
+              <div className="text-blue-400 text-sm font-medium">
+                Powered by pgvector
               </div>
             </div>
 
             {/* Linear MCP */}
-            <div className="p-6 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30 rounded-xl">
+            <div className="p-6 bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-xl">
               <div className="text-2xl mb-3">📋</div>
               <h3 className="text-white font-semibold text-lg mb-2">Linear MCP Integration</h3>
               <p className="text-gray-300 text-sm mb-4">
-                Human-in-the-loop review workflow for high-confidence AI suggestions
+                Human-in-the-loop review workflow for AI suggestions that need approval
               </p>
-              <div className="text-blue-400 text-sm font-medium">
+              <div className="text-green-400 text-sm font-medium">
                 Configured
               </div>
             </div>
-
-            {/* Session Management */}
-            <a
-              href="/api/auth/sessions"
-              className="p-6 bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-xl hover:border-green-400/50 transition"
-            >
-              <div className="text-2xl mb-3">🔐</div>
-              <h3 className="text-white font-semibold text-lg mb-2">Session Management</h3>
-              <p className="text-gray-300 text-sm mb-4">
-                View and manage your active sessions across devices
-              </p>
-              <div className="text-green-400 text-sm font-medium">
-                GET /api/auth/sessions →
-              </div>
-            </a>
           </div>
         </div>
 
