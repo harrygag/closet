@@ -259,3 +259,24 @@ model AILog {
   @@index([aijobId])
   @@index([createdAt])
 }
+
+// Linear MCP Integration (for AI agent to track coding tasks)
+model LinearSync {
+  id        String   @id @default(cuid())
+  issueId   String   @unique // Linear issue ID
+  issueUrl  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  aijobId     String? // Link to AIJob if tracking AI suggestion review
+  status      String // open, in_progress, done, canceled
+  assigneeId  String?
+  priority    Int      @default(0)
+  labels      String[]
+  title       String // Issue title
+  description String? // Issue description
+
+  @@index([issueId])
+  @@index([status])
+  @@index([aijobId])
+}
