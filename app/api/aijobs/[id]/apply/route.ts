@@ -2,31 +2,35 @@
  * POST /api/aijobs/[id]/apply
  * Apply an AI job's suggestion to the item
  *
- * Manager-only endpoint
+ * User applies their own AI suggestions
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
+import { requireAuth } from '@/src/lib/auth';
 
 const prisma = new PrismaClient();
 
 const ApplySchema = z.object({
-  actorId: z.string(), // Manager who is applying
   reason: z.string().optional(),
 });
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
+    // Require authentication
+    const currentUser = await requireAuth(request);
+
     const body = await request.json();
     const validated = ApplySchema.parse(body);
 
     // Get the job
     const job = await prisma.aIJob.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { item: true },
     });
 
@@ -37,9 +41,17 @@ export async function POST(
       );
     }
 
-    if (job.status !== 'SUCCEEDED' && job.status !== 'MANAGER_APPROVED') {
+    // Ensure user owns this job
+    if (job.userId !== currentUser.id) {
       return NextResponse.json(
-        { error: 'Job must be in SUCCEEDED or MANAGER_APPROVED status' },
+        { error: 'Unauthorized' },
+        { status: 403 }
+      );
+    }
+
+    if (job.status !== 'SUCCEEDED' && job.status !== 'NEEDS_REVIEW') {
+      return NextResponse.json(
+        { error: 'Job must be in SUCCEEDED or NEEDS_REVIEW status' },
         { status: 400 }
       );
     }
@@ -92,23 +104,9 @@ export async function POST(
       await tx.aIJob.update({
         where: { id: job.id },
         data: {
-          managerApproved: true,
+          status: 'APPLIED',
           appliedAt: new Date(),
-          appliedByUserId: validated.actorId,
-        },
-      });
-
-      // Create audit record
-      await tx.managerAudit.create({
-        data: {
-          aijobId: job.id,
-          actorId: validated.actorId,
-          actionType: 'APPLY_TO_ITEM',
-          actionPayload: {
-            jobType: job.jobType,
-            reason: validated.reason || 'Applied via API',
-            updates,
-          },
+          reviewedAt: new Date(),
         },
       });
 
