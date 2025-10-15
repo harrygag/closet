@@ -162,7 +162,7 @@ export class OpenAIClient {
       const pricing = PRICING[model as keyof typeof PRICING] || PRICING['gpt-4o-mini'];
       const costEstimate = {
         inputCostUSD: usage.promptTokens * pricing.input,
-        outputCostUSD: usage.completionTokens * (pricing.output || pricing.input),
+        outputCostUSD: usage.completionTokens * ('output' in pricing ? pricing.output : pricing.input),
         totalCostUSD: 0,
       };
       costEstimate.totalCostUSD = costEstimate.inputCostUSD + costEstimate.outputCostUSD;
@@ -232,7 +232,7 @@ export class OpenAIClient {
     const pricing = PRICING[model as keyof typeof PRICING] || PRICING['gpt-4o-mini'];
     const costEstimate = {
       inputCostUSD: usage.promptTokens * pricing.input,
-      outputCostUSD: usage.completionTokens * (pricing.output || pricing.input),
+      outputCostUSD: usage.completionTokens * ('output' in pricing ? pricing.output : pricing.input),
       totalCostUSD: 0,
     };
     costEstimate.totalCostUSD = costEstimate.inputCostUSD + costEstimate.outputCostUSD;
@@ -314,7 +314,7 @@ export class OpenAIClient {
       const pricing = PRICING[embeddingModel as keyof typeof PRICING] || PRICING['text-embedding-3-large'];
       const totalCost = usage.totalTokens * pricing.input;
 
-      response.data.forEach((item, idx) => {
+      response.data.forEach((item) => {
         results.push({
           embedding: item.embedding,
           usage: {

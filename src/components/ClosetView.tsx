@@ -71,7 +71,7 @@ export const ClosetView: React.FC<ClosetViewProps> = ({ items, onItemClick }) =>
     return [...items].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
   });
 
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [_activeId, setActiveId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {

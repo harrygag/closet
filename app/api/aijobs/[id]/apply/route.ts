@@ -7,14 +7,11 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { z } from 'zod';
+
 import { requireAuth } from '@/src/lib/auth';
 
 const prisma = new PrismaClient();
 
-const ApplySchema = z.object({
-  reason: z.string().optional(),
-});
 
 export async function POST(
   request: NextRequest,
@@ -119,13 +116,6 @@ export async function POST(
     });
 
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
-        { status: 400 }
-      );
-    }
-
     console.error('Error applying job:', error);
     return NextResponse.json(
       { error: 'Internal server error' },

@@ -112,8 +112,6 @@ export async function POST(request: NextRequest) {
  * Process a single AI job
  */
 async function processJob(job: any) {
-  const startTime = Date.now();
-
   try {
     const client = getOpenAIClient();
 
@@ -158,7 +156,7 @@ async function processJob(job: any) {
       where: { id: job.id },
       data: {
         status: needsReview ? 'NEEDS_REVIEW' : 'SUCCEEDED',
-        result: result.data,
+        result: result.data as any,
         rawOutput: result.rawResponse,
         tokensUsed: result.usage.totalTokens,
         costEstimate: result.costEstimate.totalCostUSD,
@@ -184,8 +182,6 @@ async function processJob(job: any) {
     };
 
   } catch (error) {
-    const latencyMs = Date.now() - startTime;
-
     // Check if should retry
     const shouldRetry = job.attempts < job.maxAttempts;
 
