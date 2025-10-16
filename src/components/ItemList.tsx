@@ -9,9 +9,10 @@ interface ItemListProps {
   onEdit: (item: Item) => void;
   onDelete: (id: string) => void;
   onImageUpload?: (itemId: string, imageUrl: string) => void;
+  onViewComps?: (item: Item) => void;
 }
 
-export const ItemList: React.FC<ItemListProps> = ({ items, isLoading, onEdit, onDelete, onImageUpload }) => {
+export const ItemList: React.FC<ItemListProps> = ({ items, isLoading, onEdit, onDelete, onImageUpload, onViewComps }) => {
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -39,6 +40,7 @@ export const ItemList: React.FC<ItemListProps> = ({ items, isLoading, onEdit, on
           onEdit={onEdit}
           onDelete={onDelete}
           onImageUpload={onImageUpload}
+          onViewComps={onViewComps}
         />
       ))}
     </div>

@@ -9,6 +9,7 @@ import { SearchAndFilter } from './components/SearchAndFilter';
 import { StatsDashboard } from './components/StatsDashboard';
 import { ClosetView } from './components/ClosetView';
 import { SignIn } from './components/SignIn';
+import { CompsDrawer } from './components/CompsDrawer';
 import { quickBackup } from './utils/recover-inventory';
 import type { Item, ItemTag, ItemStatus } from './types/item';
 
@@ -33,6 +34,7 @@ function App() {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
+  const [compsItem, setCompsItem] = useState<Item | null>(null);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -57,6 +59,10 @@ function App() {
 
   const handleDeleteItem = async (id: string) => {
     await deleteItem(id);
+  };
+
+  const handleViewComps = (item: Item) => {
+    setCompsItem(item);
   };
 
   const handleFormSubmit = async (itemData: Omit<Item, 'id' | 'dateAdded'> | Item) => {
@@ -204,6 +210,7 @@ function App() {
               isLoading={isLoading}
               onEdit={handleEditItem}
               onDelete={handleDeleteItem}
+              onViewComps={handleViewComps}
             />
           )}
 
@@ -290,6 +297,15 @@ function App() {
         onSubmit={handleFormSubmit}
         editItem={editingItem}
       />
+
+      {/* Comps Drawer */}
+      {compsItem && (
+        <CompsDrawer
+          item={compsItem}
+          isOpen={!!compsItem}
+          onClose={() => setCompsItem(null)}
+        />
+      )}
 
       {/* Footer */}
       <footer className="border-t border-gray-700 bg-gray-900/50 py-4">

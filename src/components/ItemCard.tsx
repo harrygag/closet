@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Edit2, Trash2, ExternalLink, ImageIcon, Upload } from 'lucide-react';
+import { Edit2, Trash2, ExternalLink, ImageIcon, Upload, TrendingUp } from 'lucide-react';
 import type { Item } from '../types/item';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from './ui/Card';
 import { Button } from './ui/Button';
@@ -11,9 +11,10 @@ interface ItemCardProps {
   onEdit: (item: Item) => void;
   onDelete: (id: string) => void;
   onImageUpload?: (itemId: string, imageUrl: string) => void;
+  onViewComps?: (item: Item) => void;
 }
 
-export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, onImageUpload }) => {
+export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, onImageUpload, onViewComps }) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   
@@ -202,6 +203,20 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, onIm
         <Button size="sm" variant="danger" onClick={handleDelete} className="flex-1">
           <Trash2 className="h-3 w-3" />
         </Button>
+        {onViewComps && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewComps(item);
+            }}
+            className="flex-1"
+            title="View comparable sales"
+          >
+            <TrendingUp className="h-3 w-3" />
+          </Button>
+        )}
         {item.ebayUrl && (
           <Button size="sm" variant="ghost" onClick={openEbayUrl} className="flex-1">
             <ExternalLink className="h-3 w-3" />
