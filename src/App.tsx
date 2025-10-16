@@ -1,29 +1,25 @@
 import { useEffect, useState } from 'react';
-import { Plus, List, Shirt, BarChart3, LogOut, User, Download } from 'lucide-react';
+import { Plus, Shirt, BarChart3, LogOut, User, Download } from 'lucide-react';
 import { useItemStore } from './store/useItemStore';
 import { useAuthStore } from './store/useAuthStore';
 import { Button } from './components/ui/Button';
-import { ItemList } from './components/ItemList';
 import { ItemForm } from './components/ItemForm';
 import { SearchAndFilter } from './components/SearchAndFilter';
 import { StatsDashboard } from './components/StatsDashboard';
 import { ClosetView } from './components/ClosetView';
 import { SignIn } from './components/SignIn';
-import { CompsDrawer } from './components/CompsDrawer';
 import { quickBackup } from './utils/recover-inventory';
 import type { Item, ItemTag, ItemStatus } from './types/item';
 
-type ViewMode = 'list' | 'closet' | 'stats';
+type ViewMode = 'closet' | 'stats';
 
 function App() {
   const {
     filteredItems,
-    isLoading,
     filterOptions,
     initializeStore,
     addItem,
     updateItem,
-    deleteItem,
     setFilterOptions,
     resetFilters,
     getStats,
@@ -31,10 +27,9 @@ function App() {
 
   const { isAuthenticated, user, signOut } = useAuthStore();
 
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [viewMode, setViewMode] = useState<ViewMode>('closet');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
-  const [compsItem, setCompsItem] = useState<Item | null>(null);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -55,14 +50,6 @@ function App() {
   const handleEditItem = (item: Item) => {
     setEditingItem(item);
     setIsFormOpen(true);
-  };
-
-  const handleDeleteItem = async (id: string) => {
-    await deleteItem(id);
-  };
-
-  const handleViewComps = (item: Item) => {
-    setCompsItem(item);
   };
 
   const handleFormSubmit = async (itemData: Omit<Item, 'id' | 'dateAdded'> | Item) => {
@@ -148,17 +135,6 @@ function App() {
         {/* View Mode Tabs */}
         <div className="mb-6 flex gap-2 rounded-lg border border-gray-700 bg-gray-800 p-1">
           <button
-            onClick={() => setViewMode('list')}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors ${
-              viewMode === 'list'
-                ? 'bg-purple-600 text-white'
-                : 'text-gray-400 hover:bg-gray-700 hover:text-white'
-            }`}
-          >
-            <List className="h-5 w-5" />
-            List View
-          </button>
-          <button
             onClick={() => setViewMode('closet')}
             className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors ${
               viewMode === 'closet'
@@ -187,8 +163,8 @@ function App() {
           <StatsDashboard stats={stats} />
         </div>
 
-        {/* Search and Filter - Show only in list and closet views */}
-        {(viewMode === 'list' || viewMode === 'closet') && (
+        {/* Search and Filter - Show only in closet view */}
+        {viewMode === 'closet' && (
           <div className="mb-6">
             <SearchAndFilter
               searchQuery={filterOptions.searchQuery}
@@ -204,18 +180,8 @@ function App() {
 
         {/* Content based on view mode */}
         <div className="mb-6">
-          {viewMode === 'list' && (
-            <ItemList
-              items={filteredItems}
-              isLoading={isLoading}
-              onEdit={handleEditItem}
-              onDelete={handleDeleteItem}
-              onViewComps={handleViewComps}
-            />
-          )}
-
           {viewMode === 'closet' && (
-            <ClosetView items={filteredItems} onItemClick={handleEditItem} />
+            <ClosetView items={filteredItems} onItemClick={handleEditItem} onAddItem={handleAddItem} />
           )}
 
           {viewMode === 'stats' && (
@@ -297,15 +263,6 @@ function App() {
         onSubmit={handleFormSubmit}
         editItem={editingItem}
       />
-
-      {/* Comps Drawer */}
-      {compsItem && (
-        <CompsDrawer
-          item={compsItem}
-          isOpen={!!compsItem}
-          onClose={() => setCompsItem(null)}
-        />
-      )}
 
       {/* Footer */}
       <footer className="border-t border-gray-700 bg-gray-900/50 py-4">

@@ -4,6 +4,8 @@ import { Modal } from './ui/Modal';
 import { Input, TextArea, Select } from './ui/Input';
 import { Button } from './ui/Button';
 import { calculateMarketplaceFees } from '../utils/marketplace-fees';
+import { searchComps, getCompStats, type ClothingComp } from '../services/comps';
+import { TrendingUp, ExternalLink, Loader2 } from 'lucide-react';
 
 interface ItemFormProps {
   open: boolean;
@@ -164,6 +166,41 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
   };
 
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showComps, setShowComps] = useState(false);
+  const [comps, setComps] = useState<ClothingComp[]>([]);
+  const [loadingComps, setLoadingComps] = useState(false);
+
+  const handleFindComps = async () => {
+    if (!formData.name && formData.tags.length === 0) {
+      alert('Please enter an item name or select tags to find comps');
+      return;
+    }
+
+    setLoadingComps(true);
+    setShowComps(true);
+
+    try {
+      // Extract potential brand from name
+      const brandMatch = formData.name.match(/^([A-Z][a-zA-Z]+)/);
+      const brand = brandMatch ? brandMatch[1] : undefined;
+
+      const results = await searchComps({
+        category: formData.tags[0]?.toLowerCase(),
+        brand,
+        size: formData.size || undefined,
+        minSimilarity: 0.5,
+        limit: 10
+      });
+
+      setComps(results);
+    } catch (error) {
+      console.error('Error finding comps:', error);
+    } finally {
+      setLoadingComps(false);
+    }
+  };
+
+  const stats = comps.length > 0 ? getCompStats(comps) : null;
 
   return (
     <Modal
@@ -228,6 +265,99 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
             ))}
           </div>
         </div>
+
+        {/* Find Comps Button */}
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={handleFindComps}
+          className="w-full flex items-center justify-center gap-2"
+          disabled={loadingComps}
+        >
+          {loadingComps ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Finding comps...
+            </>
+          ) : (
+            <>
+              <TrendingUp className="h-4 w-4" />
+              Find Comparable Sales
+            </>
+          )}
+        </Button>
+
+        {/* Comps Results */}
+        {showComps && (
+          <div className="rounded-lg border border-gray-700 bg-gray-900/50 p-4 space-y-3">
+            {loadingComps ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+              </div>
+            ) : comps.length === 0 ? (
+              <p className="text-center text-gray-400 py-4">
+                No comps found. Try running the scraper first or adjust your search.
+              </p>
+            ) : (
+              <>
+                {/* Stats */}
+                {stats && (
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    <div className="bg-gray-800 rounded p-2 text-center">
+                      <div className="text-xs text-gray-400">Avg Price</div>
+                      <div className="text-lg font-bold text-green-400">${stats.avgPrice.toFixed(0)}</div>
+                    </div>
+                    <div className="bg-gray-800 rounded p-2 text-center">
+                      <div className="text-xs text-gray-400">Median</div>
+                      <div className="text-lg font-bold text-blue-400">${stats.medianPrice.toFixed(0)}</div>
+                    </div>
+                    <div className="bg-gray-800 rounded p-2 text-center">
+                      <div className="text-xs text-gray-400">Range</div>
+                      <div className="text-sm font-bold text-purple-400">${stats.minPrice}-${stats.maxPrice}</div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Comp Cards */}
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {comps.slice(0, 5).map((comp) => (
+                    <div key={comp.id} className="flex gap-3 bg-gray-800 rounded p-2 text-sm">
+                      {comp.image_urls?.[0] && (
+                        <img src={comp.image_urls[0]} alt={comp.title} className="w-12 h-12 rounded object-cover" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-white font-medium truncate">{comp.title}</div>
+                        <div className="flex items-center gap-2 text-xs text-gray-400">
+                          <span className="uppercase">{comp.source_marketplace}</span>
+                          {comp.similarity_score && (
+                            <span className="text-green-400">{(comp.similarity_score * 100).toFixed(0)}% match</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end justify-between">
+                        <div className="text-lg font-bold text-green-400">${comp.price.toFixed(0)}</div>
+                        <a
+                          href={comp.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-purple-400 hover:text-purple-300"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {comps.length > 5 && (
+                  <p className="text-xs text-center text-gray-400">
+                    Showing 5 of {comps.length} comps
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+        )}
 
 
         {/* Advanced Fields Toggle */}
