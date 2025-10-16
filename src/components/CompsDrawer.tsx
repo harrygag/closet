@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { TrendingUp, ExternalLink, Loader2, DollarSign } from 'lucide-react';
-import { searchComps, getCompsForItem, getCompStats, type ClothingComp } from '../services/comps';
+import { getCompsForItem, getCompStats, type ClothingComp } from '../services/comps';
 import type { Item } from '../types/item';
 
 interface CompsDrawerProps {

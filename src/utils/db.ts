@@ -16,7 +16,7 @@ const DB_VERSION = 1;
 
 let dbInstance: IDBPDatabase<ClosetDB> | null = null;
 
-export const initDB = async (userEmail?: string): Promise<IDBPDatabase<ClosetDB>> => {
+export const initDB = async (_userEmail?: string): Promise<IDBPDatabase<ClosetDB>> => {
   if (dbInstance) return dbInstance;
 
   dbInstance = await openDB<ClosetDB>(DB_NAME, DB_VERSION, {
