@@ -61,3 +61,6 @@ playwright/.cache/
 workers/scrapy/.env
 workers/scrapy/.scrapy/
 workers/scrapy/*.log
+
+# Duplicate directories to ignore
+closet-react/
