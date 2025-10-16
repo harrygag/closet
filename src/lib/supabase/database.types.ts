@@ -385,6 +385,62 @@ export interface Database {
           created_at?: string
         }
       }
+      clothing_comps: {
+        Row: {
+          id: string
+          search_query: string
+          marketplace: string
+          title: string
+          price: number | null
+          sold_date: string | null
+          shipping_cost: number | null
+          image_url: string | null
+          listing_url: string | null
+          brand: string | null
+          size: string | null
+          color: string | null
+          condition: string | null
+          ai_similarity_score: number | null
+          scraped_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          search_query: string
+          marketplace: string
+          title: string
+          price?: number | null
+          sold_date?: string | null
+          shipping_cost?: number | null
+          image_url?: string | null
+          listing_url?: string | null
+          brand?: string | null
+          size?: string | null
+          color?: string | null
+          condition?: string | null
+          ai_similarity_score?: number | null
+          scraped_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          search_query?: string
+          marketplace?: string
+          title?: string
+          price?: number | null
+          sold_date?: string | null
+          shipping_cost?: number | null
+          image_url?: string | null
+          listing_url?: string | null
+          brand?: string | null
+          size?: string | null
+          color?: string | null
+          condition?: string | null
+          ai_similarity_score?: number | null
+          scraped_at?: string | null
+          created_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
