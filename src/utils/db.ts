@@ -10,20 +10,23 @@ interface ClosetDB extends DBSchema {
   };
 }
 
+// Use the SAME database name as the main app so we access the same data
 const DB_NAME = 'closet-db';
 const DB_VERSION = 1;
 
 let dbInstance: IDBPDatabase<ClosetDB> | null = null;
 
-export const initDB = async (): Promise<IDBPDatabase<ClosetDB>> => {
+export const initDB = async (userEmail?: string): Promise<IDBPDatabase<ClosetDB>> => {
   if (dbInstance) return dbInstance;
 
   dbInstance = await openDB<ClosetDB>(DB_NAME, DB_VERSION, {
     upgrade(db) {
-      // Create items store
-      const itemsStore = db.createObjectStore('items', { keyPath: 'id' });
-      itemsStore.createIndex('by-status', 'status');
-      itemsStore.createIndex('by-dateAdded', 'dateAdded');
+      // Create items store if it doesn't exist
+      if (!db.objectStoreNames.contains('items')) {
+        const itemsStore = db.createObjectStore('items', { keyPath: 'id' });
+        itemsStore.createIndex('by-status', 'status');
+        itemsStore.createIndex('by-dateAdded', 'dateAdded');
+      }
     },
   });
 

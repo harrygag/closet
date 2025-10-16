@@ -3,6 +3,7 @@ import type { Item, ItemTag, ItemStatus } from '../types/item';
 import { Modal } from './ui/Modal';
 import { Input, TextArea, Select } from './ui/Input';
 import { Button } from './ui/Button';
+import { calculateMarketplaceFees } from '../utils/marketplace-fees';
 
 interface ItemFormProps {
   open: boolean;
@@ -27,7 +28,13 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
     hangerStatus: '',
     hangerId: '',
     tags: [] as ItemTag[],
+    imageUrl: '',
     ebayUrl: '',
+    ebayPrice: 0,
+    mercariUrl: '',
+    mercariPrice: 0,
+    poshmarkUrl: '',
+    poshmarkPrice: 0,
     costPrice: 0,
     sellingPrice: 0,
     ebayFees: 0,
@@ -38,6 +45,14 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
 
   useEffect(() => {
     if (editItem) {
+      // Extract marketplace URLs from the marketplaceUrls array
+      const mercariData = editItem.marketplaceUrls?.find(m => m.type === 'mercari');
+      const poshmarkData = editItem.marketplaceUrls?.find(m => m.type === 'poshmark');
+      const mercariUrl = mercariData?.url || '';
+      const mercariPrice = mercariData?.price || 0;
+      const poshmarkUrl = poshmarkData?.url || '';
+      const poshmarkPrice = poshmarkData?.price || 0;
+      
       setFormData({
         name: editItem.name,
         size: editItem.size,
@@ -45,7 +60,13 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
         hangerStatus: editItem.hangerStatus,
         hangerId: editItem.hangerId,
         tags: editItem.tags,
+        imageUrl: editItem.imageUrl || '',
         ebayUrl: editItem.ebayUrl,
+        ebayPrice: editItem.sellingPrice, // Use sellingPrice as eBay price
+        mercariUrl,
+        mercariPrice,
+        poshmarkUrl,
+        poshmarkPrice,
         costPrice: editItem.costPrice,
         sellingPrice: editItem.sellingPrice,
         ebayFees: editItem.ebayFees,
@@ -54,15 +75,25 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
         notes: editItem.notes,
       });
     } else {
-      // Reset form
+      // Check sessionStorage for pre-filled values from "Add Hanger" button
+      const categoryFromStorage = sessionStorage.getItem('newItemCategory');
+      const hangerIdFromStorage = sessionStorage.getItem('newItemHangerId');
+      
+      // Reset form with optional pre-filled values
       setFormData({
         name: '',
         size: '',
         status: 'Active',
-        hangerStatus: '',
-        hangerId: '',
-        tags: [],
+        hangerStatus: hangerIdFromStorage ? 'In Use' : '',
+        hangerId: hangerIdFromStorage || '',
+        tags: categoryFromStorage ? [categoryFromStorage as ItemTag] : [],
+        imageUrl: '',
         ebayUrl: '',
+        ebayPrice: 0,
+        mercariUrl: '',
+        mercariPrice: 0,
+        poshmarkUrl: '',
+        poshmarkPrice: 0,
         costPrice: 0,
         sellingPrice: 0,
         ebayFees: 0,
@@ -70,16 +101,54 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
         dateField: '',
         notes: '',
       });
+      
+      // Clear sessionStorage after using
+      sessionStorage.removeItem('newItemCategory');
+      sessionStorage.removeItem('newItemHangerId');
     }
   }, [editItem, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Build marketplaceUrls array from individual URL and PRICE fields
+    const marketplaceUrls = [];
+    
+    // Add Mercari if URL exists
+    if (formData.mercariUrl && formData.mercariUrl.trim()) {
+      marketplaceUrls.push({
+        type: 'mercari' as const,
+        url: formData.mercariUrl.trim(),
+        price: Number(formData.mercariPrice) || 0
+      });
+    }
+    
+    // Add Poshmark if URL exists
+    if (formData.poshmarkUrl && formData.poshmarkUrl.trim()) {
+      marketplaceUrls.push({
+        type: 'poshmark' as const,
+        url: formData.poshmarkUrl.trim(),
+        price: Number(formData.poshmarkPrice) || 0
+      });
+    }
+    
+    console.log('Form Submit - Built marketplace URLs:', marketplaceUrls);
+    
+    const itemData = {
+      ...formData,
+      marketplaceUrls,
+      sellingPrice: Number(formData.ebayPrice) || Number(formData.sellingPrice) || 0
+    };
+    
+    // Remove the temporary URL and price fields
+    const { mercariUrl, mercariPrice, poshmarkUrl, poshmarkPrice, ebayPrice, ...finalData } = itemData;
+    
+    console.log('Final data being saved:', finalData);
+    
     if (editItem) {
-      onSubmit({ ...editItem, ...formData });
+      onSubmit({ ...editItem, ...finalData });
     } else {
-      onSubmit(formData);
+      onSubmit(finalData);
     }
     
     onOpenChange(false);
@@ -94,6 +163,8 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
     }));
   };
 
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
   return (
     <Modal
       open={open}
@@ -101,21 +172,22 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
       title={editItem ? 'Edit Item' : 'Add New Item'}
       size="lg"
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-3">
+        {/* Essential Fields */}
         <Input
           label="Item Name *"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder="e.g., Nike Arizona Cardinals Salute to Service Hoodie"
+          placeholder="e.g., Nike Cardinals Hoodie"
           required
         />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-3">
           <Input
             label="Size"
             value={formData.size}
             onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-            placeholder="e.g., L, XL"
+            placeholder="L, XL"
           />
 
           <Select
@@ -125,18 +197,27 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
             options={STATUS_OPTIONS}
             required
           />
+          
+          <Input
+            label="Cost"
+            type="number"
+            step="0.01"
+            value={formData.costPrice || ''}
+            onChange={(e) => setFormData({ ...formData, costPrice: parseFloat(e.target.value) || 0 })}
+            placeholder="0.00"
+          />
         </div>
 
-        {/* Tags */}
+        {/* Tags - Always visible but compact */}
         <div>
-          <label className="mb-2 block text-sm font-medium text-gray-300">Tags</label>
-          <div className="flex flex-wrap gap-2">
+          <label className="mb-1.5 block text-sm font-medium text-gray-300">Tags</label>
+          <div className="flex flex-wrap gap-1.5">
             {TAG_OPTIONS.map((tag) => (
               <button
                 key={tag}
                 type="button"
                 onClick={() => handleTagToggle(tag)}
-                className={`rounded px-3 py-1.5 text-sm font-medium transition-colors ${
+                className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
                   formData.tags.includes(tag)
                     ? 'bg-purple-600 text-white'
                     : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
@@ -148,86 +229,175 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
           </div>
         </div>
 
-        <Input
-          label="eBay URL"
-          type="url"
-          value={formData.ebayUrl}
-          onChange={(e) => setFormData({ ...formData, ebayUrl: e.target.value })}
-          placeholder="https://ebay.com/..."
-        />
 
-        <div className="grid grid-cols-2 gap-4">
-          <Input
-            label="Cost Price"
-            type="number"
-            step="0.01"
-            value={formData.costPrice || ''}
-            onChange={(e) => setFormData({ ...formData, costPrice: parseFloat(e.target.value) || 0 })}
-            placeholder="0.00"
-          />
+        {/* Advanced Fields Toggle */}
+        <button
+          type="button"
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          className="text-sm text-purple-400 hover:text-purple-300"
+        >
+          {showAdvanced ? '− Hide' : '+ Show'} Advanced Options
+        </button>
 
-          <Input
-            label="Selling Price"
-            type="number"
-            step="0.01"
-            value={formData.sellingPrice || ''}
-            onChange={(e) => setFormData({ ...formData, sellingPrice: parseFloat(e.target.value) || 0 })}
-            placeholder="0.00"
-          />
-        </div>
+        {showAdvanced && (
+          <div className="space-y-3 rounded-lg border border-gray-700 bg-gray-900/50 p-3">
+            {/* Marketplace URLs with Fee Calculations */}
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  label="eBay URL"
+                  type="url"
+                  value={formData.ebayUrl}
+                  onChange={(e) => setFormData({ ...formData, ebayUrl: e.target.value })}
+                  placeholder="https://ebay.com/..."
+                />
+                <div>
+                  <Input
+                    label="List Price"
+                    type="number"
+                    step="0.01"
+                    value={formData.ebayPrice || ''}
+                    onChange={(e) => setFormData({ ...formData, ebayPrice: parseFloat(e.target.value) || 0 })}
+                    placeholder="0.00"
+                  />
+                  {formData.ebayPrice > 0 && (
+                    <div className="mt-1 text-xs text-gray-400">
+                      {(() => {
+                        const calc = calculateMarketplaceFees('ebay', formData.ebayPrice);
+                        return `Net: $${calc.netProfit} (${calc.breakdown})`;
+                      })()}
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  label="Mercari URL"
+                  type="url"
+                  value={formData.mercariUrl}
+                  onChange={(e) => setFormData({ ...formData, mercariUrl: e.target.value })}
+                  placeholder="https://mercari.com/..."
+                />
+                <div>
+                  <Input
+                    label="List Price"
+                    type="number"
+                    step="0.01"
+                    value={formData.mercariPrice || ''}
+                    onChange={(e) => setFormData({ ...formData, mercariPrice: parseFloat(e.target.value) || 0 })}
+                    placeholder="0.00"
+                  />
+                  {formData.mercariPrice > 0 && (
+                    <div className="mt-1 text-xs text-gray-400">
+                      {(() => {
+                        const calc = calculateMarketplaceFees('mercari', formData.mercariPrice);
+                        return `Net: $${calc.netProfit} (${calc.breakdown})`;
+                      })()}
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  label="Poshmark URL"
+                  type="url"
+                  value={formData.poshmarkUrl}
+                  onChange={(e) => setFormData({ ...formData, poshmarkUrl: e.target.value })}
+                  placeholder="https://poshmark.com/..."
+                />
+                <div>
+                  <Input
+                    label="List Price"
+                    type="number"
+                    step="0.01"
+                    value={formData.poshmarkPrice || ''}
+                    onChange={(e) => setFormData({ ...formData, poshmarkPrice: parseFloat(e.target.value) || 0 })}
+                    placeholder="0.00"
+                  />
+                  {formData.poshmarkPrice > 0 && (
+                    <div className="mt-1 text-xs text-gray-400">
+                      {(() => {
+                        const calc = calculateMarketplaceFees('poshmark', formData.poshmarkPrice);
+                        return `Net: $${calc.netProfit} (${calc.breakdown})`;
+                      })()}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <Input
-            label="eBay Fees"
-            type="number"
-            step="0.01"
-            value={formData.ebayFees || ''}
-            onChange={(e) => setFormData({ ...formData, ebayFees: parseFloat(e.target.value) || 0 })}
-            placeholder="0.00"
-          />
+            {/* Financial Details */}
+            <div className="grid grid-cols-3 gap-3">
+              <Input
+                label="Selling Price"
+                type="number"
+                step="0.01"
+                value={formData.sellingPrice || ''}
+                onChange={(e) => setFormData({ ...formData, sellingPrice: parseFloat(e.target.value) || 0 })}
+                placeholder="0.00"
+              />
+              <Input
+                label="Fees"
+                type="number"
+                step="0.01"
+                value={formData.ebayFees || ''}
+                onChange={(e) => setFormData({ ...formData, ebayFees: parseFloat(e.target.value) || 0 })}
+                placeholder="0.00"
+              />
+              <Input
+                label="Net Profit"
+                type="number"
+                step="0.01"
+                value={formData.netProfit || ''}
+                onChange={(e) => setFormData({ ...formData, netProfit: parseFloat(e.target.value) || 0 })}
+                placeholder="0.00"
+              />
+            </div>
 
-          <Input
-            label="Net Profit"
-            type="number"
-            step="0.01"
-            value={formData.netProfit || ''}
-            onChange={(e) => setFormData({ ...formData, netProfit: parseFloat(e.target.value) || 0 })}
-            placeholder="0.00"
-          />
-        </div>
+            {/* Hanger Info */}
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                label="Hanger Status"
+                value={formData.hangerStatus}
+                onChange={(e) => setFormData({ ...formData, hangerStatus: e.target.value })}
+                placeholder="In Use"
+              />
+              <Input
+                label="Hanger ID"
+                value={formData.hangerId}
+                onChange={(e) => setFormData({ ...formData, hangerId: e.target.value })}
+                placeholder="A1, B2"
+              />
+            </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <Input
-            label="Hanger Status"
-            value={formData.hangerStatus}
-            onChange={(e) => setFormData({ ...formData, hangerStatus: e.target.value })}
-            placeholder="e.g., In Use"
-          />
+            <Input
+              label="Date"
+              type="date"
+              value={formData.dateField}
+              onChange={(e) => setFormData({ ...formData, dateField: e.target.value })}
+            />
 
-          <Input
-            label="Hanger ID"
-            value={formData.hangerId}
-            onChange={(e) => setFormData({ ...formData, hangerId: e.target.value })}
-            placeholder="e.g., A1, B2"
-          />
-        </div>
+            <Input
+              label="Image URL"
+              type="url"
+              value={formData.imageUrl}
+              onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+              placeholder="https://..."
+            />
 
-        <Input
-          label="Date Field"
-          type="date"
-          value={formData.dateField}
-          onChange={(e) => setFormData({ ...formData, dateField: e.target.value })}
-        />
+            <TextArea
+              label="Notes"
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              placeholder="Additional notes..."
+              rows={2}
+            />
+          </div>
+        )}
 
-        <TextArea
-          label="Notes"
-          value={formData.notes}
-          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-          placeholder="Additional notes about this item..."
-          rows={3}
-        />
-
-        <div className="flex justify-end gap-2 pt-4">
+        <div className="flex justify-end gap-2 pt-3 border-t border-gray-700">
           <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>

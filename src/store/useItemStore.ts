@@ -22,7 +22,7 @@ interface ItemState {
   selectedItem: Item | null;
   
   // Actions
-  initializeStore: () => Promise<void>;
+  initializeStore: (userEmail?: string) => Promise<void>;
   loadItems: () => Promise<void>;
   addItem: (item: Omit<Item, 'id' | 'dateAdded'>) => Promise<void>;
   updateItem: (item: Item) => Promise<void>;
@@ -56,14 +56,15 @@ export const useItemStore = create<ItemState>()(
     sortOption: defaultSortOption,
     selectedItem: null,
 
-    initializeStore: async () => {
+    initializeStore: async (userEmail?: string) => {
       set({ isLoading: true, error: null });
       
       try {
-        await initDB();
+        // Initialize DB with user email for user-specific storage
+        await initDB(userEmail);
         const existingItems = await getAllItems();
         
-        // If no items exist, load initial data
+        // If no items exist, load initial data for this user
         if (existingItems.length === 0) {
           // Transform initial items to include id and dateAdded
           const itemsWithIds: Item[] = INITIAL_ITEMS.map((item, index) => ({

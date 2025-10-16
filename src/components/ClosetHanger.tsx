@@ -1,167 +1,699 @@
-// Realistic clothes hanger component with animations
-import React from 'react';
-import type { Item } from '../types/item';
-import { parseMarketplaceUrls, MARKETPLACE_ICONS, MARKETPLACE_COLORS } from '../utils/marketplace';
-import { getStatusColor, truncateText } from '../utils/formatters';
+// Flippable Pokemon card hanger component
+import React, { useState } from 'react';
+import type { Item, ItemTag } from '../types/item';
 import { clsx } from 'clsx';
-import { Shirt } from 'lucide-react';
+import { Save, X, Image as ImageIcon } from 'lucide-react';
+
+// Pokemon energy types for each category
+const ENERGY_TYPES: Record<ItemTag, { symbol: string; color: string; name: string }> = {
+  'Hoodie': { symbol: '🔮', color: 'text-purple-500', name: 'Psychic' },
+  'Jersey': { symbol: '🌿', color: 'text-green-500', name: 'Grass' },
+  'polo': { symbol: '⭐', color: 'text-gray-500', name: 'Normal' },
+  'Pullover/Jackets': { symbol: '🔥', color: 'text-red-500', name: 'Fire' },
+  'T-shirts': { symbol: '💧', color: 'text-blue-500', name: 'Water' },
+  'Bottoms': { symbol: '🌙', color: 'text-indigo-600', name: 'Dark' },
+};
+
+// Toast notification helper
+const toast = {
+  success: (message: string) => {
+    console.log('✓', message);
+  }
+};
 
 interface ClosetHangerProps {
   item: Item;
   onClick: (item: Item) => void;
+  onImageUpload?: (itemId: string, imageUrl: string) => void;
+  onUpdate?: (item: Item) => void;
   isDragging?: boolean;
+  position?: number;
 }
 
-export const ClosetHanger: React.FC<ClosetHangerProps> = ({ item, onClick, isDragging = false }) => {
-  const marketplaceUrls = parseMarketplaceUrls(item.ebayUrl, item.marketplaceUrls?.map(m => m.url));
+export const ClosetHanger: React.FC<ClosetHangerProps> = ({
+  item,
+  onImageUpload,
+  onUpdate,
+  isDragging = false,
+}) => {
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [isDropping, setIsDropping] = useState(false);
+  const [editData, setEditData] = useState(item);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  
+  // Get energy type based on primary tag
+  const energyType = item.tags.length > 0 
+    ? ENERGY_TYPES[item.tags[0]] 
+    : { symbol: '⭐', color: 'text-purple-500', name: 'Normal' };
+  
+  // Image gallery - support up to 5 images stored as JSON in notes field
+  const getImageGallery = (): string[] => {
+    try {
+      if (item.notes && item.notes.startsWith('[')) {
+        const parsed = JSON.parse(item.notes);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(img => img && typeof img === 'string');
+        }
+      }
+    } catch {}
+    return item.imageUrl ? [item.imageUrl] : [];
+  };
+  
+  const imageGallery = getImageGallery();
+
+  // Calculate days since listing (use dateField or dateAdded)
+  const getListingDate = () => {
+    const dateStr = item.dateField || item.dateAdded;
+    if (!dateStr) return new Date();
+    return new Date(dateStr);
+  };
+  
+  const listingDate = getListingDate();
+  const today = new Date();
+  const daysSinceList = Math.floor((today.getTime() - listingDate.getTime()) / (1000 * 60 * 60 * 24));
+  const daysListed = daysSinceList;
+  
+  // HP Calculation (31 days countdown - HP = days remaining)
+  const DAYS_UNTIL_ELIMINATION = 31;
+  
+  const getHP = (): number => {
+    const daysRemaining = DAYS_UNTIL_ELIMINATION - daysListed;
+    if (daysRemaining <= 0) return 0;
+    return daysRemaining; // HP directly equals days remaining
+  };
+  
+  const isEliminated = (): boolean => {
+    return daysListed >= DAYS_UNTIL_ELIMINATION;
+  };
+  
+  // Warning system
+  const getWarnings = (): { type: 'red' | 'yellow'; message: string }[] => {
+    const warnings: { type: 'red' | 'yellow'; message: string }[] = [];
+    
+    // RED warnings (critical)
+    if (item.status === 'Inactive') {
+      warnings.push({ type: 'red', message: 'Item is Inactive' });
+    }
+    if (!item.ebayUrl && (!item.marketplaceUrls || item.marketplaceUrls.length === 0)) {
+      warnings.push({ type: 'red', message: 'No marketplace URL' });
+    }
+    if (!item.sellingPrice || item.sellingPrice === 0) {
+      warnings.push({ type: 'red', message: 'No price set' });
+    }
+    
+    // YELLOW warnings (minor)
+    if (!item.imageUrl && imageGallery.length === 0) {
+      warnings.push({ type: 'yellow', message: 'No images' });
+    }
+    if (!item.size) {
+      warnings.push({ type: 'yellow', message: 'No size' });
+    }
+    if (!item.hangerId) {
+      warnings.push({ type: 'yellow', message: 'No hanger ID' });
+    }
+    
+    return warnings;
+  };
+  
+  const warnings = getWarnings();
+  const hasRedWarnings = warnings.some(w => w.type === 'red');
+  const hasYellowWarnings = warnings.some(w => w.type === 'yellow');
+  
+  // Format helpers
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+  
+  const formatDays = (days: number): string => {
+    if (days === 0) return 'today';
+    if (days === 1) return '1 day ago';
+    return `${days} days ago`;
+  };
+
+  // Sync editData when item prop changes
+  React.useEffect(() => {
+    setEditData(item);
+  }, [item]);
+
+  // Handle drag and drop for image upload
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isFlipped) setIsDropping(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDropping(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDropping(false);
+
+    if (isFlipped) return;
+
+    const files = Array.from(e.dataTransfer.files);
+    const imageFile = files.find(file => file.type.startsWith('image/'));
+
+    if (imageFile && onImageUpload) {
+      try {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const imageUrl = reader.result as string;
+          onImageUpload(item.id, imageUrl);
+        };
+        reader.readAsDataURL(imageFile);
+      } catch (error) {
+        console.error('Failed to upload image:', error);
+      }
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('image/') && onImageUpload) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const imageUrl = reader.result as string;
+        
+        // Update image gallery
+        const newGallery = [...imageGallery];
+        newGallery[index] = imageUrl;
+        
+        // Store gallery in notes field as JSON
+        const updatedItem = {
+          ...item,
+          imageUrl: newGallery[0] || '',
+          notes: JSON.stringify(newGallery.filter(img => img))
+        };
+        
+        if (onUpdate) {
+          onUpdate(updatedItem);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Don't flip if double-clicking on input, select, or button
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'INPUT' || target.tagName === 'SELECT' || target.tagName === 'BUTTON') {
+      return;
+    }
+    setIsFlipped(!isFlipped);
+  };
+
+  const handleSave = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onUpdate) {
+      onUpdate(editData);
+    }
+    setIsFlipped(false);
+  };
+
+  const handleCancel = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditData(item);
+    setIsFlipped(false);
+  };
 
   return (
     <div
-      onClick={() => onClick(item)}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
       className={clsx(
         'group relative cursor-pointer transition-all duration-300',
-        isDragging ? 'opacity-50 scale-95' : 'hover:scale-105'
+        isDragging && 'opacity-50 scale-95',
+        isDropping && 'ring-2 ring-purple-500 ring-offset-2 ring-offset-gray-800',
+        isFlipped && 'z-50'
       )}
       style={{
+        perspective: '1000px',
         animation: isDragging ? 'none' : 'sway 3s ease-in-out infinite',
         animationDelay: `${Math.random() * 2}s`,
       }}
     >
-      {/* Hanger Hook - connects to rod */}
-      <div className="flex justify-center">
-        <div className="h-6 w-0.5 bg-gradient-to-b from-gray-500 to-gray-600 rounded-full" />
-      </div>
-
-      {/* Hanger Top - curved hook */}
-      <div className="flex justify-center -mt-1">
-        <svg width="60" height="20" viewBox="0 0 60 20" className="drop-shadow-sm">
-          {/* Hook curve */}
-          <path
-            d="M 30 0 Q 30 8, 22 12 L 8 12 Q 4 12, 4 16 L 4 18 Q 4 20, 6 20 L 54 20 Q 56 20, 56 18 L 56 16 Q 56 12, 52 12 L 38 12 Q 30 8, 30 0"
-            fill="#6B7280"
-            stroke="#4B5563"
-            strokeWidth="0.5"
-            className="transition-all group-hover:fill-gray-500"
-          />
-          {/* Hanger shine effect */}
-          <path
-            d="M 30 2 Q 30 9, 23 12 L 10 12 Q 6 12, 6 15"
-            fill="none"
-            stroke="rgba(255,255,255,0.2)"
-            strokeWidth="1"
-            strokeLinecap="round"
-          />
-        </svg>
-      </div>
-
-      {/* Item Display - image or icon */}
-      <div className="flex justify-center -mt-2">
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={(e) => handleFileSelect(e, selectedImageIndex)}
+        className="hidden"
+        aria-label="Upload item photo"
+      />
+      
+      <div
+        className="relative"
+        style={{
+          transformStyle: 'preserve-3d',
+          transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0)',
+          transition: 'transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)',
+        }}
+      >
+        {/* FRONT SIDE - Pokemon Card */}
         <div
-          className={clsx(
-            'relative flex h-24 w-20 items-center justify-center rounded-lg border-2 transition-all duration-300',
-            'shadow-lg group-hover:shadow-xl group-hover:border-opacity-100',
-            getStatusColor(item.status),
-            isDragging ? 'rotate-3' : 'group-hover:-translate-y-1',
-            item.imageUrl ? 'bg-white p-1' : 'bg-gradient-to-br from-gray-700 to-gray-800 border-gray-600'
-          )}
+          className="relative rounded-xl overflow-hidden shadow-xl border-[8px] border-yellow-400"
+          onDoubleClick={handleDoubleClick}
+          style={{
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+            background: '#FFFACD',
+            width: 'min(200px, 90vw)', // Mobile-optimized: scales down to 90% viewport width on small screens
+            maxWidth: '200px',
+          }}
         >
-          {item.imageUrl ? (
-            <img
-              src={item.imageUrl}
-              alt={item.name}
-              className="h-full w-full object-cover rounded"
-              onError={(e) => {
-                // Fallback to icon if image fails to load
-                e.currentTarget.style.display = 'none';
-                const parent = e.currentTarget.parentElement;
-                if (parent) {
-                  parent.classList.add('bg-gradient-to-br', 'from-gray-700', 'to-gray-800');
-                  const icon = document.createElement('div');
-                  icon.innerHTML = '<svg class="h-12 w-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>';
-                  parent.appendChild(icon.firstChild!);
-                }
-              }}
-            />
-          ) : (
-            <Shirt className="h-12 w-12 text-white" />
-          )}
-
-          {/* Status indicator dot */}
-          <div
-            className={clsx(
-              'absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-gray-800',
-              item.status === 'Active' && 'bg-green-500',
-              item.status === 'Inactive' && 'bg-yellow-500',
-              item.status === 'SOLD' && 'bg-blue-500'
+          {/* Header - Name, Energy Type (left), and HP (right) */}
+          <div className="px-2.5 py-1 pb-0">
+            <div className="flex justify-between items-start">
+              {/* Left: Energy Type Symbol */}
+              <div className="flex items-center gap-1">
+                <span className="text-lg leading-none">{energyType.symbol}</span>
+              </div>
+              
+              {/* Right: HP */}
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <span className="text-xs text-gray-700 font-bold">HP</span>
+                <span className={`font-bold text-lg leading-none ${isEliminated() ? 'text-gray-500' : 'text-red-600'}`}>
+                  {isEliminated() ? "0" : getHP()}
+                </span>
+              </div>
+            </div>
+            
+            {/* Item Name - below energy and HP */}
+            <h3 className="text-gray-900 font-bold text-sm leading-tight mt-0.5" style={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}>
+              {item.name}
+            </h3>
+            
+            {isEliminated() && (
+              <div className="text-[7px] text-red-600 font-bold text-center bg-red-100 rounded px-1 mt-0.5">
+                ELIMINATED - RELIST NOW
+              </div>
             )}
-          />
+          </div>
 
-          {/* Marketplace icons overlay */}
-          {marketplaceUrls.length > 0 && (
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-1 bg-gray-900/90 backdrop-blur-sm px-2 py-1 rounded-full border border-gray-700">
-              {marketplaceUrls.slice(0, 3).map((marketplace, index) => {
-                const Icon = MARKETPLACE_ICONS[marketplace.type];
-                return (
-                  <a
-                    key={index}
-                    href={marketplace.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="transition-transform hover:scale-125"
-                    title={marketplace.type}
-                    style={{ color: MARKETPLACE_COLORS[marketplace.type] }}
-                  >
-                    <Icon className="h-3 w-3" />
-                  </a>
-                );
-              })}
-              {marketplaceUrls.length > 3 && (
-                <span className="text-xs text-gray-400">+{marketplaceUrls.length - 3}</span>
+          {/* Main Image */}
+          <div className="px-2.5">
+            <div className="relative h-28 bg-gradient-to-br from-white to-gray-100 rounded border border-gray-300 overflow-hidden cursor-pointer touch-manipulation active:scale-95 transition-transform"
+              onClick={(e) => {
+                e.stopPropagation();
+                document.getElementById(`main-file-input-${item.id}`)?.click();
+              }}
+            >
+              {imageGallery[selectedImageIndex] ? (
+                <img
+                  src={imageGallery[selectedImageIndex]}
+                  alt={item.name}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center">
+                  <ImageIcon className="w-8 h-8 text-gray-400 mb-1" />
+                  <span className="text-[9px] text-gray-500 font-medium">Tap to add</span>
+                </div>
+              )}
+              <input
+                id={`main-file-input-${item.id}`}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(e) => handleFileSelect(e, selectedImageIndex)}
+                aria-label={`Upload photo ${selectedImageIndex + 1} for ${item.name}`}
+              />
+            </div>
+            
+            {/* Thumbnails */}
+            <div className="flex gap-0.5 mt-1 mb-1">
+              {[0, 1, 2, 3, 4].map((idx) => (
+                <div
+                  key={idx}
+                  className={clsx(
+                    "w-6 h-6 rounded border cursor-pointer overflow-hidden flex-shrink-0",
+                    selectedImageIndex === idx ? "border-blue-600 border-2" : "border-gray-400"
+                  )}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (imageGallery[idx]) {
+                      setSelectedImageIndex(idx);
+                    } else {
+                      document.getElementById(`thumb-input-${item.id}-${idx}`)?.click();
+                    }
+                  }}
+                >
+                  {imageGallery[idx] ? (
+                    <img src={imageGallery[idx]} alt="" className="w-full h-full object-cover" loading="lazy" />
+                  ) : (
+                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                      <ImageIcon className="w-3 h-3 text-gray-400" />
+                    </div>
+                  )}
+                  <input
+                    id={`thumb-input-${item.id}-${idx}`}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => handleFileSelect(e, idx)}
+                    aria-label={`Upload photo ${idx + 1} for ${item.name}`}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Attacks */}
+          <div className="px-2.5 py-1 space-y-1">
+            {/* Attack 1 - Hanger ID & Size */}
+            <div className="flex items-start gap-1.5 border-b border-gray-300 pb-1">
+              <span className="text-[10px] flex-shrink-0 pt-0.5">{energyType.symbol}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-start">
+                  <div className="min-w-0">
+                    <div className="text-gray-900 font-bold text-[9px]">Hanger ID</div>
+                    <div className="text-gray-600 text-[7px] mt-0.5">Size: {item.size || 'N/A'}</div>
+                  </div>
+                  <div className="text-purple-600 font-bold text-sm leading-none flex-shrink-0 ml-1.5">
+                    {item.hangerId || '-'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Attack 2 - Price */}
+            <div className="flex items-start gap-1.5">
+              <div className="flex gap-0.5 flex-shrink-0 pt-0.5">
+                <span className="text-[10px]">{energyType.symbol}</span>
+                <span className="text-[10px]">{energyType.symbol}</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-start">
+                  <div className="min-w-0">
+                    <div className="text-gray-900 font-bold text-[9px]">Sale Price</div>
+                    <div className="text-gray-600 text-[7px] mt-0.5">Listed {formatDays(daysListed)}</div>
+                  </div>
+                  <div className="text-red-600 font-bold text-sm leading-none flex-shrink-0 ml-1.5">
+                    {formatCurrency(item.sellingPrice || 0)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Warning Icons - Top Right Corner */}
+          {(hasRedWarnings || hasYellowWarnings) && (
+            <div className="absolute top-1 right-1 z-10 flex gap-0.5" title={warnings.map(w => w.message).join(', ')}>
+              {hasRedWarnings && (
+                <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center shadow-md border-2 border-white">
+                  <span className="text-white text-[10px] font-bold">!</span>
+                </div>
+              )}
+              {hasYellowWarnings && !hasRedWarnings && (
+                <div className="w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center shadow-md border-2 border-white">
+                  <span className="text-black text-[10px] font-bold">⚠</span>
+                </div>
               )}
             </div>
           )}
+
+          {/* Footer - Marketplaces */}
+          <div className="px-2.5 py-1.5 border-t-2 border-gray-400">
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] font-bold text-gray-700">MARKETPLACES</span>
+              <div className="flex gap-1.5">
+                {/* eBay - Blue circle */}
+                <div
+                  className={`w-6 h-6 sm:w-5 sm:h-5 rounded-full transition-all border-2 ${
+                    item.ebayUrl
+                      ? 'bg-blue-500 border-blue-600 hover:scale-110 cursor-pointer shadow-md active:scale-95'
+                      : 'bg-white border-gray-400'
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (item.ebayUrl) {
+                      navigator.clipboard.writeText(item.ebayUrl);
+                      toast.success('eBay link copied');
+                    }
+                  }}
+                  title={item.ebayUrl ? 'Click to copy eBay URL' : 'Not listed on eBay'}
+                />
+
+                {/* Poshmark - Pink circle */}
+                <div
+                  className={`w-6 h-6 sm:w-5 sm:h-5 rounded-full transition-all border-2 ${
+                    item.marketplaceUrls?.some(m => m.type === 'poshmark' && m.url)
+                      ? 'bg-pink-500 border-pink-600 hover:scale-110 cursor-pointer shadow-md active:scale-95'
+                      : 'bg-white border-gray-400'
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const url = item.marketplaceUrls?.find(m => m.type === 'poshmark' && m.url)?.url;
+                    if (url) {
+                      navigator.clipboard.writeText(url);
+                      toast.success('Poshmark link copied');
+                    }
+                  }}
+                  title={item.marketplaceUrls?.some(m => m.type === 'poshmark' && m.url) ? 'Click to copy Poshmark URL' : 'Not listed on Poshmark'}
+                />
+
+                {/* Depop - Red circle */}
+                <div
+                  className={`w-6 h-6 sm:w-5 sm:h-5 rounded-full transition-all border-2 ${
+                    item.marketplaceUrls?.some(m => m.type === 'depop' && m.url)
+                      ? 'bg-red-500 border-red-600 hover:scale-110 cursor-pointer shadow-md active:scale-95'
+                      : 'bg-white border-gray-400'
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const url = item.marketplaceUrls?.find(m => m.type === 'depop' && m.url)?.url;
+                    if (url) {
+                      navigator.clipboard.writeText(url);
+                      toast.success('Depop link copied');
+                    }
+                  }}
+                  title={item.marketplaceUrls?.some(m => m.type === 'depop' && m.url) ? 'Click to copy Depop URL' : 'Not listed on Depop'}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* BACK SIDE - Quick Edit Form */}
+        <div
+          className="absolute top-0 left-0 w-full"
+          style={{
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg)',
+          }}
+        >
+          {/* Edit Form Card - Mobile optimized with scroll */}
+          <div className="flex justify-center" onClick={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>
+            <div className="w-full max-w-[90vw] sm:w-48 rounded-lg border-2 border-purple-500 bg-gradient-to-br from-gray-800 to-gray-900 p-3 shadow-2xl max-h-[80vh] overflow-y-auto">
+              <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
+                <p className="text-sm font-bold text-purple-400 text-center mb-2">QUICK EDIT</p>
+                
+                {/* Name */}
+                <input
+                  type="text"
+                  value={editData.name}
+                  onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                  onClick={(e) => e.stopPropagation()}
+                  onFocus={(e) => e.stopPropagation()}
+                  onBlur={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  onKeyUp={(e) => e.stopPropagation()}
+                  className="w-full rounded bg-gray-700 px-2 py-1.5 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
+                  placeholder="Item Name"
+                  autoFocus
+                />
+                
+                {/* Hanger ID */}
+                <input
+                  type="text"
+                  value={editData.hangerId}
+                  onChange={(e) => setEditData({ ...editData, hangerId: e.target.value })}
+                  onClick={(e) => e.stopPropagation()}
+                  onFocus={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  className="w-full rounded bg-gray-700 px-2 py-1.5 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none font-bold"
+                  placeholder="Hanger ID"
+                />
+                
+                {/* Size & Status */}
+                <div className="grid grid-cols-2 gap-1">
+                  <input
+                    type="text"
+                    value={editData.size}
+                    onChange={(e) => setEditData({ ...editData, size: e.target.value })}
+                    onClick={(e) => e.stopPropagation()}
+                    onFocus={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                    className="w-full rounded bg-gray-700 px-2 py-1.5 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
+                    placeholder="Size"
+                  />
+                  <select
+                    value={editData.status}
+                    onChange={(e) => setEditData({ ...editData, status: e.target.value as any })}
+                    onClick={(e) => e.stopPropagation()}
+                    onFocus={(e) => e.stopPropagation()}
+                    aria-label="Status"
+                    className="w-full rounded bg-gray-700 px-2 py-1.5 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                    <option value="SOLD">SOLD</option>
+                  </select>
+                </div>
+                
+                {/* Listed Date */}
+                <div className="space-y-1">
+                  <p className="text-xs text-gray-400 font-semibold">LISTED DATE</p>
+                  <input
+                    type="date"
+                    value={editData.dateField || editData.dateAdded || ''}
+                    onChange={(e) => setEditData({ ...editData, dateField: e.target.value })}
+                    onClick={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onDoubleClick={(e) => e.stopPropagation()}
+                    onFocus={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                    onKeyUp={(e) => e.stopPropagation()}
+                    aria-label="Date listed"
+                    className="w-full rounded bg-gray-700 px-2 py-1.5 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
+                  />
+                </div>
+                
+                {/* Prices */}
+                <div className="space-y-1">
+                  <p className="text-xs text-gray-400 font-semibold">PRICES</p>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editData.costPrice || ''}
+                    onChange={(e) => setEditData({ ...editData, costPrice: parseFloat(e.target.value) || 0 })}
+                    onClick={(e) => e.stopPropagation()}
+                    onFocus={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                    className="w-full rounded bg-gray-700 px-2 py-1.5 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
+                    placeholder="Cost $"
+                  />
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editData.sellingPrice || ''}
+                    onChange={(e) => setEditData({ ...editData, sellingPrice: parseFloat(e.target.value) || 0 })}
+                    onClick={(e) => e.stopPropagation()}
+                    onFocus={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                    className="w-full rounded bg-gray-700 px-2 py-1.5 text-xs text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
+                    placeholder="Selling $"
+                  />
+                </div>
+
+                {/* Marketplace URLs */}
+                <div className="space-y-1">
+                  <p className="text-xs text-gray-400 font-semibold">MARKETPLACES</p>
+                  <input
+                    type="url"
+                    value={editData.ebayUrl || ''}
+                    onChange={(e) => setEditData({ ...editData, ebayUrl: e.target.value })}
+                    onClick={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onDoubleClick={(e) => e.stopPropagation()}
+                    onFocus={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                    onKeyUp={(e) => e.stopPropagation()}
+                    className="w-full rounded bg-gray-700 px-2 py-1 text-[10px] text-white border border-gray-600 focus:border-blue-500 focus:outline-none"
+                    placeholder="eBay URL"
+                  />
+                  <input
+                    type="url"
+                    value={editData.marketplaceUrls?.find(m => m.type === 'poshmark')?.url || ''}
+                    onChange={(e) => {
+                      const urls = editData.marketplaceUrls || [];
+                      const poshIndex = urls.findIndex(m => m.type === 'poshmark');
+                      if (poshIndex >= 0) {
+                        urls[poshIndex] = { ...urls[poshIndex], url: e.target.value };
+                      } else {
+                        urls.push({ type: 'poshmark', url: e.target.value });
+                      }
+                      setEditData({ ...editData, marketplaceUrls: urls });
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onDoubleClick={(e) => e.stopPropagation()}
+                    onFocus={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                    onKeyUp={(e) => e.stopPropagation()}
+                    className="w-full rounded bg-gray-700 px-2 py-1 text-[10px] text-white border border-gray-600 focus:border-pink-500 focus:outline-none"
+                    placeholder="Poshmark URL"
+                  />
+                  <input
+                    type="url"
+                    value={editData.marketplaceUrls?.find(m => m.type === 'depop')?.url || ''}
+                    onChange={(e) => {
+                      const urls = editData.marketplaceUrls || [];
+                      const depopIndex = urls.findIndex(m => m.type === 'depop');
+                      if (depopIndex >= 0) {
+                        urls[depopIndex] = { ...urls[depopIndex], url: e.target.value };
+                      } else {
+                        urls.push({ type: 'depop', url: e.target.value });
+                      }
+                      setEditData({ ...editData, marketplaceUrls: urls });
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onDoubleClick={(e) => e.stopPropagation()}
+                    onFocus={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                    onKeyUp={(e) => e.stopPropagation()}
+                    className="w-full rounded bg-gray-700 px-2 py-1 text-[10px] text-white border border-gray-600 focus:border-red-500 focus:outline-none"
+                    placeholder="Depop URL"
+                  />
+                </div>
+
+                {/* Action Buttons - Larger touch targets for mobile */}
+                <div className="flex gap-1 mt-2 pt-2 border-t border-gray-700">
+                  <button
+                    onClick={handleSave}
+                    className="flex-1 rounded bg-green-600 hover:bg-green-700 active:bg-green-800 px-2 py-3 sm:py-2 text-xs font-bold text-white transition-colors flex items-center justify-center gap-1 touch-manipulation"
+                  >
+                    <Save className="h-3 w-3" />
+                    Save
+                  </button>
+                  <button
+                    onClick={handleCancel}
+                    className="flex-1 rounded bg-red-600 hover:bg-red-700 active:bg-red-800 px-2 py-3 sm:py-2 text-xs font-bold text-white transition-colors flex items-center justify-center gap-1 touch-manipulation"
+                  >
+                    <X className="h-3 w-3" />
+                    Cancel
+                  </button>
+                </div>
+                
+                <p className="text-xs text-center text-gray-500 mt-1">Double-click to flip back</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-
-      {/* Item Info */}
-      <div className="mt-3 text-center">
-        <p className="text-xs font-medium text-gray-300 group-hover:text-white transition-colors px-1">
-          {truncateText(item.name, 25)}
-        </p>
-        {item.size && (
-          <p className="mt-0.5 text-xs text-gray-500 group-hover:text-gray-400">
-            {item.size}
-          </p>
-        )}
-      </div>
-
-      {/* Hanger ID Badge */}
-      {item.hangerId && (
-        <div className="mt-1 flex justify-center">
-          <div className="rounded-full bg-purple-600 px-2.5 py-0.5 text-xs font-bold text-white shadow-md">
-            {item.hangerId}
-          </div>
-        </div>
-      )}
-
-      {/* Price tag (for active items) */}
-      {item.status === 'Active' && item.sellingPrice > 0 && (
-        <div className="mt-1 flex justify-center">
-          <div className="rounded bg-green-600/80 px-2 py-0.5 text-xs font-semibold text-white backdrop-blur-sm">
-            ${item.sellingPrice.toFixed(0)}
-          </div>
-        </div>
-      )}
-
-      {/* Sold badge */}
-      {item.status === 'SOLD' && (
-        <div className="absolute top-8 left-1/2 -translate-x-1/2 rotate-12">
-          <div className="rounded bg-blue-600 px-3 py-1 text-xs font-bold text-white shadow-lg border-2 border-blue-400">
-            SOLD
-          </div>
-        </div>
-      )}
     </div>
   );
 };

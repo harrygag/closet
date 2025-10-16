@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, List, Shirt, BarChart3, LogOut, User } from 'lucide-react';
+import { Plus, List, Shirt, BarChart3, LogOut, User, Download } from 'lucide-react';
 import { useItemStore } from './store/useItemStore';
 import { useAuthStore } from './store/useAuthStore';
 import { Button } from './components/ui/Button';
@@ -9,6 +9,7 @@ import { SearchAndFilter } from './components/SearchAndFilter';
 import { StatsDashboard } from './components/StatsDashboard';
 import { ClosetView } from './components/ClosetView';
 import { SignIn } from './components/SignIn';
+import { quickBackup } from './utils/recover-inventory';
 import type { Item, ItemTag, ItemStatus } from './types/item';
 
 type ViewMode = 'list' | 'closet' | 'stats';
@@ -101,11 +102,21 @@ function App() {
             </div>
             
             {/* User Info & Actions */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               <div className="hidden sm:flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800/50 px-4 py-2">
                 <User className="h-4 w-4 text-purple-400" />
                 <span className="text-sm text-gray-300">{user?.name}</span>
               </div>
+              
+              <Button
+                onClick={quickBackup}
+                variant="secondary"
+                size="lg"
+                title="Backup your inventory"
+              >
+                <Download className="h-5 w-5" />
+                <span className="ml-2 hidden sm:inline">Backup</span>
+              </Button>
               
               <Button onClick={handleAddItem} size="lg">
                 <Plus className="mr-2 h-5 w-5" />

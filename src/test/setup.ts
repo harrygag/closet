@@ -14,7 +14,7 @@ const indexedDBMock = {
   databases: vi.fn(),
 } as any
 
-global.indexedDB = indexedDBMock
+globalThis.indexedDB = indexedDBMock
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -81,7 +81,7 @@ afterAll(() => {
 })
 
 // Mock IntersectionObserver
-global.IntersectionObserver = class IntersectionObserver {
+globalThis.IntersectionObserver = class IntersectionObserver {
   constructor() {}
   disconnect() {}
   observe() {}
@@ -92,7 +92,7 @@ global.IntersectionObserver = class IntersectionObserver {
 } as any
 
 // Mock ResizeObserver
-global.ResizeObserver = class ResizeObserver {
+globalThis.ResizeObserver = class ResizeObserver {
   constructor() {}
   disconnect() {}
   observe() {}

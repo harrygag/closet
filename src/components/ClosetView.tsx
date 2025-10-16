@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, memo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { SkeletonCard } from './SkeletonCard';
 import {
   DndContext,
   closestCenter,
@@ -8,7 +9,6 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
-  DragStartEvent,
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -18,21 +18,28 @@ import {
   horizontalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Shirt, GripVertical } from 'lucide-react';
-import type { Item } from '../types/item';
+import { Plus } from 'lucide-react';
+import type { Item, ItemTag } from '../types/item';
 import { ClosetHanger } from './ClosetHanger';
+import { Button } from './ui/Button';
 
 interface ClosetViewProps {
   items: Item[];
   onItemClick: (item: Item) => void;
+  onImageUpload?: (itemId: string, imageUrl: string) => void;
+  onUpdate?: (item: Item) => void;
+  onAddItem?: () => void;
 }
 
 interface SortableHangerProps {
   item: Item;
   onItemClick: (item: Item) => void;
+  onImageUpload?: (itemId: string, imageUrl: string) => void;
+  onUpdate?: (item: Item) => void;
+  position?: number;
 }
 
-const SortableHanger: React.FC<SortableHangerProps> = ({ item, onItemClick }) => {
+const SortableHanger: React.FC<SortableHangerProps> = memo(({ item, onItemClick, onImageUpload, onUpdate, position }) => {
   const {
     attributes,
     listeners,
@@ -48,30 +55,36 @@ const SortableHanger: React.FC<SortableHangerProps> = ({ item, onItemClick }) =>
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className="relative"
-    >
-      <ClosetHanger item={item} onClick={onItemClick} isDragging={isDragging} />
-      
-      {/* Drag handle indicator */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <GripVertical className="h-4 w-4 text-gray-400" />
-      </div>
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <ClosetHanger
+        item={item}
+        onClick={onItemClick}
+        onImageUpload={onImageUpload}
+        onUpdate={onUpdate}
+        isDragging={isDragging}
+        position={position}
+      />
     </div>
   );
-};
+});
 
-export const ClosetView: React.FC<ClosetViewProps> = ({ items, onItemClick }) => {
-  // Sort items by position or default order
+SortableHanger.displayName = 'SortableHanger';
+
+// Define the 6 racks by category
+const RACKS: { number: number; category: ItemTag; label: string }[] = [
+  { number: 1, category: 'Hoodie', label: 'Hoodies' },
+  { number: 2, category: 'Jersey', label: 'Jerseys' },
+  { number: 3, category: 'polo', label: 'Polos' },
+  { number: 4, category: 'Pullover/Jackets', label: 'Pullovers & Jackets' },
+  { number: 5, category: 'T-shirts', label: 'T-Shirts' },
+  { number: 6, category: 'Bottoms', label: 'Bottoms' },
+];
+
+export const ClosetView: React.FC<ClosetViewProps> = ({ items, onItemClick, onImageUpload, onUpdate, onAddItem }) => {
+  const [isLoading] = useState(false);
   const [sortedItems, setSortedItems] = useState(() => {
     return [...items].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
   });
-
-  const [_activeId, setActiveId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -84,10 +97,6 @@ export const ClosetView: React.FC<ClosetViewProps> = ({ items, onItemClick }) =>
     })
   );
 
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
-  };
-
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
@@ -95,12 +104,24 @@ export const ClosetView: React.FC<ClosetViewProps> = ({ items, onItemClick }) =>
       setSortedItems((items) => {
         const oldIndex = items.findIndex((item) => item.id === active.id);
         const newIndex = items.findIndex((item) => item.id === over.id);
-
+        
+        // Get the items being swapped
+        const draggedItem = items[oldIndex];
+        const targetItem = items[newIndex];
+        
+        // Swap hanger IDs if both items have them
+        if (draggedItem.hangerId && targetItem.hangerId) {
+          const tempHangerId = draggedItem.hangerId;
+          draggedItem.hangerId = targetItem.hangerId;
+          targetItem.hangerId = tempHangerId;
+          
+          // Update items in the store (we'll need to call onItemClick or add an update callback)
+          // For now, just swap positions in the array
+        }
+        
         return arrayMove(items, oldIndex, newIndex);
       });
     }
-
-    setActiveId(null);
   };
 
   // Update sorted items when items prop changes
@@ -108,129 +129,244 @@ export const ClosetView: React.FC<ClosetViewProps> = ({ items, onItemClick }) =>
     setSortedItems([...items].sort((a, b) => (a.position ?? 0) - (b.position ?? 0)));
   }, [items]);
 
-  // Group items by status for visual organization
-  const activeItems = sortedItems.filter((item) => item.status === 'Active');
-  const inactiveItems = sortedItems.filter((item) => item.status === 'Inactive');
-  const soldItems = sortedItems.filter((item) => item.status === 'SOLD');
+  const getNextHangerNumber = (rackNumber: number) => {
+    // Get all items for this rack
+    const rackItems = sortedItems.filter((item) =>
+      item.tags.includes(RACKS[rackNumber - 1].category)
+    );
+    
+    // Find the highest hanger number for this rack
+    let maxNumber = 0;
+    rackItems.forEach(item => {
+      if (item.hangerId) {
+        // Extract number from hanger IDs like "H1", "L32", etc.
+        const match = item.hangerId.match(/\d+$/);
+        if (match) {
+          const num = parseInt(match[0]);
+          if (num > maxNumber) maxNumber = num;
+        }
+      }
+    });
+    
+    return maxNumber + 1;
+  };
 
-  const renderClosetSection = (title: string, sectionItems: Item[], emptyMessage: string) => {
-    if (sectionItems.length === 0) {
-      return (
-        <div className="mb-8">
-          <h3 className="mb-4 text-lg font-bold text-white">{title}</h3>
-          <p className="text-center text-gray-500 py-4">{emptyMessage}</p>
-        </div>
-      );
+  const handleAddHanger = (rackNumber: number, category: ItemTag) => {
+    const nextNumber = getNextHangerNumber(rackNumber);
+    const hangerPrefix = rackNumber === 1 ? 'H' : 'L'; // H for hoodies, L for others
+    const newHangerId = `${hangerPrefix}${nextNumber}`;
+    
+    // This would open the add item form with pre-filled category and hanger ID
+    // For now, we'll just alert - you'll need to connect this to your onAddItem handler
+    if (onAddItem) {
+      // Store the category and hanger ID for the form to use
+      sessionStorage.setItem('newItemCategory', category);
+      sessionStorage.setItem('newItemHangerId', newHangerId);
+      onAddItem();
     }
+  };
+
+  const renderRack = (rack: typeof RACKS[0]) => {
+    // Get items for this category and sort by priority: Active -> Yellow warnings -> Red warnings
+    const rackItems = sortedItems
+      .filter((item) => item.tags.includes(rack.category))
+      .sort((a, b) => {
+        // Helper function to get priority
+        const getPriority = (item: Item) => {
+          const hasMarketplaceUrl = !!(item.ebayUrl || (item.marketplaceUrls && item.marketplaceUrls.some(m => m.url)));
+          const hasPrice = item.sellingPrice && item.sellingPrice > 0;
+          const hasPhotos = item.imageUrl && item.imageUrl.length > 0;
+          
+          // RED WARNINGS (Priority 3) - Blocking issues
+          if (!hasPrice || !hasMarketplaceUrl) return 3;
+          
+          // YELLOW WARNINGS (Priority 2) - Non-blocking issues
+          const daysListed = item.dateAdded ? Math.floor((new Date().getTime() - new Date(item.dateAdded).getTime()) / (1000 * 60 * 60 * 24)) : 0;
+          if ((item.status === 'Active' && daysListed > 30) || !hasPhotos) return 2;
+          
+          // ACTIVE LISTINGS (Priority 1) - Good to go
+          return 1;
+        };
+        
+        return getPriority(a) - getPriority(b);
+      });
 
     return (
-      <div className="mb-12">
-        <h3 className="mb-6 text-xl font-bold text-white flex items-center gap-2">
-          <div className={`h-3 w-3 rounded-full ${
-            title.includes('Active') ? 'bg-green-500' :
-            title.includes('Inactive') ? 'bg-yellow-500' :
-            'bg-blue-500'
-          }`} />
-          {title}
-          <span className="text-sm text-gray-400 font-normal">({sectionItems.length} items)</span>
-        </h3>
-
-        {/* Closet Rod */}
-        <div className="relative mb-8">
-          {/* Rod shadow */}
-          <div className="absolute top-0 left-0 right-0 h-3 bg-gradient-to-b from-black/30 to-transparent rounded-full blur-sm" />
+      <div key={rack.number} id={`gym-${rack.number}`} className="mb-8 sm:mb-12 bg-gray-800 rounded-2xl p-6 border border-gray-700 shadow-2xl">
+        {/* Pokemon Gym Badge */}
+        <div className="bg-gray-700 h-4 rounded-full mb-6 shadow-inner relative">
+          <div className="absolute -top-2 left-0 right-0 h-8 bg-gray-600 rounded-full shadow-lg flex items-center justify-center border border-gray-500">
+            <span className="text-lg font-bold text-white">GYM BADGE</span>
+          </div>
+        </div>
+        
+        {/* Gym Header with Add Button - Black Theme */}
+        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-4 sm:gap-6">
+            <div className="flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-700 text-white font-bold text-xl sm:text-2xl shadow-lg border-2 border-gray-600">
+              {rack.number}
+            </div>
+            <div>
+              <h3 className="text-2xl sm:text-3xl font-bold text-white">{rack.label} Gym</h3>
+              <p className="text-sm sm:text-base text-gray-400 font-medium">{rackItems.length} Pokemon cards</p>
+            </div>
+          </div>
           
-          {/* Main rod */}
-          <motion.div
-            className="relative h-2 bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 rounded-full shadow-xl"
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
+          <Button
+            size="sm"
+            onClick={() => handleAddHanger(rack.number, rack.category)}
+            className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start min-h-[44px] bg-gray-700 hover:bg-gray-600 text-white font-bold shadow-lg rounded-lg border border-gray-600"
           >
-            {/* Rod shine effect */}
-            <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent rounded-full" />
-            
-            {/* Rod end caps */}
-            <div className="absolute -left-2 top-1/2 -translate-y-1/2 h-4 w-4 bg-gray-700 rounded-full shadow-md border-2 border-gray-600" />
-            <div className="absolute -right-2 top-1/2 -translate-y-1/2 h-4 w-4 bg-gray-700 rounded-full shadow-md border-2 border-gray-600" />
-          </motion.div>
+            <Plus className="h-4 w-4" />
+            <span className="text-sm sm:text-base">Catch Pokemon</span>
+          </Button>
         </div>
 
-        {/* Hangers - horizontal scrollable */}
-        <div className="relative">
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext items={sectionItems.map(i => i.id)} strategy={horizontalListSortingStrategy}>
-              <div className="flex gap-6 overflow-x-auto pb-4 px-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
-                {sectionItems.map((item) => (
-                  <div key={item.id} className="flex-shrink-0">
-                    <SortableHanger item={item} onItemClick={onItemClick} />
-                  </div>
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
-        </div>
+        {/* Items on the rack - Black Theme */}
+       <AnimatePresence mode="wait">
+         {isLoading ? (
+           <motion.div 
+             className="grid grid-rows-3 grid-flow-col gap-3 auto-cols-max min-w-max"
+             initial={{ opacity: 0 }}
+             animate={{ opacity: 1 }}
+             exit={{ opacity: 0 }}
+           >
+             {Array.from({ length: 6 }).map((_, i) => (
+               <motion.div 
+                 key={i} 
+                 className="w-full"
+                 initial={{ opacity: 0, y: 20 }}
+                 animate={{ opacity: 1, y: 0 }}
+                 transition={{ delay: i * 0.1 }}
+               >
+                 <SkeletonCard />
+               </motion.div>
+             ))}
+           </motion.div>
+         ) : rackItems.length === 0 ? (
+           <motion.div 
+             className="flex items-center justify-center h-24 sm:h-32 border-2 border-dashed border-gray-600 rounded-lg p-4 bg-gray-800/50"
+             initial={{ opacity: 0, scale: 0.9 }}
+             animate={{ opacity: 1, scale: 1 }}
+             exit={{ opacity: 0, scale: 0.9 }}
+           >
+             <p className="text-gray-400 text-xs sm:text-sm text-center font-medium">No Pokemon yet - tap "Catch Pokemon" to add one</p>
+           </motion.div>
+         ) : (
+           <motion.div
+             initial={{ opacity: 0 }}
+             animate={{ opacity: 1 }}
+             exit={{ opacity: 0 }}
+           >
+             <DndContext
+               sensors={sensors}
+               collisionDetection={closestCenter}
+               onDragEnd={handleDragEnd}
+             >
+               <SortableContext items={rackItems.map(i => i.id)} strategy={horizontalListSortingStrategy}>
+                 <div className="relative overflow-x-auto overflow-y-hidden pb-4">
+                   {/* Scroll indicators */}
+                   <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-gray-900 to-transparent pointer-events-none z-10" />
+                   <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-gray-900 to-transparent pointer-events-none z-10" />
+                   
+                   <motion.div 
+                     className="grid grid-rows-3 grid-flow-col gap-3 auto-cols-max min-w-max px-4"
+                     layout
+                   >
+                     {rackItems.map((item, index) => (
+                       <motion.div 
+                         key={item.id} 
+                         className="w-full"
+                         initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                         animate={{ opacity: 1, y: 0, scale: 1 }}
+                         exit={{ opacity: 0, y: -20, scale: 0.9 }}
+                         transition={{ 
+                           delay: index * 0.05,
+                           type: "spring",
+                           stiffness: 300,
+                           damping: 20
+                         }}
+                         layout
+                       >
+                         <SortableHanger
+                           item={item}
+                           onItemClick={onItemClick}
+                           onImageUpload={onImageUpload}
+                           onUpdate={onUpdate}
+                           position={index + 1}
+                         />
+                       </motion.div>
+                     ))}
+                   </motion.div>
+                 </div>
+               </SortableContext>
+             </DndContext>
+           </motion.div>
+         )}
+       </AnimatePresence>
       </div>
     );
   };
 
   return (
-    <div className="rounded-lg border border-gray-700 bg-gray-800 p-6">
-      {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-            <Shirt className="h-7 w-7 text-purple-400" />
-            Closet View
+    <div className="rounded-xl border border-gray-700 bg-gray-900 p-4 sm:p-6 shadow-2xl">
+      {/* Pokemon Header */}
+      <div className="mb-6 sm:mb-8">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-800 rounded-full flex items-center justify-center shadow-lg border border-gray-600">
+            <span className="text-2xl">⚡</span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-white">
+            Pokemon Collection
           </h2>
-          <p className="mt-1 text-sm text-gray-400">
-            Drag and drop to reorganize your items
-          </p>
         </div>
-        
-        {/* Legend */}
-        <div className="flex gap-3 text-sm">
-          <div className="flex items-center gap-1.5">
-            <div className="h-3 w-3 rounded-full bg-green-500 shadow-lg shadow-green-500/50" />
-            <span className="text-gray-400">Active</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="h-3 w-3 rounded-full bg-yellow-500 shadow-lg shadow-yellow-500/50" />
-            <span className="text-gray-400">Inactive</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="h-3 w-3 rounded-full bg-blue-500 shadow-lg shadow-blue-500/50" />
-            <span className="text-gray-400">Sold</span>
-          </div>
+        <p className="text-sm sm:text-base text-gray-400 font-medium">
+          {items.length} Pokemon cards across {RACKS.filter(rack => sortedItems.some(item => item.tags.includes(rack.category))).length} gyms
+        </p>
+      </div>
+
+      {/* Card counter and scroll indicator */}
+      <div className="mb-4 flex items-center justify-between">
+        <div className="text-sm text-gray-400">
+          Swipe to view more cards →
+        </div>
+        <div className="text-sm text-gray-500">
+          {items.length} total cards
         </div>
       </div>
 
-      {/* Empty state */}
+      {/* Empty state - Black Theme */}
       {items.length === 0 ? (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex h-64 flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-700 bg-gray-900/50"
+          className="flex h-48 sm:h-64 flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-600 bg-gray-800/50 p-4"
         >
-          <Shirt className="h-16 w-16 text-gray-600 mb-4" />
-          <p className="text-lg text-gray-400 font-semibold">No items in closet</p>
-          <p className="mt-2 text-sm text-gray-500">Add items to see them hanging here</p>
+          <div className="text-6xl sm:text-8xl mb-4">🎒</div>
+          <p className="text-lg sm:text-xl text-white text-center font-bold">Your Pokemon collection is empty!</p>
+          <p className="mt-2 text-sm sm:text-base text-gray-400 text-center">Start your journey by adding Pokemon cards</p>
         </motion.div>
       ) : (
-        <div className="space-y-8">
-          {/* Active Items Section */}
-          {renderClosetSection('Active Items', activeItems, 'No active items')}
+        <div className="space-y-4 sm:space-y-8">
+          {/* Quick gym navigation */}
+          <div className="mb-6 flex gap-2 overflow-x-auto pb-2 snap-x">
+            {RACKS.map(rack => (
+              <button
+                key={rack.number}
+                onClick={() => {
+                  document.getElementById(`gym-${rack.number}`)?.scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start'
+                  });
+                }}
+                className="flex-shrink-0 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white text-sm font-medium border border-gray-600 snap-center"
+              >
+                {rack.label}
+              </button>
+            ))}
+          </div>
           
-          {/* Inactive Items Section */}
-          {renderClosetSection('Inactive Items', inactiveItems, 'No inactive items')}
-          
-          {/* Sold Items Section */}
-          {renderClosetSection('Sold Items', soldItems, 'No sold items')}
+          {RACKS.map(rack => renderRack(rack))}
         </div>
       )}
     </div>

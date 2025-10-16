@@ -2,6 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Accessibility: Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Custom scrollbar styles for closet view */
+@layer utilities {
+  .scrollbar-thin::-webkit-scrollbar {
+    height: 8px;
+  }
+  
+  .scrollbar-thumb-purple-600::-webkit-scrollbar-thumb {
+    background-color: rgb(147 51 234);
+    border-radius: 9999px;
+  }
+  
+  .scrollbar-track-gray-700::-webkit-scrollbar-track {
+    background-color: rgb(55 65 81);
+    border-radius: 9999px;
+  }
+}
+
+/* Pokemon card sway animation */
+@keyframes sway {
+  0%, 100% {
+    transform: rotate(-1deg);
+  }
+  50% {
+    transform: rotate(1deg);
+  }
+}
+
 @layer utilities {
   /* Sway animation for hanging clothes */
   @keyframes sway {
@@ -59,13 +98,13 @@
   }
 }
 
-/* Retro Arcade Global Styles */
+/* Clean Modern Styles */
 @layer base {
   body {
-    @apply bg-retro-bg text-retro-cyan;
-    font-family: 'Press Start 2P', cursive;
-    image-rendering: pixelated;
-    line-height: 1.8;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.6;
   }
 
   * {

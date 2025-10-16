@@ -1,11 +1,57 @@
-node_modules/
-.env
-.DS_Store
+# Logs
+logs
 *.log
-docs/archived/
-scripts/archived/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-/generated/prisma
+node_modules
+dist
+dist-ssr
+*.local
 
-# Claude Code local settings (contains secrets)
-.claude/settings.local.json
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Vercel
+.vercel
+.vercel.json
+
+# Environment
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Testing
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# Build
+.vite/
+
+# Testing
+coverage
+.nyc_output
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/

@@ -8,9 +8,10 @@ interface ItemListProps {
   isLoading: boolean;
   onEdit: (item: Item) => void;
   onDelete: (id: string) => void;
+  onImageUpload?: (itemId: string, imageUrl: string) => void;
 }
 
-export const ItemList: React.FC<ItemListProps> = ({ items, isLoading, onEdit, onDelete }) => {
+export const ItemList: React.FC<ItemListProps> = ({ items, isLoading, onEdit, onDelete, onImageUpload }) => {
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -30,9 +31,15 @@ export const ItemList: React.FC<ItemListProps> = ({ items, isLoading, onEdit, on
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {items.map((item) => (
-        <ItemCard key={item.id} item={item} onEdit={onEdit} onDelete={onDelete} />
+        <ItemCard
+          key={item.id}
+          item={item}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onImageUpload={onImageUpload}
+        />
       ))}
     </div>
   );
