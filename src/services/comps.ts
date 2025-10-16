@@ -2,79 +2,74 @@ import { supabase } from '../lib/supabase/client';
 
 export interface ClothingComp {
   id: string;
-  source_marketplace: 'ebay' | 'poshmark' | 'mercari' | 'depop' | 'grailed';
-  listing_id: string | null;
-  url: string;
+  search_query: string;
+  marketplace: 'ebay' | 'poshmark' | 'mercari' | 'depop' | 'grailed';
   title: string;
+  price: number | null;
+  sold_date: string | null;
+  shipping_cost: number | null;
+  image_url: string | null;
+  listing_url: string | null;
   brand: string | null;
   size: string | null;
+  color: string | null;
   condition: string | null;
-  category: string | null;
-  price: number;
-  original_price: number | null;
-  shipping_cost: number;
-  sold_date: string | null;
-  image_urls: string[];
-  description: string | null;
-  ai_features: Record<string, any> | null;
-  similarity_score: number | null;
-  scraped_at: string;
+  ai_similarity_score: number | null;
+  scraped_at: string | null;
   created_at: string;
 }
 
 export interface CompSearchParams {
-  category?: string;
+  name?: string;
   brand?: string;
   size?: string;
-  minPrice?: number;
-  maxPrice?: number;
+  tags?: string[];
   minSimilarity?: number;
-  marketplace?: string;
   limit?: number;
 }
 
 /**
- * Search for clothing comps with optional filters
+ * Search for clothing comps based on item attributes
  */
 export async function searchComps(params: CompSearchParams): Promise<ClothingComp[]> {
   try {
+    // Build search query from item name, brand, size, and tags
+    const searchTerms = [];
+    
+    if (params.brand) {
+      searchTerms.push(params.brand);
+    }
+    
+    if (params.tags && params.tags.length > 0) {
+      searchTerms.push(params.tags[0]); // Use first tag as category
+    }
+    
+    if (params.size) {
+      searchTerms.push(`Size ${params.size}`);
+    }
+    
+    const searchQuery = searchTerms.join(' ');
+    
+    console.log('Searching comps with query:', searchQuery);
+
     let query = supabase
       .from('clothing_comps')
       .select('*')
-      .order('similarity_score', { ascending: false, nullsFirst: false })
+      .order('ai_similarity_score', { ascending: false, nullsFirst: false })
       .order('scraped_at', { ascending: false });
 
-    // Apply filters
-    if (params.category) {
-      query = query.eq('category', params.category);
+    // Search by query string
+    if (searchQuery) {
+      query = query.ilike('search_query', `%${searchQuery}%`);
     }
 
-    if (params.brand) {
-      query = query.ilike('brand', `%${params.brand}%`);
-    }
-
-    if (params.size) {
-      query = query.eq('size', params.size);
-    }
-
-    if (params.minPrice !== undefined) {
-      query = query.gte('price', params.minPrice);
-    }
-
-    if (params.maxPrice !== undefined) {
-      query = query.lte('price', params.maxPrice);
-    }
-
+    // Filter by similarity score
     if (params.minSimilarity !== undefined) {
-      query = query.gte('similarity_score', params.minSimilarity);
-    }
-
-    if (params.marketplace) {
-      query = query.eq('source_marketplace', params.marketplace);
+      query = query.gte('ai_similarity_score', params.minSimilarity);
     }
 
     // Limit results
-    query = query.limit(params.limit || 20);
+    query = query.limit(params.limit || 10);
 
     const { data, error } = await query;
 
@@ -83,38 +78,10 @@ export async function searchComps(params: CompSearchParams): Promise<ClothingCom
       return [];
     }
 
-    return data as ClothingComp[];
+    console.log('Found comps:', data?.length || 0);
+    return (data as ClothingComp[]) || [];
   } catch (error) {
     console.error('Error searching comps:', error);
-    return [];
-  }
-}
-
-/**
- * Get comps for a specific item based on its attributes
- */
-export async function getCompsForItem(item: {
-  name: string;
-  size: string;
-  tags: string[];
-}): Promise<ClothingComp[]> {
-  try {
-    // Extract category from tags
-    const category = item.tags[0]?.toLowerCase();
-
-    // Extract brand from name (simple heuristic)
-    const brandMatch = item.name.match(/^([A-Z][a-zA-Z]+)/);
-    const brand = brandMatch ? brandMatch[1] : null;
-
-    return await searchComps({
-      category,
-      brand: brand || undefined,
-      size: item.size,
-      minSimilarity: 0.6,
-      limit: 10
-    });
-  } catch (error) {
-    console.error('Error getting comps for item:', error);
     return [];
   }
 }
@@ -133,7 +100,20 @@ export function getCompStats(comps: ClothingComp[]) {
     };
   }
 
-  const prices = comps.map(c => c.price).sort((a, b) => a - b);
+  const prices = comps
+    .map(c => c.price)
+    .filter((p): p is number => p !== null)
+    .sort((a, b) => a - b);
+
+  if (prices.length === 0) {
+    return {
+      avgPrice: 0,
+      minPrice: 0,
+      maxPrice: 0,
+      medianPrice: 0,
+      count: 0
+    };
+  }
 
   return {
     avgPrice: prices.reduce((a, b) => a + b, 0) / prices.length,
@@ -149,15 +129,17 @@ export function getCompStats(comps: ClothingComp[]) {
  */
 export function getMarketplaceBreakdown(comps: ClothingComp[]) {
   const breakdown = comps.reduce((acc, comp) => {
-    if (!acc[comp.source_marketplace]) {
-      acc[comp.source_marketplace] = {
+    if (!comp.price) return acc;
+    
+    if (!acc[comp.marketplace]) {
+      acc[comp.marketplace] = {
         count: 0,
         avgPrice: 0,
         totalPrice: 0
       };
     }
-    acc[comp.source_marketplace].count++;
-    acc[comp.source_marketplace].totalPrice += comp.price;
+    acc[comp.marketplace].count++;
+    acc[comp.marketplace].totalPrice += comp.price;
     return acc;
   }, {} as Record<string, { count: number; avgPrice: number; totalPrice: number }>);
 

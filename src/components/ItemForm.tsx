@@ -185,9 +185,10 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
       const brand = brandMatch ? brandMatch[1] : undefined;
 
       const results = await searchComps({
-        category: formData.tags[0]?.toLowerCase(),
+        name: formData.name,
         brand,
         size: formData.size || undefined,
+        tags: formData.tags,
         minSimilarity: 0.5,
         limit: 10
       });
@@ -322,22 +323,22 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {comps.slice(0, 5).map((comp) => (
                     <div key={comp.id} className="flex gap-3 bg-gray-800 rounded p-2 text-sm">
-                      {comp.image_urls?.[0] && (
-                        <img src={comp.image_urls[0]} alt={comp.title} className="w-12 h-12 rounded object-cover" />
+                      {comp.image_url && (
+                        <img src={comp.image_url} alt={comp.title} className="w-12 h-12 rounded object-cover" />
                       )}
                       <div className="flex-1 min-w-0">
                         <div className="text-white font-medium truncate">{comp.title}</div>
                         <div className="flex items-center gap-2 text-xs text-gray-400">
-                          <span className="uppercase">{comp.source_marketplace}</span>
-                          {comp.similarity_score && (
-                            <span className="text-green-400">{(comp.similarity_score * 100).toFixed(0)}% match</span>
+                          <span className="uppercase">{comp.marketplace}</span>
+                          {comp.ai_similarity_score && (
+                            <span className="text-green-400">{(comp.ai_similarity_score * 100).toFixed(0)}% match</span>
                           )}
                         </div>
                       </div>
                       <div className="flex flex-col items-end justify-between">
-                        <div className="text-lg font-bold text-green-400">${comp.price.toFixed(0)}</div>
+                        <div className="text-lg font-bold text-green-400">${comp.price?.toFixed(0) || '0'}</div>
                         <a
-                          href={comp.url}
+                          href={comp.listing_url || '#'}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-purple-400 hover:text-purple-300"
