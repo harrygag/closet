@@ -1,78 +1,178 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { supabase } from '../lib/supabase/client';
+import type { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 export interface User {
   id: string;
-  name: string;
   email: string;
-  createdAt: number;
-  lastLogin: number;
+  display_name?: string;
+  created_at: string;
 }
 
 interface AuthState {
   user: User | null;
+  session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  signIn: (name: string, email: string) => void;
-  signOut: () => void;
-  updateUser: (updates: Partial<User>) => void;
+  error: string | null;
+  
+  // Actions
+  signUp: (email: string, password: string, displayName?: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  initialize: () => Promise<void>;
+  clearError: () => void;
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set, get) => ({
-      user: null,
-      isAuthenticated: false,
-      isLoading: false,
+// Helper to transform Supabase user to our User type
+const transformUser = (supabaseUser: SupabaseUser): User => ({
+  id: supabaseUser.id,
+  email: supabaseUser.email!,
+  display_name: supabaseUser.user_metadata?.display_name,
+  created_at: supabaseUser.created_at,
+});
 
-      signIn: (name: string, email: string) => {
-        set({ isLoading: true });
-        
-        // Create user with secure data
-        const user: User = {
-          id: crypto.randomUUID(),
-          name: name.trim(),
-          email: email.trim().toLowerCase(),
-          createdAt: Date.now(),
-          lastLogin: Date.now(),
-        };
+export const useAuthStore = create<AuthState>((set, get) => ({
+  user: null,
+  session: null,
+  isAuthenticated: false,
+  isLoading: true,
+  error: null,
 
-        set({ 
-          user, 
-          isAuthenticated: true, 
-          isLoading: false 
+  signUp: async (email: string, password: string, displayName?: string) => {
+    set({ isLoading: true, error: null });
+    
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            display_name: displayName || email.split('@')[0],
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        // Create user record in public.users table (if needed)
+        // This will be handled by a database trigger or here
+        set({
+          user: transformUser(data.user),
+          session: data.session,
+          isAuthenticated: !!data.session,
+          isLoading: false,
         });
-      },
+      }
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'Failed to sign up',
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
 
-      signOut: () => {
-        set({ 
-          user: null, 
-          isAuthenticated: false, 
-          isLoading: false 
+  signIn: async (email: string, password: string) => {
+    set({ isLoading: true, error: null });
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      if (data.user && data.session) {
+        set({
+          user: transformUser(data.user),
+          session: data.session,
+          isAuthenticated: true,
+          isLoading: false,
         });
-      },
+      }
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'Failed to sign in',
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
 
-      updateUser: (updates: Partial<User>) => {
-        const currentUser = get().user;
-        if (currentUser) {
+  signOut: async () => {
+    set({ isLoading: true, error: null });
+    
+    try {
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) throw error;
+
+      set({
+        user: null,
+        session: null,
+        isAuthenticated: false,
+        isLoading: false,
+      });
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'Failed to sign out',
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
+
+  initialize: async () => {
+    set({ isLoading: true });
+    
+    try {
+      // Get current session
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) throw error;
+
+      if (session?.user) {
+        set({
+          user: transformUser(session.user),
+          session,
+          isAuthenticated: true,
+          isLoading: false,
+        });
+      } else {
+        set({
+          user: null,
+          session: null,
+          isAuthenticated: false,
+          isLoading: false,
+        });
+      }
+
+      // Listen for auth changes
+      supabase.auth.onAuthStateChange((_event, session) => {
+        if (session?.user) {
           set({
-            user: {
-              ...currentUser,
-              ...updates,
-              lastLogin: Date.now(),
-            }
+            user: transformUser(session.user),
+            session,
+            isAuthenticated: true,
+          });
+        } else {
+          set({
+            user: null,
+            session: null,
+            isAuthenticated: false,
           });
         }
-      },
-    }),
-    {
-      name: 'closet-auth-storage',
-      storage: createJSONStorage(() => localStorage),
-      // Only persist essential user data
-      partialize: (state) => ({
-        user: state.user,
-        isAuthenticated: state.isAuthenticated,
-      }),
+      });
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'Failed to initialize auth',
+        isLoading: false,
+      });
     }
-  )
-);
+  },
+
+  clearError: () => set({ error: null }),
+}));

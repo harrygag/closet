@@ -1,15 +1,8 @@
-// Zustand store for item management with IndexedDB persistence
+// Zustand store for item management with Supabase backend
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import type { Item, ItemStats, FilterOptions, SortOption } from '../types/item';
-import {
-  initDB,
-  getAllItems,
-  addItem as dbAddItem,
-  updateItem as dbUpdateItem,
-  deleteItem as dbDeleteItem,
-  bulkAddItems,
-} from '../utils/db';
+import { supabase } from '../lib/supabase/client';
 import { INITIAL_ITEMS } from '../data/initial-items';
 
 interface ItemState {
@@ -22,7 +15,7 @@ interface ItemState {
   selectedItem: Item | null;
   
   // Actions
-  initializeStore: (userEmail?: string) => Promise<void>;
+  initializeStore: (userId?: string) => Promise<void>;
   loadItems: () => Promise<void>;
   addItem: (item: Omit<Item, 'id' | 'dateAdded'>) => Promise<void>;
   updateItem: (item: Item) => Promise<void>;
@@ -46,6 +39,50 @@ const defaultSortOption: SortOption = {
   direction: 'desc',
 };
 
+// Helper to transform database row (Item) to Item
+const transformDbItem = (dbItem: any): Item => ({
+  id: dbItem.id,
+  name: dbItem.title || '',
+  size: dbItem.size || '',
+  status: dbItem.status === 'SOLD' ? 'SOLD' : dbItem.status === 'IN_STOCK' ? 'Active' : 'Inactive',
+  hangerStatus: '',
+  hangerId: '',
+  tags: (dbItem.normalizedTags || []).slice(0, 5),
+  ebayUrl: dbItem.imageUrls?.[0] || '',
+  imageUrl: dbItem.imageUrls?.[0] || undefined,
+  costPrice: dbItem.purchasePriceCents ? dbItem.purchasePriceCents / 100 : 0,
+  sellingPrice: dbItem.manualPriceCents ? dbItem.manualPriceCents / 100 : 0,
+  ebayFees: 0,
+  netProfit: dbItem.soldPriceCents && dbItem.purchasePriceCents 
+    ? (dbItem.soldPriceCents - dbItem.purchasePriceCents) / 100 
+    : 0,
+  dateField: dbItem.soldDate || dbItem.purchaseDate || dbItem.createdAt,
+  notes: dbItem.notes || dbItem.conditionNotes || '',
+  dateAdded: dbItem.createdAt,
+});
+
+// Helper to transform Item to database format (Item schema)
+const transformItemToDb = (item: Partial<Item>, userId: string) => ({
+  user_uuid: userId,
+  title: item.name,
+  size: item.size,
+  status: item.status === 'Active' ? 'IN_STOCK' : 
+          item.status === 'SOLD' ? 'SOLD' : 'IN_STOCK',
+  normalizedTags: item.tags || [],
+  imageUrls: item.imageUrl ? [item.imageUrl] : item.ebayUrl ? [item.ebayUrl] : [],
+  manualPriceCents: item.sellingPrice ? Math.round(item.sellingPrice * 100) : null,
+  purchasePriceCents: item.costPrice ? Math.round(item.costPrice * 100) : null,
+  soldPriceCents: item.status === 'SOLD' && item.sellingPrice 
+    ? Math.round(item.sellingPrice * 100) 
+    : null,
+  soldDate: item.status === 'SOLD' ? item.dateField || new Date().toISOString() : null,
+  purchaseDate: item.dateField || new Date().toISOString(),
+  notes: `Hanger: ${item.hangerId || item.hangerStatus || 'None'}. ${item.notes || ''}`.trim(),
+  conditionNotes: item.notes,
+  brand: 'Unknown',
+  category: 'Clothing',
+});
+
 export const useItemStore = create<ItemState>()(
   immer((set, get) => ({
     items: [],
@@ -56,27 +93,58 @@ export const useItemStore = create<ItemState>()(
     sortOption: defaultSortOption,
     selectedItem: null,
 
-    initializeStore: async (userEmail?: string) => {
+    initializeStore: async () => {
       set({ isLoading: true, error: null });
       
       try {
-        // Initialize DB with user email for user-specific storage
-        await initDB(userEmail);
-        const existingItems = await getAllItems();
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        console.log('🔐 Current user:', user?.id, user?.email);
+        if (!user) {
+          throw new Error('User not authenticated');
+        }
+
+        // Load items from Supabase
+        console.log('📊 Fetching items for user:', user.id);
+        console.log('📊 Query: SELECT * FROM Item WHERE user_uuid =', user.id);
         
+        const { data: dbItems, error: fetchError } = await (supabase as any)
+          .from('Item')
+          .select('*')
+          .eq('user_uuid', user.id)
+          .order('createdAt', { ascending: false });
+
+        console.log('📦 Fetched items:', dbItems?.length, 'Error:', fetchError);
+        console.log('📦 First item:', dbItems?.[0]);
+        
+        if (fetchError) {
+          console.error('❌ Fetch error details:', JSON.stringify(fetchError, null, 2));
+          throw fetchError;
+        }
+
         // If no items exist, load initial data for this user
-        if (existingItems.length === 0) {
-          // Transform initial items to include id and dateAdded
-          const itemsWithIds: Item[] = INITIAL_ITEMS.map((item, index) => ({
-            ...item,
-            id: crypto.randomUUID(),
-            dateAdded: new Date(Date.now() - (INITIAL_ITEMS.length - index) * 24 * 60 * 60 * 1000).toISOString(),
-          }));
-          
-          await bulkAddItems(itemsWithIds);
-          set({ items: itemsWithIds, filteredItems: itemsWithIds });
+        if (!dbItems || dbItems.length === 0) {
+          // Transform and insert initial items
+          const itemsToInsert = INITIAL_ITEMS.map((item) => 
+            transformItemToDb({
+              ...item,
+              id: undefined, // Let database generate ID
+              dateAdded: new Date(Date.now() - (INITIAL_ITEMS.length - INITIAL_ITEMS.indexOf(item)) * 24 * 60 * 60 * 1000).toISOString(),
+            }, user.id)
+          );
+
+          const { data: insertedItems, error: insertError } = await (supabase as any)
+            .from('Item')
+            .insert(itemsToInsert as any)
+            .select();
+
+          if (insertError) throw insertError;
+
+          const items = (insertedItems || []).map(transformDbItem);
+          set({ items, filteredItems: items });
         } else {
-          set({ items: existingItems, filteredItems: existingItems });
+          const items = dbItems.map(transformDbItem);
+          set({ items, filteredItems: items });
         }
         
         get().applyFilters();
@@ -91,7 +159,20 @@ export const useItemStore = create<ItemState>()(
       set({ isLoading: true, error: null });
       
       try {
-        const items = await getAllItems();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          throw new Error('User not authenticated');
+        }
+
+        const { data: dbItems, error: fetchError } = await (supabase as any)
+          .from('Item')
+          .select('*')
+          .eq('user_uuid', user.id)
+          .order('createdAt', { ascending: false });
+
+        if (fetchError) throw fetchError;
+
+        const items = (dbItems || []).map(transformDbItem);
         set({ items, filteredItems: items });
         get().applyFilters();
       } catch (error) {
@@ -105,13 +186,20 @@ export const useItemStore = create<ItemState>()(
       set({ isLoading: true, error: null });
       
       try {
-        const newItem: Item = {
-          ...itemData,
-          id: crypto.randomUUID(),
-          dateAdded: new Date().toISOString(),
-        };
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
+
+        const dbItem = transformItemToDb(itemData, user.id);
         
-        await dbAddItem(newItem);
+        const { data: insertedItem, error: insertError } = await (supabase as any)
+          .from('Item')
+          .insert([dbItem] as any)
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+
+        const newItem = transformDbItem(insertedItem);
         
         set((state) => {
           state.items.push(newItem);
@@ -120,6 +208,7 @@ export const useItemStore = create<ItemState>()(
         get().applyFilters();
       } catch (error) {
         set({ error: error instanceof Error ? error.message : 'Failed to add item' });
+        throw error;
       } finally {
         set({ isLoading: false });
       }
@@ -129,7 +218,17 @@ export const useItemStore = create<ItemState>()(
       set({ isLoading: true, error: null });
       
       try {
-        await dbUpdateItem(item);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
+
+        const dbItem = transformItemToDb(item, user.id);
+        
+        const { error: updateError } = await (supabase as any)
+          .from('Item')
+          .update(dbItem as any)
+          .eq('id', item.id);
+
+        if (updateError) throw updateError;
         
         set((state) => {
           const index = state.items.findIndex((i) => i.id === item.id);
@@ -141,6 +240,7 @@ export const useItemStore = create<ItemState>()(
         get().applyFilters();
       } catch (error) {
         set({ error: error instanceof Error ? error.message : 'Failed to update item' });
+        throw error;
       } finally {
         set({ isLoading: false });
       }
@@ -150,7 +250,12 @@ export const useItemStore = create<ItemState>()(
       set({ isLoading: true, error: null });
       
       try {
-        await dbDeleteItem(id);
+        const { error: deleteError } = await (supabase as any)
+          .from('Item')
+          .delete()
+          .eq('id', id);
+
+        if (deleteError) throw deleteError;
         
         set((state) => {
           state.items = state.items.filter((item) => item.id !== id);
@@ -159,6 +264,7 @@ export const useItemStore = create<ItemState>()(
         get().applyFilters();
       } catch (error) {
         set({ error: error instanceof Error ? error.message : 'Failed to delete item' });
+        throw error;
       } finally {
         set({ isLoading: false });
       }

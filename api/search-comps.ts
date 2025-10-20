@@ -1,19 +1,16 @@
 /**
  * API Endpoint: POST /api/search-comps
- *
- * RAG-powered comp search endpoint for ItemForm
- * Generates OpenAI embeddings and queries vector DB
+ * Simple fallback using existing match_comp_sections RPC
  */
 
 import { createClient } from '@supabase/supabase-js'
 import OpenAI from 'openai'
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_CLIENT_SERVICE_KEY!
-const openaiKey = process.env.OPENAI_API_KEY!
+const supabaseServiceKey = process.env.SUPABASE_CLIENT_SERVICE_KEY || process.env.SUPABASE_SERVICE_KEY!
+const openaiKey = process.env.OPENAI_API_KEY
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
-const openai = new OpenAI({ apiKey: openaiKey })
 
 interface SearchCompsRequest {
   itemName: string
@@ -28,25 +25,29 @@ export async function POST(request: Request) {
   try {
     const body: SearchCompsRequest = await request.json()
 
-    // 1. Build query text
-    const queryParts = [
-      body.itemName,
-      body.brand ? `Brand: ${body.brand}` : '',
-      body.category ? `Category: ${body.category}` : '',
-      body.size ? `Size: ${body.size}` : ''
-    ].filter(Boolean)
+    // If no OpenAI key, return empty results
+    if (!openaiKey) {
+      return new Response(JSON.stringify({ comps: [], stats: { count: 0 } }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    }
 
-    const queryText = queryParts.join(' | ')
+    const openai = new OpenAI({ apiKey: openaiKey })
 
-    // 2. Generate embedding
+    // Build simple query text
+    const queryText = [body.brand, body.category, body.size, body.itemName]
+      .filter(Boolean)
+      .join(' ')
+
+    // Generate embedding
     const embeddingResponse = await openai.embeddings.create({
       model: 'text-embedding-ada-002',
       input: queryText
     })
-
     const queryEmbedding = embeddingResponse.data[0].embedding
 
-    // 3. Vector similarity search
+    // Use existing RPC function
     const { data, error } = await supabase.rpc('match_comp_sections', {
       query_embedding: queryEmbedding,
       match_threshold: body.minSimilarity || 0.5,
@@ -57,14 +58,14 @@ export async function POST(request: Request) {
     })
 
     if (error) {
-      console.error('Vector search error:', error)
+      console.error('match_comp_sections error:', error)
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' }
       })
     }
 
-    return new Response(JSON.stringify({ comps: data || [] }), {
+    return new Response(JSON.stringify({ comps: data || [], stats: { count: data?.length || 0 } }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     })

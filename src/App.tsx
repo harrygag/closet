@@ -25,12 +25,18 @@ function App() {
     getStats,
   } = useItemStore();
 
-  const { isAuthenticated, user, signOut } = useAuthStore();
+  const { isAuthenticated, user, signOut, initialize, isLoading: authLoading } = useAuthStore();
 
   const [viewMode, setViewMode] = useState<ViewMode>('closet');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
 
+  // Initialize auth on mount
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
+  // Initialize store when authenticated
   useEffect(() => {
     if (isAuthenticated) {
       initializeStore();
@@ -98,7 +104,7 @@ function App() {
             <div className="flex items-center gap-2">
               <div className="hidden sm:flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800/50 px-4 py-2">
                 <User className="h-4 w-4 text-purple-400" />
-                <span className="text-sm text-gray-300">{user?.name}</span>
+                <span className="text-sm text-gray-300">{user?.display_name || user?.email}</span>
               </div>
               
               <Button
