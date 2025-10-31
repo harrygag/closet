@@ -25,7 +25,7 @@ function App() {
     getStats,
   } = useItemStore();
 
-  const { isAuthenticated, user, signOut, initialize, isLoading: authLoading } = useAuthStore();
+  const { isAuthenticated, user, signOut, initialize } = useAuthStore();
 
   const [viewMode, setViewMode] = useState<ViewMode>('closet');
   const [isFormOpen, setIsFormOpen] = useState(false);

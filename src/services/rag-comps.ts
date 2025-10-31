@@ -1,4 +1,4 @@
-import { supabase } from '../utils/db'
+import { supabase } from '../lib/supabase/client'
 
 /**
  * RAG-powered comp search for ItemForm
@@ -58,7 +58,7 @@ export async function findCompsWithRAG(params: FindCompsParams): Promise<RAGComp
     }
 
     // Map to RAG result format
-    return (data || []).map(comp => ({
+    return (data || []).map((comp: any) => ({
       id: comp.id,
       title: comp.title,
       brand: comp.brand,

@@ -32,7 +32,7 @@ const transformUser = (supabaseUser: SupabaseUser): User => ({
   created_at: supabaseUser.created_at,
 });
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   session: null,
   isAuthenticated: false,
