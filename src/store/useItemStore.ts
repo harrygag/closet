@@ -4,6 +4,7 @@ import { immer } from 'zustand/middleware/immer';
 import type { Item, ItemStats, FilterOptions, SortOption } from '../types/item';
 import { supabase } from '../lib/supabase/client';
 import { INITIAL_ITEMS } from '../data/initial-items';
+import { generateBarcode } from '../services/barcodes';
 
 interface ItemState {
   items: Item[];
@@ -59,6 +60,7 @@ const transformDbItem = (dbItem: any): Item => ({
   dateField: dbItem.soldDate || dbItem.purchaseDate || dbItem.createdAt,
   notes: dbItem.notes || dbItem.conditionNotes || '',
   dateAdded: dbItem.createdAt,
+  barcode: dbItem.barcode || undefined, // Include barcode from database
 });
 
 // Helper to transform Item to database format (Item schema)
@@ -81,6 +83,7 @@ const transformItemToDb = (item: Partial<Item>, userId: string) => ({
   conditionNotes: item.notes,
   brand: 'Unknown',
   category: 'Clothing',
+  barcode: item.barcode || null, // Include barcode
 });
 
 export const useItemStore = create<ItemState>()(
@@ -189,7 +192,18 @@ export const useItemStore = create<ItemState>()(
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('User not authenticated');
 
-        const dbItem = transformItemToDb(itemData, user.id);
+        // Generate barcode automatically
+        console.log('🏷️ Generating barcode for new item...');
+        const barcode = await generateBarcode(user.id, supabase);
+        console.log('✅ Generated barcode:', barcode);
+
+        // Add barcode to item data
+        const itemWithBarcode = {
+          ...itemData,
+          barcode: barcode,
+        };
+
+        const dbItem = transformItemToDb(itemWithBarcode, user.id);
         
         const { data: insertedItem, error: insertError } = await (supabase as any)
           .from('Item')
@@ -197,9 +211,13 @@ export const useItemStore = create<ItemState>()(
           .select()
           .single();
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error('❌ Failed to insert item:', insertError);
+          throw insertError;
+        }
 
         const newItem = transformDbItem(insertedItem);
+        console.log('✅ Item created with barcode:', newItem.barcode);
         
         set((state) => {
           state.items.push(newItem);
@@ -207,6 +225,7 @@ export const useItemStore = create<ItemState>()(
         
         get().applyFilters();
       } catch (error) {
+        console.error('❌ Add item failed:', error);
         set({ error: error instanceof Error ? error.message : 'Failed to add item' });
         throw error;
       } finally {
