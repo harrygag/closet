@@ -81,7 +81,7 @@ export const BarcodeScanModal: React.FC<BarcodeScanModalProps> = ({
       await codeReader.decodeFromVideoDevice(
         selectedDeviceId,
         videoRef.current!,
-        (result, error) => {
+        (result) => {
           if (result) {
             const barcode = result.getText();
             handleBarcodeScanned(barcode);
