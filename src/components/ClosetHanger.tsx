@@ -115,38 +115,15 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
     return daysListed >= DAYS_UNTIL_ELIMINATION;
   };
   
-  // Warning system
-  const getWarnings = (): { type: 'red' | 'yellow'; message: string }[] => {
-    const warnings: { type: 'red' | 'yellow'; message: string }[] = [];
-    
-    // RED warnings (critical)
-    if (item.status === 'Inactive') {
-      warnings.push({ type: 'red', message: 'Item is Inactive' });
-    }
-    if (!item.ebayUrl && (!item.marketplaceUrls || item.marketplaceUrls.length === 0)) {
-      warnings.push({ type: 'red', message: 'No marketplace URL' });
-    }
-    if (!item.sellingPrice || item.sellingPrice === 0) {
-      warnings.push({ type: 'red', message: 'No price set' });
-    }
-    
-    // YELLOW warnings (minor)
-    if (!item.imageUrl && imageGallery.length === 0) {
-      warnings.push({ type: 'yellow', message: 'No images' });
-    }
-    if (!item.size) {
-      warnings.push({ type: 'yellow', message: 'No size' });
-    }
-    if (!item.hangerId) {
-      warnings.push({ type: 'yellow', message: 'No hanger ID' });
-    }
-    
-    return warnings;
+  // Warning system - yellow border for missing vendoo link or images
+  const hasYellowWarning = (): boolean => {
+    // Yellow warning if no Vendoo URL OR no images
+    const noVendooUrl = !item.vendooUrl || item.vendooUrl.trim() === '';
+    const noImages = !item.imageUrl && imageGallery.length === 0;
+    return noVendooUrl || noImages;
   };
   
-  const warnings = getWarnings();
-  const hasRedWarnings = warnings.some(w => w.type === 'red');
-  const hasYellowWarnings = warnings.some(w => w.type === 'yellow');
+  const showYellowBorder = hasYellowWarning();
   
   // Format helpers
   const formatCurrency = (amount: number): string => {
@@ -467,19 +444,12 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
             </div>
           </div>
 
-          {/* Warning Icons - Bottom Left Corner */}
-          {(hasRedWarnings || hasYellowWarnings) && (
-            <div className="absolute bottom-2 left-2 z-10 flex gap-0.5" title={warnings.map(w => w.message).join(', ')}>
-              {hasRedWarnings && (
-                <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-gray-900">
-                  <span className="text-white text-[10px] font-bold">!</span>
-                </div>
-              )}
-              {hasYellowWarnings && !hasRedWarnings && (
-                <div className="w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg border-2 border-gray-900">
-                  <span className="text-gray-900 text-[10px] font-bold">⚠</span>
-                </div>
-              )}
+          {/* Warning Badge - Top Right Corner */}
+          {showYellowBorder && (
+            <div className="absolute top-2 right-2 z-10" title="Missing Vendoo URL or Images">
+              <div className="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg border-2 border-gray-900">
+                <span className="text-gray-900 text-sm font-bold">⚠</span>
+              </div>
             </div>
           )}
 

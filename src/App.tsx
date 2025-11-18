@@ -10,6 +10,7 @@ import { ClosetView } from './components/ClosetView';
 import { SignIn } from './components/SignIn';
 import { LabelPrintModal } from './components/LabelPrintModal';
 import { BulkBarcodePrintModal } from './components/BulkBarcodePrintModal';
+import { BarcodeScanModal } from './components/BarcodeScanModal';
 import { quickBackup } from './utils/recover-inventory';
 import type { Item, ItemTag, ItemStatus } from './types/item';
 
@@ -41,6 +42,9 @@ function App() {
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [printingItem, setPrintingItem] = useState<Item | null>(null);
   const [isBulkPrintModalOpen, setIsBulkPrintModalOpen] = useState(false);
+  
+  // Barcode scan modal state
+  const [isScanModalOpen, setIsScanModalOpen] = useState(false);
 
   // Initialize auth on mount
   useEffect(() => {
@@ -133,6 +137,23 @@ function App() {
     setIsBulkPrintModalOpen(true);
   };
 
+  const handleScanBarcode = () => {
+    setIsScanModalOpen(true);
+  };
+
+  const handleMarkAsSold = async (item: Item) => {
+    await updateItem({
+      ...item,
+      status: 'SOLD',
+      dateField: new Date().toISOString(),
+    });
+  };
+
+  const handleViewCard = (item: Item) => {
+    setEditingItem(item);
+    setIsFormOpen(true);
+  };
+
   const stats = getStats();
 
   return (
@@ -182,6 +203,17 @@ function App() {
                   </span>
                 </Button>
               )}
+
+              <Button
+                onClick={handleScanBarcode}
+                variant="secondary"
+                size="lg"
+                title="Scan barcode to find item"
+                className="border-green-600 bg-green-600/20 hover:bg-green-600/30"
+              >
+                <Barcode className="h-5 w-5 text-green-400" />
+                <span className="ml-2 hidden sm:inline text-green-400">Scan</span>
+              </Button>
 
               <Button
                 onClick={handleBulkPrint}
@@ -363,6 +395,15 @@ function App() {
         items={filteredItems}
         open={isBulkPrintModalOpen}
         onClose={() => setIsBulkPrintModalOpen(false)}
+      />
+
+      {/* Barcode Scan Modal */}
+      <BarcodeScanModal
+        open={isScanModalOpen}
+        onClose={() => setIsScanModalOpen(false)}
+        items={filteredItems}
+        onMarkAsSold={handleMarkAsSold}
+        onViewCard={handleViewCard}
       />
 
       {/* Footer */}
