@@ -97,10 +97,16 @@ export const BarcodeScanModal: React.FC<BarcodeScanModalProps> = ({
   };
 
   const handleBarcodeScanned = (barcode: string) => {
+    console.log('🔍 Scanning for barcode:', barcode);
+    console.log('📦 Total items to search:', items.length);
+    console.log('📋 First 3 items barcodes:', items.slice(0, 3).map(i => ({ name: i.name, barcode: i.barcode, id: i.id })));
+    
     // Search for item with this barcode
     const item = items.find(
       (item) => item.barcode === barcode || item.id === barcode
     );
+    
+    console.log('✅ Found item:', item ? item.name : 'NOT FOUND');
     
     if (item) {
       setFoundItem(item);
