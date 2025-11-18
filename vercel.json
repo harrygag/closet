@@ -5,6 +5,9 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "installCommand": "npm install",
+  "github": {
+    "silent": false
+  },
   "headers": [
     {
       "source": "/sw.js",
