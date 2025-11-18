@@ -153,7 +153,7 @@ export async function barcodeExists(
 
 /**
  * Parses barcode to extract date and sequence number
- * 
+ *
  * @param barcode - Barcode string (INV-YYYYMMDD-XXXXX)
  * @returns Object with date and number, or null if invalid
  */
@@ -161,13 +161,46 @@ export function parseBarcode(barcode: string): { date: string; number: number } 
   if (!isValidBarcodeFormat(barcode)) {
     return null;
   }
-  
+
   const datePart = barcode.slice(4, 12); // YYYYMMDD
   const numberPart = barcode.slice(13, 18); // XXXXX
-  
+
   return {
     date: datePart,
     number: parseInt(numberPart, 10)
   };
+}
+
+/**
+ * Logs a barcode print event
+ *
+ * @param itemId - The item ID that was printed
+ * @param userId - The user who printed the barcode
+ * @param payload - Additional metadata about the print event
+ */
+export async function logBarcodePrintEvent(
+  itemId: string,
+  userId: string,
+  payload: Record<string, any> = {}
+): Promise<void> {
+  try {
+    // Import supabase client dynamically to avoid circular imports
+    const { supabase } = await import('../lib/supabase/client');
+
+    const { error } = await (supabase as any)
+      .from('barcode_events')
+      .insert({
+        item_id: itemId,
+        user_uuid: userId,
+        event_type: 'PRINTED',
+        payload: payload
+      });
+
+    if (error) {
+      console.error('Failed to log barcode print event:', error);
+    }
+  } catch (error) {
+    console.error('Error logging barcode print event:', error);
+  }
 }
 

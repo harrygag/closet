@@ -8,6 +8,8 @@ import { SearchAndFilter } from './components/SearchAndFilter';
 import { StatsDashboard } from './components/StatsDashboard';
 import { ClosetView } from './components/ClosetView';
 import { SignIn } from './components/SignIn';
+import { LabelPrintModal } from './components/LabelPrintModal';
+import { BulkBarcodePrintModal } from './components/BulkBarcodePrintModal';
 import { quickBackup } from './utils/recover-inventory';
 import type { Item, ItemTag, ItemStatus } from './types/item';
 
@@ -34,6 +36,11 @@ function App() {
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [itemsNeedingBarcodes, setItemsNeedingBarcodes] = useState<number>(0);
   const [isBackfilling, setIsBackfilling] = useState(false);
+
+  // Print modal state
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [printingItem, setPrintingItem] = useState<Item | null>(null);
+  const [isBulkPrintModalOpen, setIsBulkPrintModalOpen] = useState(false);
 
   // Initialize auth on mount
   useEffect(() => {
@@ -117,6 +124,15 @@ function App() {
     }
   };
 
+  const handlePrintLabel = (item: Item) => {
+    setPrintingItem(item);
+    setIsPrintModalOpen(true);
+  };
+
+  const handleBulkPrint = () => {
+    setIsBulkPrintModalOpen(true);
+  };
+
   const stats = getStats();
 
   return (
@@ -166,6 +182,17 @@ function App() {
                   </span>
                 </Button>
               )}
+
+              <Button
+                onClick={handleBulkPrint}
+                variant="secondary"
+                size="lg"
+                title="Print barcode labels for all items"
+                className="border-purple-600 bg-purple-600/20 hover:bg-purple-600/30"
+              >
+                <Barcode className="h-5 w-5 text-purple-400" />
+                <span className="ml-2 hidden sm:inline text-purple-400">Print Labels</span>
+              </Button>
               
               <Button onClick={handleAddItem} size="lg">
                 <Plus className="mr-2 h-5 w-5" />
@@ -237,7 +264,7 @@ function App() {
         {/* Content based on view mode */}
         <div className="mb-6">
           {viewMode === 'closet' && (
-            <ClosetView items={filteredItems} onItemClick={handleEditItem} onAddItem={handleAddItem} />
+            <ClosetView items={filteredItems} onItemClick={handleEditItem} onAddItem={handleAddItem} onRequestPrint={handlePrintLabel} />
           )}
 
           {viewMode === 'stats' && (
@@ -318,6 +345,24 @@ function App() {
         onOpenChange={setIsFormOpen}
         onSubmit={handleFormSubmit}
         editItem={editingItem}
+      />
+
+      {/* Print Label Modal */}
+      <LabelPrintModal
+        item={printingItem}
+        open={isPrintModalOpen}
+        onClose={() => {
+          setIsPrintModalOpen(false);
+          setPrintingItem(null);
+        }}
+        userId={user?.id}
+      />
+
+      {/* Bulk Print Modal */}
+      <BulkBarcodePrintModal
+        items={filteredItems}
+        open={isBulkPrintModalOpen}
+        onClose={() => setIsBulkPrintModalOpen(false)}
       />
 
       {/* Footer */}

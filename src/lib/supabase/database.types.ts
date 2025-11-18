@@ -441,6 +441,120 @@ export interface Database {
           created_at?: string
         }
       }
+      Item: {
+        Row: {
+          id: string
+          name: string
+          size: string
+          status: string
+          hangerId: string
+          tags: string[]
+          ebayUrl: string
+          costPrice: number
+          sellingPrice: number
+          ebayFees: number
+          netProfit: number
+          dateField: string
+          notes: string
+          dateAdded: string
+          position: number | null
+          barcode: string | null
+          user_uuid: string
+          createdAt: string
+          updatedAt: string
+        }
+        Insert: {
+          id: string
+          name: string
+          size: string
+          status: string
+          hangerId: string
+          tags?: string[]
+          ebayUrl: string
+          costPrice?: number
+          sellingPrice?: number
+          ebayFees?: number
+          netProfit?: number
+          dateField: string
+          notes?: string
+          dateAdded?: string
+          position?: number | null
+          barcode?: string | null
+          user_uuid: string
+          createdAt?: string
+          updatedAt?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          size?: string
+          status?: string
+          hangerId?: string
+          tags?: string[]
+          ebayUrl?: string
+          costPrice?: number
+          sellingPrice?: number
+          ebayFees?: number
+          netProfit?: number
+          dateField?: string
+          notes?: string
+          dateAdded?: string
+          position?: number | null
+          barcode?: string | null
+          user_uuid?: string
+          createdAt?: string
+          updatedAt?: string
+        }
+      }
+      barcode_counters: {
+        Row: {
+          user_uuid: string
+          date_bucket: string
+          last_counter: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          user_uuid: string
+          date_bucket: string
+          last_counter?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          user_uuid?: string
+          date_bucket?: string
+          last_counter?: number
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      barcode_events: {
+        Row: {
+          id: string
+          item_id: string
+          user_uuid: string
+          event_type: string
+          payload: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          item_id: string
+          user_uuid: string
+          event_type: string
+          payload?: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          item_id?: string
+          user_uuid?: string
+          event_type?: string
+          payload?: Json
+          created_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
