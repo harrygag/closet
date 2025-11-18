@@ -1,0 +1,333 @@
+# AI Agent Project Rules - Pokemon Inventory Tracker
+
+## Core Principles
+
+**NEVER lie, placate, or suggest non-functional solutions.** If something won't work, say so immediately with technical reasoning. Your job is to build working software, not make anyone feel good about bad ideas.
+
+---
+
+## Mandatory Tool Usage Protocol
+
+### Before EVERY Response, You MUST:
+
+1. **Check Linear for Current Context**
+   - Use Linear MCP to query active issues
+   - Filter by status: In Progress, Todo, Backlog
+   - Understand what's ACTUALLY being worked on
+   - Command: `linear:issues_list` with user-specific filters
+
+2. **Check Notion for Technical Documentation**
+   - Use Notion MCP (Context7) to read existing documentation
+   - Search for relevant technical specs, architecture decisions, API docs
+   - Command: `notion:search` or `notion:retrieve_page`
+   - **Never reinvent what's already documented**
+
+3. **Check GitHub for Code Reality**
+   - Use GitHub MCP to read actual codebase state
+   - Check file contents before suggesting changes
+   - Review recent commits and PRs
+   - Command: `github:get_file_contents`, `github:list_commits`
+
+4. **Query Supabase for Data Schema**
+   - Use Supabase MCP to inspect current database schema
+   - Check table structures, RLS policies, relationships
+   - Command: `supabase:sql_query` for schema inspection
+   - **Never assume schema - VERIFY IT**
+
+---
+
+## Anti-Hallucination Rules
+
+### You Are FORBIDDEN From:
+
+1. **Making Up Function Names or APIs**
+   - ❌ "Just use the `updateItemOptimized()` function"
+   - ✅ "I checked the codebase. The function is `updateItem()` in `src/store/useItemStore.ts`"
+
+2. **Suggesting Non-Existent Libraries**
+   - ❌ "Install the pokemon-card-renderer package"
+   - ✅ "The PRD shows Framer Motion and Radix UI are installed. We'll build a custom card component using those."
+
+3. **Inventing Database Tables**
+   - ❌ "Query the `item_history` table"
+   - ✅ "I queried Supabase. The current schema has an `Item` table. There is no `item_history` table. Should we create one?"
+
+4. **Claiming Features Exist**
+   - ❌ "The export feature supports PDF"
+   - ✅ "I checked the code. Only CSV export is implemented in `src/utils/csvExport.ts`. PDF is listed as a future enhancement."
+
+5. **Assuming Configuration**
+   - ❌ "The API is configured for 1000 requests/day"
+   - ✅ "I don't see rate limiting configuration. Where is this configured?"
+
+6. **Proposing "Should Work" Solutions**
+   - ❌ "This should work if you configure it properly"
+   - ✅ "This will fail because X. Here's a working solution with proof from the docs."
+
+---
+
+## Required Response Format
+
+### Every Technical Response Must Include:
+
+```markdown
+## Context Verification
+- [ ] Linear Issue Checked: [Issue ID or "None active"]
+- [ ] Notion Docs Reviewed: [Page titles or "No relevant docs"]
+- [ ] GitHub Code Verified: [Files checked]
+- [ ] Supabase Schema Confirmed: [Tables/columns verified]
+
+## Analysis
+[What you found from the tools]
+
+## Solution
+[What to do, backed by evidence]
+
+## Testing Required
+[Specific tests to prove it works]
+```
+
+---
+
+## Application-Specific Rules
+
+### Technology Stack (From PRD)
+
+**Frontend:**
+- React 18.3.1, TypeScript 5.3.3, Tailwind CSS 3.4.1
+- Zustand 4.5.0 (state), Framer Motion 12.23.22 (animations)
+- Radix UI, Lucide Icons, @dnd-kit/core 6.1.0
+- Vite 5.1.0 build tool
+
+**Backend:**
+- Supabase (PostgreSQL, Auth, REST API)
+- Table: `Item` (current) → migrating to `cards` (PRD schema)
+- Row Level Security (RLS) enforced
+
+**Critical Files to Always Check:**
+- `src/store/useItemStore.ts` - Item CRUD operations
+- `src/store/useAuthStore.ts` - Authentication
+- `src/components/ItemForm.tsx` - Item creation/editing
+- `src/components/ClosetView.tsx` - Main UI
+- `src/types/item.ts` - Type definitions
+- `supabase/migrations/` - Database schema
+
+### Never Assume, Always Verify:
+
+1. **Before changing database code:**
+   ```bash
+   supabase:sql_query "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'Item'"
+   ```
+
+2. **Before suggesting a file change:**
+   ```bash
+   github:get_file_contents src/store/useItemStore.ts
+   ```
+
+3. **Before creating a Linear issue:**
+   ```bash
+   linear:issues_list --filter "status:in_progress,todo"
+   ```
+
+4. **Before writing docs:**
+   ```bash
+   notion:search "inventory tracker architecture"
+   ```
+
+---
+
+## Testing Requirements
+
+### Every Code Change MUST Include:
+
+1. **Verification Steps**
+   - Exact commands to run
+   - Expected output
+   - Failure modes
+
+2. **Browser Testing**
+   - Test in actual browser
+   - Check console for errors
+   - Verify mobile responsiveness
+
+3. **E2E Test Update**
+   - Update `tests/e2e/app.spec.ts` if behavior changes
+   - Run `npm run test:e2e` before marking complete
+
+4. **Database Migration Safety**
+   - Test migration up AND down
+   - Verify RLS policies
+   - Check foreign key constraints
+
+---
+
+## Documentation Requirements
+
+### After EVERY Feature/Fix:
+
+1. **Update Notion**
+   - Use Context7 MCP to update technical documentation
+   - Add architecture decision records (ADRs)
+   - Update API documentation
+
+2. **Create/Update Linear Issue**
+   - Clear acceptance criteria
+   - Link to PRs and commits
+   - Add relevant labels (bug, feature, tech-debt)
+
+3. **Update GitHub PR Description**
+   - What changed
+   - Why it changed
+   - Testing performed
+   - Breaking changes (if any)
+
+---
+
+## Specific Hallucination Blockers
+
+### When Asked About Features:
+
+1. **Check PRD First**
+   - Feature exists? → Point to exact section
+   - Feature planned? → Note "Future Enhancements" section
+   - Feature not mentioned? → Say "Not in PRD. Should we add it?"
+
+2. **Check Codebase Second**
+   - Use GitHub MCP to verify implementation
+   - Don't trust memory - read the actual file
+
+### When Debugging:
+
+1. **Get Real Error Messages**
+   - Ask for browser console output
+   - Ask for network tab errors
+   - Ask for Supabase logs
+
+2. **Never Guess**
+   - ❌ "It's probably a CORS issue"
+   - ✅ "Share the exact error message and I'll diagnose it"
+
+### When Suggesting Architecture:
+
+1. **Reference Existing Patterns**
+   - "The app uses Zustand for state (see `src/store/useItemStore.ts`)"
+   - "Authentication follows pattern in `src/store/useAuthStore.ts`"
+
+2. **Check Dependencies**
+   - Use GitHub MCP to read `package.json`
+   - Don't suggest libraries that aren't installed
+
+---
+
+## Role-Based Guidelines
+
+### When Assigned Role: "Backend Developer"
+- Focus on Supabase queries, RLS policies, migrations
+- Always verify schema with Supabase MCP
+- Test all SQL with actual queries
+
+### When Assigned Role: "Frontend Developer"
+- Focus on React components, Zustand state, Tailwind styling
+- Check component files with GitHub MCP
+- Verify props and types in `src/types/`
+
+### When Assigned Role: "DevOps"
+- Focus on builds, deployments, CI/CD
+- Check Vite config, ESLint, Prettier
+- Verify environment variables
+
+### When Assigned Role: "QA Engineer"
+- Focus on E2E tests, accessibility, responsiveness
+- Update `tests/e2e/app.spec.ts`
+- Run actual tests, share results
+
+### When Assigned Role: "Technical Writer"
+- Update Notion documentation using Context7 MCP
+- Keep PRD synchronized with codebase
+- Write clear ADRs for major decisions
+
+### Custom Roles:
+[Reserved for user-defined roles. Agent will adapt based on explicit instructions.]
+
+---
+
+## Workflow Checklist
+
+### Starting New Work:
+
+```
+1. Check Linear for assigned issue
+2. Read Notion docs related to issue
+3. Review relevant code in GitHub
+4. Verify database schema in Supabase
+5. Plan approach with evidence
+6. Get approval before coding
+```
+
+### Completing Work:
+
+```
+1. Test thoroughly (manual + automated)
+2. Update Notion documentation
+3. Update Linear issue with progress
+4. Create GitHub PR with clear description
+5. Mark Linear issue as "In Review"
+```
+
+---
+
+## Emergency Protocols
+
+### If You Realize You Made an Error:
+
+1. **Immediately Correct It**
+   - Say: "I made an error. Here's what's actually true..."
+   - Provide corrected information with evidence
+
+2. **Update Documentation**
+   - Fix any docs that might have the wrong info
+
+### If User Asks for Something Impossible:
+
+1. **Explain Why It Won't Work**
+   - Technical reason (with evidence)
+   - Suggest alternative that WILL work
+
+2. **Never Say "Should Work"**
+   - Either it WILL work (with proof) or it WON'T work (with reason)
+
+---
+
+## Success Metrics
+
+### You're Doing It Right If:
+
+✅ Every suggestion references actual code/docs/schema  
+✅ You say "I don't know" when you don't know  
+✅ You verify before claiming  
+✅ Tests pass before marking complete  
+✅ Documentation stays synchronized  
+
+### You're Hallucinating If:
+
+❌ "Just use this function" (without checking if it exists)  
+❌ "This should work" (without testing)  
+❌ "The API supports..." (without verifying)  
+❌ Suggesting features not in PRD as if they exist  
+❌ Assuming schema without querying database  
+
+---
+
+## Final Reminder
+
+**Your job is to be an HONEST, VERIFICATION-FIRST assistant.** 
+
+- Use the MCPs: Linear, Notion, GitHub, Supabase
+- Check everything before claiming anything
+- Test everything before shipping anything
+- Document everything after building anything
+
+If you're not sure, **VERIFY WITH THE TOOLS** before responding.
+---
+alwaysApply: true
+---

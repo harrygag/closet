@@ -115,12 +115,12 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
     return daysListed >= DAYS_UNTIL_ELIMINATION;
   };
   
-  // Warning system - yellow border for missing vendoo link or images
+  // Warning system - yellow border for missing BOTH vendoo link AND images
   const hasYellowWarning = (): boolean => {
-    // Yellow warning if no Vendoo URL OR no images
+    // Yellow warning if no Vendoo URL AND no images
     const noVendooUrl = !item.vendooUrl || item.vendooUrl.trim() === '';
     const noImages = !item.imageUrl && imageGallery.length === 0;
-    return noVendooUrl || noImages;
+    return noVendooUrl && noImages;
   };
   
   const showYellowBorder = hasYellowWarning();
@@ -276,19 +276,27 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
           transition: 'transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)',
         }}
       >
-        {/* FRONT SIDE - Pokemon Card */}
+        {/* Warning Border Wrapper */}
         <div
-          className="relative rounded-xl overflow-hidden shadow-xl"
-          onDoubleClick={handleDoubleClick}
+          className="relative rounded-xl"
           style={{
-            backfaceVisibility: 'hidden',
-            WebkitBackfaceVisibility: 'hidden',
-            background: '#1a1a1a',
-            border: `8px solid ${energyType.borderColor}`,
-            width: 'min(200px, 90vw)', // Mobile-optimized: scales down to 90% viewport width on small screens
-            maxWidth: '200px',
+            padding: showYellowBorder ? '4px' : '0',
+            background: showYellowBorder ? '#FACC15' : 'transparent',
           }}
         >
+          {/* FRONT SIDE - Pokemon Card */}
+          <div
+            className="relative rounded-xl overflow-hidden shadow-xl"
+            onDoubleClick={handleDoubleClick}
+            style={{
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+              background: '#1a1a1a',
+              border: `8px solid ${energyType.borderColor}`,
+              width: 'min(200px, 90vw)', // Mobile-optimized: scales down to 90% viewport width on small screens
+              maxWidth: '200px',
+            }}
+          >
           {/* Header - Energy Type Name (left), Category, and HP (right) */}
           <div className="px-2.5 pt-1 pb-0">
             <div className="flex justify-between items-center">
@@ -444,14 +452,6 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
             </div>
           </div>
 
-          {/* Warning Badge - Top Right Corner */}
-          {showYellowBorder && (
-            <div className="absolute top-2 right-2 z-10" title="Missing Vendoo URL or Images">
-              <div className="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg border-2 border-gray-900">
-                <span className="text-gray-900 text-sm font-bold">⚠</span>
-              </div>
-            </div>
-          )}
 
           {/* Barcode Section - Clickable to open Vendoo link */}
           <div className="px-2.5 py-1.5">
@@ -526,6 +526,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
               </div>
             </div>
           )}
+          </div>
         </div>
 
         {/* BACK SIDE - Quick Edit Form */}

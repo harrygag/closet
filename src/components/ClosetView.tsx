@@ -74,13 +74,13 @@ const SortableHanger: React.FC<SortableHangerProps> = memo(({ item, onItemClick,
 SortableHanger.displayName = 'SortableHanger';
 
 // Define the 6 racks by category
-const RACKS: { number: number; category: ItemTag; label: string }[] = [
-  { number: 1, category: 'Hoodie', label: 'Hoodies' },
-  { number: 2, category: 'Jersey', label: 'Jerseys' },
-  { number: 3, category: 'polo', label: 'Polos' },
-  { number: 4, category: 'Pullover/Jackets', label: 'Pullovers & Jackets' },
-  { number: 5, category: 'T-shirts', label: 'T-Shirts' },
-  { number: 6, category: 'Bottoms', label: 'Bottoms' },
+const RACKS: { number: number; category: ItemTag; label: string; energyType: string }[] = [
+  { number: 1, category: 'Hoodie', label: 'Hoodies', energyType: 'Psychic' },
+  { number: 2, category: 'Jersey', label: 'Jerseys', energyType: 'Grass' },
+  { number: 3, category: 'polo', label: 'Polos', energyType: 'Steel' },
+  { number: 4, category: 'Pullover/Jackets', label: 'Pullovers & Jackets', energyType: 'Fire' },
+  { number: 5, category: 'T-shirts', label: 'T-Shirts', energyType: 'Water' },
+  { number: 6, category: 'Bottoms', label: 'Bottoms', energyType: 'Fighting' },
 ];
 
 export const ClosetView: React.FC<ClosetViewProps> = ({ items, onItemClick, onImageUpload, onUpdate, onAddItem, onRequestPrint }) => {
@@ -211,7 +211,7 @@ export const ClosetView: React.FC<ClosetViewProps> = ({ items, onItemClick, onIm
               {rack.number}
             </div>
             <div>
-              <h3 className="text-2xl sm:text-3xl font-bold text-white">{rack.label} Gym</h3>
+              <h3 className="text-2xl sm:text-3xl font-bold text-white">{rack.energyType} ({rack.label})</h3>
               <p className="text-sm sm:text-base text-gray-400 font-medium">{rackItems.length} Pokemon cards</p>
             </div>
           </div>
