@@ -11,7 +11,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 
 /**
  * Generates a unique barcode for a new item
- * Format: INV-YYYYMMDD-XXXXX
+ * Format: INV-YYYYMMDD-XXX-NNNNN (3-letter prefix + 5-digit number)
  * 
  * @param userId - The user's UUID
  * @param supabaseClient - Supabase client instance
@@ -30,8 +30,11 @@ export async function generateBarcode(
       const today = new Date();
       const dateStr = today.toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
       
-      // Query for highest barcode number today
-      const todayPrefix = `INV-${dateStr}-%`;
+      // Generate 3-letter prefix from user ID
+      const userPrefix = userId.substring(0, 3).toUpperCase().replace(/[^A-Z0-9]/g, '0');
+      
+      // Query for highest barcode number today with this prefix
+      const todayPrefix = `INV-${dateStr}-${userPrefix}-%`;
       
       const { data, error } = await supabaseClient
         .from('Item')
@@ -50,8 +53,8 @@ export async function generateBarcode(
       let nextNumber = 1;
       
       if (data && data.length > 0 && data[0].barcode) {
-        // Extract number from barcode (INV-20241118-00001 -> 00001)
-        const match = data[0].barcode.match(/INV-\d{8}-(\d{5})$/);
+        // Extract number from barcode (INV-20241118-XXX-00001 -> 00001)
+        const match = data[0].barcode.match(/INV-\d{8}-[A-Z0-9]{3}-(\d{5})$/);
         if (match && match[1]) {
           const currentNumber = parseInt(match[1], 10);
           nextNumber = currentNumber + 1;
@@ -61,8 +64,8 @@ export async function generateBarcode(
       // Format as 5-digit number with leading zeros
       const numberStr = nextNumber.toString().padStart(5, '0');
       
-      // Construct barcode
-      const barcode = `INV-${dateStr}-${numberStr}`;
+      // Construct barcode: INV-YYYYMMDD-XXX-NNNNN
+      const barcode = `INV-${dateStr}-${userPrefix}-${numberStr}`;
       
       // Validate format
       if (!isValidBarcodeFormat(barcode)) {
@@ -96,14 +99,14 @@ export async function generateBarcode(
 
 /**
  * Validates barcode format
- * Expected: INV-YYYYMMDD-XXXXX
+ * Expected: INV-YYYYMMDD-XXX-NNNNN
  * 
  * @param barcode - Barcode string to validate
  * @returns boolean - True if valid format
  */
 export function isValidBarcodeFormat(barcode: string): boolean {
-  // Format: INV-YYYYMMDD-XXXXX
-  const regex = /^INV-\d{8}-\d{5}$/;
+  // Format: INV-YYYYMMDD-XXX-NNNNN
+  const regex = /^INV-\d{8}-[A-Z0-9]{3}-\d{5}$/;
   
   if (!regex.test(barcode)) {
     return false;
@@ -154,19 +157,21 @@ export async function barcodeExists(
 /**
  * Parses barcode to extract date and sequence number
  *
- * @param barcode - Barcode string (INV-YYYYMMDD-XXXXX)
- * @returns Object with date and number, or null if invalid
+ * @param barcode - Barcode string (INV-YYYYMMDD-XXX-NNNNN)
+ * @returns Object with date, prefix, and number, or null if invalid
  */
-export function parseBarcode(barcode: string): { date: string; number: number } | null {
+export function parseBarcode(barcode: string): { date: string; prefix: string; number: number } | null {
   if (!isValidBarcodeFormat(barcode)) {
     return null;
   }
 
   const datePart = barcode.slice(4, 12); // YYYYMMDD
-  const numberPart = barcode.slice(13, 18); // XXXXX
+  const prefixPart = barcode.slice(13, 16); // XXX
+  const numberPart = barcode.slice(17, 22); // NNNNN
 
   return {
     date: datePart,
+    prefix: prefixPart,
     number: parseInt(numberPart, 10)
   };
 }
