@@ -112,14 +112,22 @@ export const ClosetView: React.FC<ClosetViewProps> = ({ items, onItemClick, onIm
         const draggedItem = items[oldIndex];
         const targetItem = items[newIndex];
         
-        // Swap hanger IDs if both items have them
-        if (draggedItem.hangerId && targetItem.hangerId) {
+        // Swap hanger IDs if both items have them and persist to database
+        if (draggedItem.hangerId && targetItem.hangerId && onUpdate) {
           const tempHangerId = draggedItem.hangerId;
-          draggedItem.hangerId = targetItem.hangerId;
-          targetItem.hangerId = tempHangerId;
+          const updatedDraggedItem = { ...draggedItem, hangerId: targetItem.hangerId };
+          const updatedTargetItem = { ...targetItem, hangerId: tempHangerId };
           
-          // Update items in the store (we'll need to call onItemClick or add an update callback)
-          // For now, just swap positions in the array
+          // Persist both items to database
+          Promise.all([
+            onUpdate(updatedDraggedItem),
+            onUpdate(updatedTargetItem)
+          ]).catch(error => {
+            console.error('❌ Failed to save drag-and-drop hanger swap:', error);
+            // The UI will revert on next load since DB wasn't updated
+          });
+          
+          console.log(`🔄 Swapped hangers: ${draggedItem.name} (${tempHangerId} → ${targetItem.hangerId}) ↔ ${targetItem.name} (${targetItem.hangerId} → ${tempHangerId})`);
         }
         
         return arrayMove(items, oldIndex, newIndex);

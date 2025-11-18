@@ -49,17 +49,43 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
     ? ENERGY_TYPES[item.tags[0]] 
     : { symbol: '⭐', color: 'text-gray-400', borderColor: '#CCCCCC', name: 'Normal' };
   
-  // Image gallery - support up to 5 images stored as JSON in notes field
+  // Image gallery - support up to 5 images stored in special format in notes field
+  // Format: __IMG__:["url1","url2"]__NOTES__:actual user notes
   const getImageGallery = (): string[] => {
     try {
-      if (item.notes && item.notes.startsWith('[')) {
-        const parsed = JSON.parse(item.notes);
-        if (Array.isArray(parsed)) {
-          return parsed.filter(img => img && typeof img === 'string');
+      if (item.notes) {
+        // Check for new format with __IMG__ delimiter
+        const imgMatch = item.notes.match(/__IMG__:(.*?)(__NOTES__|$)/);
+        if (imgMatch) {
+          const parsed = JSON.parse(imgMatch[1]);
+          if (Array.isArray(parsed)) {
+            return parsed.filter(img => img && typeof img === 'string');
+          }
+        }
+        // Fallback: Legacy format (plain JSON array) - DEPRECATED
+        else if (item.notes.startsWith('[')) {
+          const parsed = JSON.parse(item.notes);
+          if (Array.isArray(parsed)) {
+            return parsed.filter(img => img && typeof img === 'string');
+          }
         }
       }
     } catch {}
     return item.imageUrl ? [item.imageUrl] : [];
+  };
+  
+  // Extract actual user notes (without image gallery encoding)
+  const getUserNotes = (): string => {
+    if (!item.notes) return '';
+    const notesMatch = item.notes.match(/__NOTES__:(.*?)$/);
+    if (notesMatch) {
+      return notesMatch[1];
+    }
+    // If no __NOTES__ delimiter, check if it's legacy JSON format
+    if (item.notes.startsWith('[')) {
+      return ''; // Legacy format had no notes
+    }
+    return item.notes; // Plain text notes
   };
   
   const imageGallery = getImageGallery();
@@ -191,12 +217,20 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
         const newGallery = [...imageGallery];
         newGallery[index] = imageUrl;
         
-        // Store gallery in notes field as JSON
+        // Get current user notes (without gallery data)
+        const currentUserNotes = getUserNotes();
+        
+        // Encode gallery and notes in new format: __IMG__:[...]__NOTES__:notes
+        const galleryJson = JSON.stringify(newGallery.filter(img => img));
+        const encodedNotes = `__IMG__:${galleryJson}__NOTES__:${currentUserNotes}`;
+        
         const updatedItem = {
           ...item,
           imageUrl: newGallery[0] || '',
-          notes: JSON.stringify(newGallery.filter(img => img))
+          notes: encodedNotes
         };
+        
+        console.log('📸 Updated image gallery, preserving user notes:', currentUserNotes ? 'Yes' : 'None');
         
         if (onUpdate) {
           onUpdate(updatedItem);
@@ -278,42 +312,54 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
             maxWidth: '200px',
           }}
         >
-          {/* Header - Name, Energy Type (left), and HP (right) */}
-          <div className="px-2.5 py-1 pb-0">
-            <div className="flex justify-between items-start">
-              {/* Left: Energy Type Symbol */}
-              <div className="flex items-center gap-1">
-                <span className="text-lg leading-none">{energyType.symbol}</span>
+          {/* Header - Energy Type Name (left), Category, and HP (right) */}
+          <div className="px-2.5 pt-1 pb-0">
+            <div className="flex justify-between items-center">
+              {/* Left: Energy Type Name with Symbol */}
+              <div className="flex items-center gap-0.5">
+                <span className="text-sm leading-none">{energyType.symbol}</span>
+                <span className="text-[9px] font-bold" style={{ color: energyType.borderColor }}>{energyType.name}</span>
               </div>
               
               {/* Right: HP */}
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <span className="text-xs text-gray-300 font-bold">HP</span>
-                <span className={`font-bold text-lg leading-none ${isEliminated() ? 'text-gray-500' : 'text-red-500'}`}>
+              <div className="flex items-center gap-0.5 flex-shrink-0">
+                <span className="text-[9px] font-bold text-gray-400">HP</span>
+                <span className={`font-bold text-base leading-none ${isEliminated() ? 'text-gray-500' : 'text-red-400'}`}>
                   {isEliminated() ? "0" : getHP()}
                 </span>
               </div>
             </div>
-            
-            {/* Item Name - below energy and HP */}
-            <h3 className="text-white font-bold text-sm leading-tight mt-0.5 pr-8" style={{
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}>
-              {item.name}
-            </h3>
+
+            {/* Category Tag & Item Name - same line */}
+            <div className="flex items-center gap-1.5 mt-0.5">
+              {item.tags.length > 0 && (
+                <span className="text-[7px] font-semibold px-1 py-0.5 rounded flex-shrink-0" style={{ 
+                  backgroundColor: `${energyType.borderColor}20`,
+                  color: energyType.borderColor 
+                }}>
+                  {item.tags[0]}
+                </span>
+              )}
+              
+              <h3 className="text-white font-bold text-[10px] leading-tight flex-1" style={{
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}>
+                {item.name}
+              </h3>
+            </div>
             
             {isEliminated() && (
-              <div className="text-[7px] text-red-600 font-bold text-center bg-red-900 rounded px-1 mt-0.5">
+              <div className="text-[6px] text-red-400 font-bold text-center bg-red-950 rounded px-1 mt-0.5">
                 ELIMINATED - RELIST NOW
               </div>
             )}
           </div>
 
           {/* Main Image */}
-          <div className="px-2.5">
-            <div className="relative h-28 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg overflow-hidden cursor-pointer touch-manipulation active:scale-95 transition-transform"
+          <div className="px-2.5 pt-0.5">
+            <div className="relative h-32 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg overflow-hidden cursor-pointer touch-manipulation active:scale-95 transition-transform"
               style={{ border: `2px solid ${energyType.borderColor}` }}
               onClick={(e) => {
                 e.stopPropagation();
@@ -384,7 +430,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
           </div>
 
           {/* Attacks */}
-          <div className="px-2.5 py-1 space-y-1">
+          <div className="px-2.5 pt-1.5 pb-1.5 space-y-1.5">
             {/* Attack 1 - Hanger ID & Size */}
             <div className="flex items-start gap-1.5 pb-1">
               <span className="text-[10px] flex-shrink-0 pt-0.5">{energyType.symbol}</span>
@@ -421,24 +467,24 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
             </div>
           </div>
 
-          {/* Warning Icons - Top Right Corner */}
+          {/* Warning Icons - Bottom Left Corner */}
           {(hasRedWarnings || hasYellowWarnings) && (
-            <div className="absolute top-1 right-1 z-10 flex gap-0.5" title={warnings.map(w => w.message).join(', ')}>
+            <div className="absolute bottom-2 left-2 z-10 flex gap-0.5" title={warnings.map(w => w.message).join(', ')}>
               {hasRedWarnings && (
-                <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center shadow-md border-2 border-white">
+                <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-gray-900">
                   <span className="text-white text-[10px] font-bold">!</span>
                 </div>
               )}
               {hasYellowWarnings && !hasRedWarnings && (
-                <div className="w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center shadow-md border-2 border-white">
-                  <span className="text-black text-[10px] font-bold">⚠</span>
+                <div className="w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg border-2 border-gray-900">
+                  <span className="text-gray-900 text-[10px] font-bold">⚠</span>
                 </div>
               )}
             </div>
           )}
 
           {/* Barcode Section - Clickable to open Vendoo link */}
-          <div className="px-2.5 py-1">
+          <div className="px-2.5 py-1.5">
             {item.barcode ? (
               <div className="flex items-center justify-between text-[10px] font-mono text-gray-300">
                 {item.vendooUrl ? (
