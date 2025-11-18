@@ -23,6 +23,8 @@ export const BarcodeScanModal: React.FC<BarcodeScanModalProps> = ({
   const [foundItem, setFoundItem] = useState<Item | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string>('');
+  const [manualInput, setManualInput] = useState('');
+  const [useManualMode, setUseManualMode] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const codeReaderRef = useRef<BrowserMultiFormatReader | null>(null);
 
@@ -143,7 +145,36 @@ export const BarcodeScanModal: React.FC<BarcodeScanModalProps> = ({
     setFoundItem(null);
     setScannedBarcode('');
     setError('');
-    startScanning();
+    setManualInput('');
+    if (!useManualMode) {
+      startScanning();
+    }
+  };
+
+  const handleManualSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (manualInput.trim()) {
+      handleBarcodeScanned(manualInput.trim());
+    }
+  };
+
+  const toggleMode = () => {
+    setUseManualMode(!useManualMode);
+    setFoundItem(null);
+    setScannedBarcode('');
+    setError('');
+    setManualInput('');
+    
+    if (useManualMode) {
+      // Switching back to camera mode
+      startScanning();
+    } else {
+      // Switching to manual mode, stop camera
+      if (codeReaderRef.current) {
+        codeReaderRef.current.reset();
+      }
+      setIsScanning(false);
+    }
   };
 
   if (!open) return null;
@@ -160,13 +191,52 @@ export const BarcodeScanModal: React.FC<BarcodeScanModalProps> = ({
         </button>
 
         {/* Header */}
-        <h2 className="mb-6 text-2xl font-bold text-white flex items-center gap-2">
+        <h2 className="mb-4 text-2xl font-bold text-white flex items-center gap-2">
           <Camera className="h-6 w-6" />
           Scan Barcode
         </h2>
 
+        {/* Mode Toggle */}
+        <div className="mb-6 flex justify-center">
+          <button
+            onClick={toggleMode}
+            className="text-sm text-blue-400 hover:text-blue-300 underline"
+          >
+            {useManualMode ? 'Switch to Camera' : 'Enter Barcode Manually'}
+          </button>
+        </div>
+
+        {/* Manual Input Mode */}
+        {useManualMode && !foundItem && (
+          <form onSubmit={handleManualSubmit} className="mb-6">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Enter Barcode or Item ID
+                </label>
+                <input
+                  type="text"
+                  value={manualInput}
+                  onChange={(e) => setManualInput(e.target.value)}
+                  placeholder="Type barcode or item ID..."
+                  className="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-3 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  autoFocus
+                />
+              </div>
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full"
+                disabled={!manualInput.trim()}
+              >
+                Search
+              </Button>
+            </div>
+          </form>
+        )}
+
         {/* Camera View */}
-        {isScanning && !foundItem && (
+        {isScanning && !foundItem && !useManualMode && (
           <div className="mb-6">
             <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black">
               <video
