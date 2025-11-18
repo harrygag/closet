@@ -26,6 +26,7 @@ interface ClosetHangerProps {
   onClick: (item: Item) => void;
   onImageUpload?: (itemId: string, imageUrl: string) => void;
   onUpdate?: (item: Item) => void;
+  onPrintLabel?: (item: Item) => void;
   isDragging?: boolean;
   position?: number;
 }
@@ -34,6 +35,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
   item,
   onImageUpload,
   onUpdate,
+  onPrintLabel,
   isDragging = false,
 }) => {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -433,8 +435,46 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
             </div>
           )}
 
+          {/* Barcode Section */}
+          <div className="px-2.5 py-1">
+            {item.barcode ? (
+              <div className="flex items-center justify-between text-[10px] font-mono text-gray-700">
+                <span className="truncate">{item.barcode}</span>
+                <div className="flex gap-1">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (item.barcode && navigator.clipboard) {
+                        navigator.clipboard.writeText(item.barcode);
+                        toast.success('Barcode copied');
+                      }
+                    }}
+                    className="rounded bg-gray-200 px-1 text-[9px] font-semibold text-gray-800 hover:bg-gray-300"
+                  >
+                    Copy
+                  </button>
+                  {onPrintLabel && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onPrintLabel(item);
+                      }}
+                      className="rounded bg-purple-200 px-1 text-[9px] font-semibold text-purple-900 hover:bg-purple-300"
+                    >
+                      Print
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <p className="text-[10px] font-semibold text-red-500">Needs barcode</p>
+            )}
+          </div>
+
           {/* Footer - Marketplaces */}
-          <div className="px-2.5 py-1.5 border-t-2 border-gray-400">
+          <div className="px-2.5 py-1.5">
             <div className="flex items-center justify-between">
               <span className="text-[9px] font-bold text-gray-700">MARKETPLACES</span>
               <div className="flex gap-1.5">

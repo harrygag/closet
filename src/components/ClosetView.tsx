@@ -29,6 +29,7 @@ interface ClosetViewProps {
   onImageUpload?: (itemId: string, imageUrl: string) => void;
   onUpdate?: (item: Item) => void;
   onAddItem?: () => void;
+  onRequestPrint?: (item: Item) => void;
 }
 
 interface SortableHangerProps {
@@ -36,10 +37,11 @@ interface SortableHangerProps {
   onItemClick: (item: Item) => void;
   onImageUpload?: (itemId: string, imageUrl: string) => void;
   onUpdate?: (item: Item) => void;
+  onPrintLabel?: (item: Item) => void;
   position?: number;
 }
 
-const SortableHanger: React.FC<SortableHangerProps> = memo(({ item, onItemClick, onImageUpload, onUpdate, position }) => {
+const SortableHanger: React.FC<SortableHangerProps> = memo(({ item, onItemClick, onImageUpload, onUpdate, onPrintLabel, position }) => {
   const {
     attributes,
     listeners,
@@ -61,6 +63,7 @@ const SortableHanger: React.FC<SortableHangerProps> = memo(({ item, onItemClick,
         onClick={onItemClick}
         onImageUpload={onImageUpload}
         onUpdate={onUpdate}
+        onPrintLabel={onPrintLabel}
         isDragging={isDragging}
         position={position}
       />
@@ -80,7 +83,7 @@ const RACKS: { number: number; category: ItemTag; label: string }[] = [
   { number: 6, category: 'Bottoms', label: 'Bottoms' },
 ];
 
-export const ClosetView: React.FC<ClosetViewProps> = ({ items, onItemClick, onImageUpload, onUpdate, onAddItem }) => {
+export const ClosetView: React.FC<ClosetViewProps> = ({ items, onItemClick, onImageUpload, onUpdate, onAddItem, onRequestPrint }) => {
   const [isLoading] = useState(false);
   const [sortedItems, setSortedItems] = useState(() => {
     return [...items].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
@@ -193,13 +196,6 @@ export const ClosetView: React.FC<ClosetViewProps> = ({ items, onItemClick, onIm
 
     return (
       <div key={rack.number} id={`gym-${rack.number}`} className="mb-8 sm:mb-12 bg-gray-800 rounded-2xl p-6 border border-gray-700 shadow-2xl">
-        {/* Pokemon Gym Badge */}
-        <div className="bg-gray-700 h-4 rounded-full mb-6 shadow-inner relative">
-          <div className="absolute -top-2 left-0 right-0 h-8 bg-gray-600 rounded-full shadow-lg flex items-center justify-center border border-gray-500">
-            <span className="text-lg font-bold text-white">GYM BADGE</span>
-          </div>
-        </div>
-        
         {/* Gym Header with Add Button - Black Theme */}
         <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-4 sm:gap-6">
@@ -293,6 +289,7 @@ export const ClosetView: React.FC<ClosetViewProps> = ({ items, onItemClick, onIm
                            onItemClick={onItemClick}
                            onImageUpload={onImageUpload}
                            onUpdate={onUpdate}
+                           onPrintLabel={onRequestPrint}
                            position={index + 1}
                          />
                        </motion.div>

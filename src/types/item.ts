@@ -31,6 +31,7 @@ export interface Item {
   notes: string;
   dateAdded: string;
   position?: number; // For drag-and-drop ordering
+  barcode?: string; // Barcode for printing labels
 }
 
 export interface ItemFormData {
