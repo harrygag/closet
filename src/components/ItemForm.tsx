@@ -3,7 +3,6 @@ import type { Item, ItemTag, ItemStatus } from '../types/item';
 import { Modal } from './ui/Modal';
 import { Input, TextArea, Select } from './ui/Input';
 import { Button } from './ui/Button';
-import { calculateMarketplaceFees } from '../utils/marketplace-fees';
 import { searchComps, getCompStats, type ClothingComp } from '../services/comps';
 import { TrendingUp, ExternalLink, Loader2 } from 'lucide-react';
 
@@ -31,12 +30,7 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
     hangerId: '',
     tags: [] as ItemTag[],
     imageUrl: '',
-    ebayUrl: '',
-    ebayPrice: 0,
-    mercariUrl: '',
-    mercariPrice: 0,
-    poshmarkUrl: '',
-    poshmarkPrice: 0,
+    vendooUrl: '',
     costPrice: 0,
     sellingPrice: 0,
     ebayFees: 0,
@@ -45,16 +39,10 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
     notes: '',
   });
 
+  const [vendooUrlError, setVendooUrlError] = useState('');
+
   useEffect(() => {
     if (editItem) {
-      // Extract marketplace URLs from the marketplaceUrls array
-      const mercariData = editItem.marketplaceUrls?.find(m => m.type === 'mercari');
-      const poshmarkData = editItem.marketplaceUrls?.find(m => m.type === 'poshmark');
-      const mercariUrl = mercariData?.url || '';
-      const mercariPrice = mercariData?.price || 0;
-      const poshmarkUrl = poshmarkData?.url || '';
-      const poshmarkPrice = poshmarkData?.price || 0;
-      
       setFormData({
         name: editItem.name,
         size: editItem.size,
@@ -63,12 +51,7 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
         hangerId: editItem.hangerId,
         tags: editItem.tags,
         imageUrl: editItem.imageUrl || '',
-        ebayUrl: editItem.ebayUrl,
-        ebayPrice: editItem.sellingPrice, // Use sellingPrice as eBay price
-        mercariUrl,
-        mercariPrice,
-        poshmarkUrl,
-        poshmarkPrice,
+        vendooUrl: editItem.vendooUrl || '',
         costPrice: editItem.costPrice,
         sellingPrice: editItem.sellingPrice,
         ebayFees: editItem.ebayFees,
@@ -90,12 +73,7 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
         hangerId: hangerIdFromStorage || '',
         tags: categoryFromStorage ? [categoryFromStorage as ItemTag] : [],
         imageUrl: '',
-        ebayUrl: '',
-        ebayPrice: 0,
-        mercariUrl: '',
-        mercariPrice: 0,
-        poshmarkUrl: '',
-        poshmarkPrice: 0,
+        vendooUrl: '',
         costPrice: 0,
         sellingPrice: 0,
         ebayFees: 0,
@@ -108,49 +86,48 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
       sessionStorage.removeItem('newItemCategory');
       sessionStorage.removeItem('newItemHangerId');
     }
+    setVendooUrlError('');
   }, [editItem, open]);
+
+  // Validate Vendoo URL
+  const validateVendooUrl = (url: string): boolean => {
+    if (!url || url.trim() === '') return true; // Empty is okay
+    const vendooPattern = /^https:\/\/web\.vendoo\.co\/app\/item\/[a-zA-Z0-9]+$/;
+    return vendooPattern.test(url);
+  };
+
+  const handleVendooUrlChange = (url: string) => {
+    setFormData({ ...formData, vendooUrl: url });
+    if (url && !validateVendooUrl(url)) {
+      setVendooUrlError('Invalid Vendoo URL. Must be: https://web.vendoo.co/app/item/{item_id}');
+    } else {
+      setVendooUrlError('');
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Build marketplaceUrls array from individual URL and PRICE fields
-    const marketplaceUrls = [];
-    
-    // Add Mercari if URL exists
-    if (formData.mercariUrl && formData.mercariUrl.trim()) {
-      marketplaceUrls.push({
-        type: 'mercari' as const,
-        url: formData.mercariUrl.trim(),
-        price: Number(formData.mercariPrice) || 0
-      });
+    // Validate Vendoo URL before submitting
+    if (formData.vendooUrl && !validateVendooUrl(formData.vendooUrl)) {
+      setVendooUrlError('Invalid Vendoo URL. Must be: https://web.vendoo.co/app/item/{item_id}');
+      return;
     }
-    
-    // Add Poshmark if URL exists
-    if (formData.poshmarkUrl && formData.poshmarkUrl.trim()) {
-      marketplaceUrls.push({
-        type: 'poshmark' as const,
-        url: formData.poshmarkUrl.trim(),
-        price: Number(formData.poshmarkPrice) || 0
-      });
-    }
-    
-    console.log('Form Submit - Built marketplace URLs:', marketplaceUrls);
     
     const itemData = {
       ...formData,
-      marketplaceUrls,
-      sellingPrice: Number(formData.ebayPrice) || Number(formData.sellingPrice) || 0
+      ebayUrl: '', // Keep ebayUrl for backwards compatibility
+      sellingPrice: Number(formData.sellingPrice) || 0,
+      vendooUrl: formData.vendooUrl.trim() || undefined,
+      marketplaceUrls: [] // Empty array for backwards compatibility
     };
     
-    // Remove the temporary URL and price fields
-    const { mercariUrl, mercariPrice, poshmarkUrl, poshmarkPrice, ebayPrice, ...finalData } = itemData;
-    
-    console.log('Final data being saved:', finalData);
+    console.log('Final data being saved:', itemData);
     
     if (editItem) {
-      onSubmit({ ...editItem, ...finalData });
+      onSubmit({ ...editItem, ...itemData });
     } else {
-      onSubmit(finalData);
+      onSubmit(itemData);
     }
     
     onOpenChange(false);
@@ -372,91 +349,21 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
 
         {showAdvanced && (
           <div className="space-y-3 rounded-lg border border-gray-700 bg-gray-900/50 p-3">
-            {/* Marketplace URLs with Fee Calculations */}
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  label="eBay URL"
-                  type="url"
-                  value={formData.ebayUrl}
-                  onChange={(e) => setFormData({ ...formData, ebayUrl: e.target.value })}
-                  placeholder="https://ebay.com/..."
-                />
-                <div>
-                  <Input
-                    label="List Price"
-                    type="number"
-                    step="0.01"
-                    value={formData.ebayPrice || ''}
-                    onChange={(e) => setFormData({ ...formData, ebayPrice: parseFloat(e.target.value) || 0 })}
-                    placeholder="0.00"
-                  />
-                  {formData.ebayPrice > 0 && (
-                    <div className="mt-1 text-xs text-gray-400">
-                      {(() => {
-                        const calc = calculateMarketplaceFees('ebay', formData.ebayPrice);
-                        return `Net: $${calc.netProfit} (${calc.breakdown})`;
-                      })()}
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  label="Mercari URL"
-                  type="url"
-                  value={formData.mercariUrl}
-                  onChange={(e) => setFormData({ ...formData, mercariUrl: e.target.value })}
-                  placeholder="https://mercari.com/..."
-                />
-                <div>
-                  <Input
-                    label="List Price"
-                    type="number"
-                    step="0.01"
-                    value={formData.mercariPrice || ''}
-                    onChange={(e) => setFormData({ ...formData, mercariPrice: parseFloat(e.target.value) || 0 })}
-                    placeholder="0.00"
-                  />
-                  {formData.mercariPrice > 0 && (
-                    <div className="mt-1 text-xs text-gray-400">
-                      {(() => {
-                        const calc = calculateMarketplaceFees('mercari', formData.mercariPrice);
-                        return `Net: $${calc.netProfit} (${calc.breakdown})`;
-                      })()}
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  label="Poshmark URL"
-                  type="url"
-                  value={formData.poshmarkUrl}
-                  onChange={(e) => setFormData({ ...formData, poshmarkUrl: e.target.value })}
-                  placeholder="https://poshmark.com/..."
-                />
-                <div>
-                  <Input
-                    label="List Price"
-                    type="number"
-                    step="0.01"
-                    value={formData.poshmarkPrice || ''}
-                    onChange={(e) => setFormData({ ...formData, poshmarkPrice: parseFloat(e.target.value) || 0 })}
-                    placeholder="0.00"
-                  />
-                  {formData.poshmarkPrice > 0 && (
-                    <div className="mt-1 text-xs text-gray-400">
-                      {(() => {
-                        const calc = calculateMarketplaceFees('poshmark', formData.poshmarkPrice);
-                        return `Net: $${calc.netProfit} (${calc.breakdown})`;
-                      })()}
-                    </div>
-                  )}
-                </div>
-              </div>
+            {/* Vendoo URL */}
+            <div>
+              <Input
+                label="Vendoo URL"
+                type="url"
+                value={formData.vendooUrl}
+                onChange={(e) => handleVendooUrlChange(e.target.value)}
+                placeholder="https://web.vendoo.co/app/item/..."
+              />
+              {vendooUrlError && (
+                <p className="mt-1 text-xs text-red-400">{vendooUrlError}</p>
+              )}
+              <p className="mt-1 text-xs text-gray-500">
+                Format: https://web.vendoo.co/app/item/[item_id]
+              </p>
             </div>
 
             {/* Financial Details */}

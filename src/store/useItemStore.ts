@@ -44,27 +44,36 @@ const defaultSortOption: SortOption = {
 };
 
 // Helper to transform database row (Item) to Item
-const transformDbItem = (dbItem: any): Item => ({
-  id: dbItem.id,
-  name: dbItem.title || '',
-  size: dbItem.size || '',
-  status: dbItem.status === 'SOLD' ? 'SOLD' : dbItem.status === 'IN_STOCK' ? 'Active' : 'Inactive',
-  hangerStatus: '',
-  hangerId: '',
-  tags: (dbItem.normalizedTags || []).slice(0, 5),
-  ebayUrl: dbItem.imageUrls?.[0] || '',
-  imageUrl: dbItem.imageUrls?.[0] || undefined,
-  costPrice: dbItem.purchasePriceCents ? dbItem.purchasePriceCents / 100 : 0,
-  sellingPrice: dbItem.manualPriceCents ? dbItem.manualPriceCents / 100 : 0,
-  ebayFees: 0,
-  netProfit: dbItem.soldPriceCents && dbItem.purchasePriceCents 
-    ? (dbItem.soldPriceCents - dbItem.purchasePriceCents) / 100 
-    : 0,
-  dateField: dbItem.soldDate || dbItem.purchaseDate || dbItem.createdAt,
-  notes: dbItem.notes || dbItem.conditionNotes || '',
-  dateAdded: dbItem.createdAt,
-  barcode: dbItem.barcode || undefined, // Include barcode from database
-});
+const transformDbItem = (dbItem: any): Item => {
+  // Extract hangerId from notes if present (format: "Hanger: H123. Other notes")
+  const notesStr = dbItem.notes || '';
+  const hangerMatch = notesStr.match(/Hanger:\s*([^\.\s]+)/);
+  const hangerId = hangerMatch ? hangerMatch[1] : '';
+  const cleanedNotes = notesStr.replace(/Hanger:\s*[^\.\s]+\.\s*/, '').trim();
+  
+  return {
+    id: dbItem.id,
+    name: dbItem.title || '',
+    size: dbItem.size || '',
+    status: dbItem.status === 'SOLD' ? 'SOLD' : dbItem.status === 'IN_STOCK' ? 'Active' : 'Inactive',
+    hangerStatus: hangerId !== 'None' && hangerId ? 'assigned' : '',
+    hangerId: hangerId !== 'None' ? hangerId : '',
+    tags: (dbItem.normalizedTags || []).slice(0, 5),
+    ebayUrl: dbItem.imageUrls?.[0] || '',
+    imageUrl: dbItem.imageUrls?.[0] || undefined,
+    costPrice: dbItem.purchasePriceCents ? dbItem.purchasePriceCents / 100 : 0,
+    sellingPrice: dbItem.manualPriceCents ? dbItem.manualPriceCents / 100 : 0,
+    ebayFees: 0,
+    netProfit: dbItem.soldPriceCents && dbItem.purchasePriceCents 
+      ? (dbItem.soldPriceCents - dbItem.purchasePriceCents) / 100 
+      : 0,
+    dateField: dbItem.soldDate || dbItem.purchaseDate || dbItem.createdAt,
+    notes: cleanedNotes || dbItem.conditionNotes || '',
+    dateAdded: dbItem.createdAt,
+    barcode: dbItem.barcode || undefined,
+    vendooUrl: dbItem.vendooUrl || undefined,
+  };
+};
 
 // Helper to transform Item to database format (Item schema)
 const transformItemToDb = (item: Partial<Item>, userId: string) => ({
@@ -86,7 +95,8 @@ const transformItemToDb = (item: Partial<Item>, userId: string) => ({
   conditionNotes: item.notes,
   brand: 'Unknown',
   category: 'Clothing',
-  barcode: item.barcode || null, // Include barcode
+  barcode: item.barcode || null,
+  vendooUrl: item.vendooUrl || null,
 });
 
 export const useItemStore = create<ItemState>()(
@@ -245,17 +255,24 @@ export const useItemStore = create<ItemState>()(
 
         const dbItem = transformItemToDb(item, user.id);
         
-        const { error: updateError } = await (supabase as any)
+        // Security: Add explicit user_uuid check (defense-in-depth)
+        const { data: updatedItem, error: updateError } = await (supabase as any)
           .from('Item')
           .update(dbItem as any)
-          .eq('id', item.id);
+          .eq('id', item.id)
+          .eq('user_uuid', user.id)
+          .select()
+          .single();
 
         if (updateError) throw updateError;
+        
+        // CRITICAL: Use the returned data from DB to ensure consistency
+        const refreshedItem = transformDbItem(updatedItem);
         
         set((state) => {
           const index = state.items.findIndex((i) => i.id === item.id);
           if (index !== -1) {
-            state.items[index] = item;
+            state.items[index] = refreshedItem;
           }
         });
         
@@ -272,10 +289,15 @@ export const useItemStore = create<ItemState>()(
       set({ isLoading: true, error: null });
       
       try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
+
+        // Security: Add explicit user_uuid check (defense-in-depth)
         const { error: deleteError } = await (supabase as any)
           .from('Item')
           .delete()
-          .eq('id', id);
+          .eq('id', id)
+          .eq('user_uuid', user.id);
 
         if (deleteError) throw deleteError;
         

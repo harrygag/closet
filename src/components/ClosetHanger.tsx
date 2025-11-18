@@ -4,14 +4,14 @@ import type { Item, ItemTag } from '../types/item';
 import { clsx } from 'clsx';
 import { Save, X, Image as ImageIcon } from 'lucide-react';
 
-// Pokemon energy types for each category
-const ENERGY_TYPES: Record<ItemTag, { symbol: string; color: string; name: string }> = {
-  'Hoodie': { symbol: '🔮', color: 'text-purple-500', name: 'Psychic' },
-  'Jersey': { symbol: '🌿', color: 'text-green-500', name: 'Grass' },
-  'polo': { symbol: '⭐', color: 'text-gray-500', name: 'Normal' },
-  'Pullover/Jackets': { symbol: '🔥', color: 'text-red-500', name: 'Fire' },
-  'T-shirts': { symbol: '💧', color: 'text-blue-500', name: 'Water' },
-  'Bottoms': { symbol: '🌙', color: 'text-indigo-600', name: 'Dark' },
+// Pokemon energy types for each category with border colors
+const ENERGY_TYPES: Record<ItemTag, { symbol: string; color: string; borderColor: string; name: string }> = {
+  'Hoodie': { symbol: '👻', color: 'text-purple-500', borderColor: '#A040A0', name: 'Psychic' },
+  'Jersey': { symbol: '🌿', color: 'text-green-500', borderColor: '#78C850', name: 'Grass' },
+  'polo': { symbol: '⚙️', color: 'text-gray-400', borderColor: '#B8B8D0', name: 'Steel' },
+  'Pullover/Jackets': { symbol: '🔥', color: 'text-red-500', borderColor: '#F08030', name: 'Fire' },
+  'T-shirts': { symbol: '💧', color: 'text-blue-500', borderColor: '#6890F0', name: 'Water' },
+  'Bottoms': { symbol: '👊', color: 'text-orange-700', borderColor: '#C03028', name: 'Fighting' },
 };
 
 // Toast notification helper
@@ -47,7 +47,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
   // Get energy type based on primary tag
   const energyType = item.tags.length > 0 
     ? ENERGY_TYPES[item.tags[0]] 
-    : { symbol: '⭐', color: 'text-purple-500', name: 'Normal' };
+    : { symbol: '⭐', color: 'text-gray-400', borderColor: '#CCCCCC', name: 'Normal' };
   
   // Image gallery - support up to 5 images stored as JSON in notes field
   const getImageGallery = (): string[] => {
@@ -267,12 +267,13 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
       >
         {/* FRONT SIDE - Pokemon Card */}
         <div
-          className="relative rounded-xl overflow-hidden shadow-xl border-[8px] border-yellow-400"
+          className="relative rounded-xl overflow-hidden shadow-xl"
           onDoubleClick={handleDoubleClick}
           style={{
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden',
-            background: '#FFFACD',
+            background: '#1a1a1a',
+            border: `8px solid ${energyType.borderColor}`,
             width: 'min(200px, 90vw)', // Mobile-optimized: scales down to 90% viewport width on small screens
             maxWidth: '200px',
           }}
@@ -287,15 +288,15 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
               
               {/* Right: HP */}
               <div className="flex items-center gap-1 flex-shrink-0">
-                <span className="text-xs text-gray-700 font-bold">HP</span>
-                <span className={`font-bold text-lg leading-none ${isEliminated() ? 'text-gray-500' : 'text-red-600'}`}>
+                <span className="text-xs text-gray-300 font-bold">HP</span>
+                <span className={`font-bold text-lg leading-none ${isEliminated() ? 'text-gray-500' : 'text-red-500'}`}>
                   {isEliminated() ? "0" : getHP()}
                 </span>
               </div>
             </div>
             
             {/* Item Name - below energy and HP */}
-            <h3 className="text-gray-900 font-bold text-sm leading-tight mt-0.5" style={{
+            <h3 className="text-white font-bold text-sm leading-tight mt-0.5 pr-8" style={{
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
@@ -304,7 +305,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
             </h3>
             
             {isEliminated() && (
-              <div className="text-[7px] text-red-600 font-bold text-center bg-red-100 rounded px-1 mt-0.5">
+              <div className="text-[7px] text-red-600 font-bold text-center bg-red-900 rounded px-1 mt-0.5">
                 ELIMINATED - RELIST NOW
               </div>
             )}
@@ -312,7 +313,8 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
 
           {/* Main Image */}
           <div className="px-2.5">
-            <div className="relative h-28 bg-gradient-to-br from-white to-gray-100 rounded border border-gray-300 overflow-hidden cursor-pointer touch-manipulation active:scale-95 transition-transform"
+            <div className="relative h-28 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg overflow-hidden cursor-pointer touch-manipulation active:scale-95 transition-transform"
+              style={{ border: `2px solid ${energyType.borderColor}` }}
               onClick={(e) => {
                 e.stopPropagation();
                 document.getElementById(`main-file-input-${item.id}`)?.click();
@@ -327,8 +329,8 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                 />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center">
-                  <ImageIcon className="w-8 h-8 text-gray-400 mb-1" />
-                  <span className="text-[9px] text-gray-500 font-medium">Tap to add</span>
+                  <ImageIcon className="w-8 h-8 text-gray-500 mb-1" />
+                  <span className="text-[9px] text-gray-400 font-medium">Tap to add</span>
                 </div>
               )}
               <input
@@ -363,8 +365,8 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                   {imageGallery[idx] ? (
                     <img src={imageGallery[idx]} alt="" className="w-full h-full object-cover" loading="lazy" />
                   ) : (
-                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                      <ImageIcon className="w-3 h-3 text-gray-400" />
+                    <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                      <ImageIcon className="w-3 h-3 text-gray-600" />
                     </div>
                   )}
                   <input
@@ -389,10 +391,10 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-start">
                   <div className="min-w-0">
-                    <div className="text-gray-900 font-bold text-[9px]">Hanger ID</div>
-                    <div className="text-gray-600 text-[7px] mt-0.5">Size: {item.size || 'N/A'}</div>
+                    <div className="text-gray-200 font-bold text-[9px]">Hanger ID</div>
+                    <div className="text-gray-400 text-[7px] mt-0.5">Size: {item.size || 'N/A'}</div>
                   </div>
-                  <div className="text-purple-600 font-bold text-sm leading-none flex-shrink-0 ml-1.5">
+                  <div className="text-purple-400 font-bold text-sm leading-none flex-shrink-0 ml-1.5">
                     {item.hangerId || '-'}
                   </div>
                 </div>
@@ -408,10 +410,10 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-start">
                   <div className="min-w-0">
-                    <div className="text-gray-900 font-bold text-[9px]">Sale Price</div>
-                    <div className="text-gray-600 text-[7px] mt-0.5">Listed {formatDays(daysListed)}</div>
+                    <div className="text-gray-200 font-bold text-[9px]">Sale Price</div>
+                    <div className="text-gray-400 text-[7px] mt-0.5">Listed {formatDays(daysListed)}</div>
                   </div>
-                  <div className="text-red-600 font-bold text-sm leading-none flex-shrink-0 ml-1.5">
+                  <div className="text-green-400 font-bold text-sm leading-none flex-shrink-0 ml-1.5">
                     {formatCurrency(item.sellingPrice || 0)}
                   </div>
                 </div>
@@ -438,7 +440,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
           {/* Barcode Section - Clickable to open Vendoo link */}
           <div className="px-2.5 py-1">
             {item.barcode ? (
-              <div className="flex items-center justify-between text-[10px] font-mono text-gray-700">
+              <div className="flex items-center justify-between text-[10px] font-mono text-gray-300">
                 {item.vendooUrl ? (
                   <button
                     type="button"
@@ -448,7 +450,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                         window.open(item.vendooUrl, '_blank');
                       }
                     }}
-                    className="truncate text-blue-600 hover:text-blue-800 underline cursor-pointer"
+                    className="truncate text-blue-400 hover:text-blue-300 underline cursor-pointer"
                     title="Click to open Vendoo listing"
                   >
                     {item.barcode}
@@ -466,7 +468,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                         toast.success('Barcode copied');
                       }
                     }}
-                    className="rounded bg-gray-200 px-1 text-[9px] font-semibold text-gray-800 hover:bg-gray-300"
+                    className="rounded bg-gray-700 px-1 text-[9px] font-semibold text-gray-200 hover:bg-gray-600"
                   >
                     Copy
                   </button>
@@ -477,7 +479,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                         e.stopPropagation();
                         onPrintLabel(item);
                       }}
-                      className="rounded bg-purple-200 px-1 text-[9px] font-semibold text-purple-900 hover:bg-purple-300"
+                      className="rounded bg-purple-700 px-1 text-[9px] font-semibold text-purple-100 hover:bg-purple-600"
                     >
                       Print
                     </button>
@@ -485,7 +487,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                 </div>
               </div>
             ) : (
-              <p className="text-[10px] font-semibold text-red-500">Needs barcode</p>
+              <p className="text-[10px] font-semibold text-red-400">Needs barcode</p>
             )}
           </div>
 
@@ -623,65 +625,21 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                   />
                 </div>
 
-                {/* Marketplace URLs */}
+                {/* Vendoo URL */}
                 <div className="space-y-1">
-                  <p className="text-xs text-gray-400 font-semibold">MARKETPLACES</p>
+                  <p className="text-xs text-gray-400 font-semibold">VENDOO URL</p>
                   <input
                     type="url"
-                    value={editData.ebayUrl || ''}
-                    onChange={(e) => setEditData({ ...editData, ebayUrl: e.target.value })}
+                    value={editData.vendooUrl || ''}
+                    onChange={(e) => setEditData({ ...editData, vendooUrl: e.target.value })}
                     onClick={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
                     onDoubleClick={(e) => e.stopPropagation()}
                     onFocus={(e) => e.stopPropagation()}
                     onKeyDown={(e) => e.stopPropagation()}
                     onKeyUp={(e) => e.stopPropagation()}
-                    className="w-full rounded bg-gray-700 px-2 py-1 text-[10px] text-white border border-gray-600 focus:border-blue-500 focus:outline-none"
-                    placeholder="eBay URL"
-                  />
-                  <input
-                    type="url"
-                    value={editData.marketplaceUrls?.find(m => m.type === 'poshmark')?.url || ''}
-                    onChange={(e) => {
-                      const urls = editData.marketplaceUrls || [];
-                      const poshIndex = urls.findIndex(m => m.type === 'poshmark');
-                      if (poshIndex >= 0) {
-                        urls[poshIndex] = { ...urls[poshIndex], url: e.target.value };
-                      } else {
-                        urls.push({ type: 'poshmark', url: e.target.value });
-                      }
-                      setEditData({ ...editData, marketplaceUrls: urls });
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onDoubleClick={(e) => e.stopPropagation()}
-                    onFocus={(e) => e.stopPropagation()}
-                    onKeyDown={(e) => e.stopPropagation()}
-                    onKeyUp={(e) => e.stopPropagation()}
-                    className="w-full rounded bg-gray-700 px-2 py-1 text-[10px] text-white border border-gray-600 focus:border-pink-500 focus:outline-none"
-                    placeholder="Poshmark URL"
-                  />
-                  <input
-                    type="url"
-                    value={editData.marketplaceUrls?.find(m => m.type === 'depop')?.url || ''}
-                    onChange={(e) => {
-                      const urls = editData.marketplaceUrls || [];
-                      const depopIndex = urls.findIndex(m => m.type === 'depop');
-                      if (depopIndex >= 0) {
-                        urls[depopIndex] = { ...urls[depopIndex], url: e.target.value };
-                      } else {
-                        urls.push({ type: 'depop', url: e.target.value });
-                      }
-                      setEditData({ ...editData, marketplaceUrls: urls });
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onDoubleClick={(e) => e.stopPropagation()}
-                    onFocus={(e) => e.stopPropagation()}
-                    onKeyDown={(e) => e.stopPropagation()}
-                    onKeyUp={(e) => e.stopPropagation()}
-                    className="w-full rounded bg-gray-700 px-2 py-1 text-[10px] text-white border border-gray-600 focus:border-red-500 focus:outline-none"
-                    placeholder="Depop URL"
+                    className="w-full rounded bg-gray-700 px-2 py-1 text-[10px] text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
+                    placeholder="https://web.vendoo.co/app/item/..."
                   />
                 </div>
 

@@ -33,10 +33,10 @@ export async function backfillBarcodes(
     // Get all items for this user that don't have a barcode
     const { data: items, error: fetchError } = await supabase
       .from('Item')
-      .select('id, title, barcode')
+      .select('id, title, barcode, createdAt')
       .eq('user_uuid', userId)
       .or('barcode.is.null,barcode.eq.')
-      .order('created_at', { ascending: true }); // Oldest first
+      .order('createdAt', { ascending: true }); // Oldest first
 
     if (fetchError) {
       console.error('❌ Failed to fetch items:', fetchError);
