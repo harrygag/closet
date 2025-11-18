@@ -435,11 +435,27 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
             </div>
           )}
 
-          {/* Barcode Section */}
+          {/* Barcode Section - Clickable to open Vendoo link */}
           <div className="px-2.5 py-1">
             {item.barcode ? (
               <div className="flex items-center justify-between text-[10px] font-mono text-gray-700">
-                <span className="truncate">{item.barcode}</span>
+                {item.vendooUrl ? (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (item.vendooUrl) {
+                        window.open(item.vendooUrl, '_blank');
+                      }
+                    }}
+                    className="truncate text-blue-600 hover:text-blue-800 underline cursor-pointer"
+                    title="Click to open Vendoo listing"
+                  >
+                    {item.barcode}
+                  </button>
+                ) : (
+                  <span className="truncate">{item.barcode}</span>
+                )}
                 <div className="flex gap-1">
                   <button
                     type="button"
@@ -473,66 +489,25 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
             )}
           </div>
 
-          {/* Footer - Marketplaces */}
-          <div className="px-2.5 py-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[9px] font-bold text-gray-700">MARKETPLACES</span>
-              <div className="flex gap-1.5">
-                {/* eBay - Blue circle */}
-                <div
-                  className={`w-6 h-6 sm:w-5 sm:h-5 rounded-full transition-all border-2 ${
-                    item.ebayUrl
-                      ? 'bg-blue-500 border-blue-600 hover:scale-110 cursor-pointer shadow-md active:scale-95'
-                      : 'bg-white border-gray-400'
-                  }`}
+          {/* Footer - Vendoo Link */}
+          {item.vendooUrl && (
+            <div className="px-2.5 py-1.5">
+              <div className="flex items-center justify-center">
+                <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (item.ebayUrl) {
-                      navigator.clipboard.writeText(item.ebayUrl);
-                      toast.success('eBay link copied');
+                    if (item.vendooUrl) {
+                      window.open(item.vendooUrl, '_blank');
                     }
                   }}
-                  title={item.ebayUrl ? 'Click to copy eBay URL' : 'Not listed on eBay'}
-                />
-
-                {/* Poshmark - Pink circle */}
-                <div
-                  className={`w-6 h-6 sm:w-5 sm:h-5 rounded-full transition-all border-2 ${
-                    item.marketplaceUrls?.some(m => m.type === 'poshmark' && m.url)
-                      ? 'bg-pink-500 border-pink-600 hover:scale-110 cursor-pointer shadow-md active:scale-95'
-                      : 'bg-white border-gray-400'
-                  }`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const url = item.marketplaceUrls?.find(m => m.type === 'poshmark' && m.url)?.url;
-                    if (url) {
-                      navigator.clipboard.writeText(url);
-                      toast.success('Poshmark link copied');
-                    }
-                  }}
-                  title={item.marketplaceUrls?.some(m => m.type === 'poshmark' && m.url) ? 'Click to copy Poshmark URL' : 'Not listed on Poshmark'}
-                />
-
-                {/* Depop - Red circle */}
-                <div
-                  className={`w-6 h-6 sm:w-5 sm:h-5 rounded-full transition-all border-2 ${
-                    item.marketplaceUrls?.some(m => m.type === 'depop' && m.url)
-                      ? 'bg-red-500 border-red-600 hover:scale-110 cursor-pointer shadow-md active:scale-95'
-                      : 'bg-white border-gray-400'
-                  }`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const url = item.marketplaceUrls?.find(m => m.type === 'depop' && m.url)?.url;
-                    if (url) {
-                      navigator.clipboard.writeText(url);
-                      toast.success('Depop link copied');
-                    }
-                  }}
-                  title={item.marketplaceUrls?.some(m => m.type === 'depop' && m.url) ? 'Click to copy Depop URL' : 'Not listed on Depop'}
-                />
+                  className="w-full rounded bg-gradient-to-r from-purple-600 to-pink-600 px-3 py-1.5 text-[10px] font-bold text-white hover:from-purple-700 hover:to-pink-700 shadow-md active:scale-95 transition-all"
+                >
+                  🛍️ Open on Vendoo
+                </button>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* BACK SIDE - Quick Edit Form */}

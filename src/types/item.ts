@@ -20,6 +20,7 @@ export interface Item {
   hangerStatus: string;
   hangerId: string;
   tags: ItemTag[];
+  vendooUrl?: string; // Vendoo marketplace link (primary)
   ebayUrl: string;
   marketplaceUrls?: MarketplaceUrl[]; // Additional marketplace links
   imageUrl?: string; // Item image from Notion or uploaded
