@@ -384,7 +384,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
           {/* Attacks */}
           <div className="px-2.5 py-1 space-y-1">
             {/* Attack 1 - Hanger ID & Size */}
-            <div className="flex items-start gap-1.5 border-b border-gray-300 pb-1">
+            <div className="flex items-start gap-1.5 pb-1">
               <span className="text-[10px] flex-shrink-0 pt-0.5">{energyType.symbol}</span>
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-start">

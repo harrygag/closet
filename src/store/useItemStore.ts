@@ -5,6 +5,7 @@ import type { Item, ItemStats, FilterOptions, SortOption } from '../types/item';
 import { supabase } from '../lib/supabase/client';
 import { INITIAL_ITEMS } from '../data/initial-items';
 import { generateBarcode } from '../services/barcodes';
+import { backfillBarcodes, countItemsNeedingBarcodes } from '../services/backfillBarcodes';
 
 interface ItemState {
   items: Item[];
@@ -27,6 +28,8 @@ interface ItemState {
   applyFilters: () => void;
   getStats: () => ItemStats;
   resetFilters: () => void;
+  backfillBarcodesForExistingItems: () => Promise<{ success: boolean; itemsUpdated: number }>;
+  countItemsNeedingBarcodes: () => Promise<number>;
 }
 
 const defaultFilterOptions: FilterOptions = {
@@ -388,6 +391,49 @@ export const useItemStore = create<ItemState>()(
         sortOption: defaultSortOption,
       });
       get().applyFilters();
+    },
+
+    backfillBarcodesForExistingItems: async () => {
+      set({ isLoading: true, error: null });
+      
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
+
+        console.log('🚀 Starting barcode backfill...');
+        const result = await backfillBarcodes(user.id, supabase);
+        
+        if (result.success) {
+          // Reload items to show new barcodes
+          await get().loadItems();
+          console.log(`✅ Backfill complete! ${result.itemsUpdated} items updated`);
+        } else {
+          console.error('⚠️ Backfill completed with errors:', result.errors);
+        }
+
+        return {
+          success: result.success,
+          itemsUpdated: result.itemsUpdated,
+        };
+      } catch (error) {
+        console.error('❌ Backfill failed:', error);
+        set({ error: error instanceof Error ? error.message : 'Failed to backfill barcodes' });
+        return { success: false, itemsUpdated: 0 };
+      } finally {
+        set({ isLoading: false });
+      }
+    },
+
+    countItemsNeedingBarcodes: async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return 0;
+
+        return await countItemsNeedingBarcodes(user.id, supabase);
+      } catch (error) {
+        console.error('Failed to count items needing barcodes:', error);
+        return 0;
+      }
     },
   }))
 );

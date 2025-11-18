@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Shirt, BarChart3, LogOut, User, Download } from 'lucide-react';
+import { Plus, Shirt, BarChart3, LogOut, User, Download, Barcode } from 'lucide-react';
 import { useItemStore } from './store/useItemStore';
 import { useAuthStore } from './store/useAuthStore';
 import { Button } from './components/ui/Button';
@@ -23,6 +23,8 @@ function App() {
     setFilterOptions,
     resetFilters,
     getStats,
+    backfillBarcodesForExistingItems,
+    countItemsNeedingBarcodes,
   } = useItemStore();
 
   const { isAuthenticated, user, signOut, initialize } = useAuthStore();
@@ -30,6 +32,8 @@ function App() {
   const [viewMode, setViewMode] = useState<ViewMode>('closet');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
+  const [itemsNeedingBarcodes, setItemsNeedingBarcodes] = useState<number>(0);
+  const [isBackfilling, setIsBackfilling] = useState(false);
 
   // Initialize auth on mount
   useEffect(() => {
@@ -40,8 +44,12 @@ function App() {
   useEffect(() => {
     if (isAuthenticated) {
       initializeStore();
+      // Check how many items need barcodes
+      countItemsNeedingBarcodes().then(count => {
+        setItemsNeedingBarcodes(count);
+      });
     }
-  }, [initializeStore, isAuthenticated]);
+  }, [initializeStore, isAuthenticated, countItemsNeedingBarcodes]);
 
   // Show sign-in screen if not authenticated
   if (!isAuthenticated) {
@@ -83,6 +91,32 @@ function App() {
     setFilterOptions({ tags: newTags });
   };
 
+  const handleBackfillBarcodes = async () => {
+    if (isBackfilling) return;
+    
+    const confirmed = window.confirm(
+      `This will generate barcodes for ${itemsNeedingBarcodes} items. Continue?`
+    );
+    
+    if (!confirmed) return;
+    
+    setIsBackfilling(true);
+    try {
+      const result = await backfillBarcodesForExistingItems();
+      if (result.success) {
+        alert(`✅ Success! Generated barcodes for ${result.itemsUpdated} items`);
+        setItemsNeedingBarcodes(0);
+      } else {
+        alert('⚠️ Backfill completed with some errors. Check console for details.');
+      }
+    } catch (error) {
+      alert('❌ Failed to backfill barcodes. Check console for details.');
+      console.error(error);
+    } finally {
+      setIsBackfilling(false);
+    }
+  };
+
   const stats = getStats();
 
   return (
@@ -116,6 +150,22 @@ function App() {
                 <Download className="h-5 w-5" />
                 <span className="ml-2 hidden sm:inline">Backup</span>
               </Button>
+              
+              {itemsNeedingBarcodes > 0 && (
+                <Button
+                  onClick={handleBackfillBarcodes}
+                  variant="secondary"
+                  size="lg"
+                  disabled={isBackfilling}
+                  title={`Generate barcodes for ${itemsNeedingBarcodes} items`}
+                  className="border-yellow-600 bg-yellow-600/20 hover:bg-yellow-600/30"
+                >
+                  <Barcode className="h-5 w-5 text-yellow-400" />
+                  <span className="ml-2 hidden sm:inline text-yellow-400">
+                    {isBackfilling ? 'Generating...' : `Fix ${itemsNeedingBarcodes} Barcodes`}
+                  </span>
+                </Button>
+              )}
               
               <Button onClick={handleAddItem} size="lg">
                 <Plus className="mr-2 h-5 w-5" />
