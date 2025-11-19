@@ -11,6 +11,7 @@ import { SignIn } from './components/SignIn';
 import { LabelPrintModal } from './components/LabelPrintModal';
 import { BulkBarcodePrintModal } from './components/BulkBarcodePrintModal';
 import { BarcodeScanModal } from './components/BarcodeScanModal';
+import { VendooImporter } from './components/VendooImporter';
 import { quickBackup } from './utils/recover-inventory';
 import type { Item, ItemTag, ItemStatus } from './types/item';
 
@@ -45,6 +46,9 @@ function App() {
   
   // Barcode scan modal state
   const [isScanModalOpen, setIsScanModalOpen] = useState(false);
+  
+  // Vendoo importer modal state
+  const [isVendooImporterOpen, setIsVendooImporterOpen] = useState(false);
 
   // Initialize auth on mount
   useEffect(() => {
@@ -140,6 +144,10 @@ function App() {
   const handleScanBarcode = () => {
     setIsScanModalOpen(true);
   };
+  
+  const handleOpenVendooImporter = () => {
+    setIsVendooImporterOpen(true);
+  };
 
   const handleMarkAsSold = async (item: Item) => {
     await updateItem({
@@ -213,6 +221,17 @@ function App() {
               >
                 <Barcode className="h-5 w-5 text-green-400" />
                 <span className="ml-2 hidden sm:inline text-green-400">Scan</span>
+              </Button>
+
+              <Button
+                onClick={handleOpenVendooImporter}
+                variant="secondary"
+                size="lg"
+                title="Import from Vendoo"
+                className="border-purple-600 bg-purple-600/20 hover:bg-purple-600/30"
+              >
+                <Download className="h-5 w-5 text-purple-400" />
+                <span className="ml-2 hidden sm:inline text-purple-400">Vendoo</span>
               </Button>
 
               <Button
@@ -404,6 +423,12 @@ function App() {
         items={filteredItems}
         onMarkAsSold={handleMarkAsSold}
         onViewCard={handleViewCard}
+      />
+
+      {/* Vendoo Importer Modal */}
+      <VendooImporter
+        open={isVendooImporterOpen}
+        onClose={() => setIsVendooImporterOpen(false)}
       />
 
       {/* Footer */}
