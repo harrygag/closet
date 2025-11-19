@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Vendoo Scraper</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        button {
+            background: #6b46c1;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:hover {
+            background: #553c9a;
+        }
+        button:disabled {
+            background: #444;
+            cursor: not-allowed;
+        }
+        #output {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #22c55e22;
+            border: 1px solid #22c55e;
+        }
+        .status.error {
+            background: #ef444422;
+            border: 1px solid #ef4444;
+        }
+        .status.info {
+            background: #3b82f622;
+            border: 1px solid #3b82f6;
+        }
+    </style>
+</head>
+<body>
+    <h1>🤖 Vendoo Scraper Test</h1>
+    <p>Click the button below to invoke the vendoo-scraper Edge Function.</p>
+    
+    <button id="testBtn" onclick="testScraper()">🚀 Start Scraping Vendoo</button>
+    
+    <div id="output"></div>
+
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
+
+        const SUPABASE_URL = 'https://hqmujfbifgpcyqmpuwil.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxbXVqZmJpZmdwY3lxbXB1d2lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA0NjY0NzYsImV4cCI6MjA3NjA0MjQ3Nn0._1HulRiQ3wxfzgDCBRruiJIl4QjXnnhKkuWQOTIa7SQ';
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        window.log = function(message, type = 'info') {
+            const output = document.getElementById('output');
+            const statusClass = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+            output.innerHTML += `<div class="status ${statusClass}">${message}</div>`;
+            output.scrollTop = output.scrollHeight;
+            console.log(message);
+        };
+
+        window.testScraper = async function() {
+            const btn = document.getElementById('testBtn');
+            const output = document.getElementById('output');
+            output.innerHTML = '';
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Scraping...';
+            
+            try {
+                log('🔐 Checking authentication...', 'info');
+                
+                // Check if user is logged in
+                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                
+                if (sessionError || !session) {
+                    log('❌ Not authenticated. Please log in first!', 'error');
+                    log('Opening login page...', 'info');
+                    
+                    // Prompt for email/password
+                    const email = prompt('Enter email:') || 'harrisonkennedy291@gmail.com';
+                    const password = prompt('Enter password:') || '16Maggie';
+                    
+                    log(`🔑 Logging in as ${email}...`, 'info');
+                    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+                        email,
+                        password,
+                    });
+                    
+                    if (authError) {
+                        log(`❌ Login failed: ${authError.message}`, 'error');
+                        btn.disabled = false;
+                        btn.textContent = '🚀 Start Scraping Vendoo';
+                        return;
+                    }
+                    
+                    log('✅ Login successful!', 'success');
+                }
+                
+                const { data: { session: currentSession } } = await supabase.auth.getSession();
+                log(`✅ Authenticated as user: ${currentSession.user.email}`, 'success');
+                
+                log('🚀 Invoking vendoo-scraper Edge Function...', 'info');
+                log('⏱️ This may take 30-60 seconds...', 'info');
+                
+                const startTime = Date.now();
+                
+                const { data, error } = await supabase.functions.invoke('vendoo-scraper', {
+                    headers: {
+                        Authorization: `Bearer ${currentSession.access_token}`,
+                    },
+                });
+                
+                const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+                log(`⏱️ Completed in ${duration} seconds`, 'info');
+                
+                if (error) {
+                    log(`❌ Error: ${error.message}`, 'error');
+                    log(`Details: ${JSON.stringify(error, null, 2)}`, 'error');
+                } else if (data.error) {
+                    log(`❌ Scraper Error: ${data.error}`, 'error');
+                    if (data.details) {
+                        log(`Details: ${data.details}`, 'error');
+                    }
+                } else if (data.needsSetup) {
+                    log('⚠️ Vendoo credentials not found!', 'error');
+                    log('Please save your Vendoo credentials in the app first.', 'error');
+                } else {
+                    log('✅ SUCCESS!', 'success');
+                    log(`📦 Scraped ${data.scrapedCount} items from Vendoo`, 'success');
+                    log(`✏️ Updated ${data.updatedCount} items in database`, 'success');
+                    
+                    if (data.errors && data.errors.length > 0) {
+                        log(`⚠️ ${data.errors.length} errors during update:`, 'error');
+                        data.errors.forEach(err => log(`  - ${err}`, 'error'));
+                    }
+                    
+                    log(`\n📊 Sample items (first 5):`, 'info');
+                    data.items.slice(0, 5).forEach((item, i) => {
+                        log(`\n${i + 1}. ${item.title}`, 'info');
+                        log(`   Vendoo: ${item.vendooUrl}`, 'info');
+                        if (item.marketplaceLinks && item.marketplaceLinks.length > 0) {
+                            item.marketplaceLinks.forEach(link => {
+                                log(`   ${link.type}: ${link.url}`, 'info');
+                            });
+                        }
+                    });
+                }
+                
+            } catch (error) {
+                log(`❌ Unexpected error: ${error.message}`, 'error');
+                console.error(error);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🚀 Start Scraping Vendoo';
+            }
+        };
+    </script>
+</body>
+</html>
+
