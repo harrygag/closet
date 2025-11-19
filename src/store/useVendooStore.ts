@@ -122,25 +122,35 @@ export const useVendooStore = create<VendooState>((set) => ({
     }
   },
 
-  // Fetch Vendoo links using Edge Function
+  // Fetch Vendoo links using Vercel serverless function
   fetchVendooLinks: async () => {
     set({ isLoading: true, error: null });
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('User not authenticated');
 
-      console.log('🚀 Invoking Vendoo scraper Edge Function...');
+      console.log('🚀 Calling Vercel Vendoo scraper...');
 
-      const { data, error } = await supabase.functions.invoke('vendoo-scraper', {
+      // Call Vercel serverless function
+      const apiUrl = import.meta.env.VITE_VERCEL_URL 
+        ? `https://${import.meta.env.VITE_VERCEL_URL}/api/vendoo-scrape`
+        : '/api/vendoo-scrape'; // Local or production
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
         headers: {
-          Authorization: `Bearer ${session.access_token}`,
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
         },
       });
 
-      if (error) {
-        console.error('❌ Edge Function error:', error);
-        throw error;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Scraper failed: ${response.status}`);
       }
+
+      const data = await response.json();
+      console.log('✅ Scraper result:', data);
 
       if (data.error) {
         throw new Error(data.error);
@@ -155,13 +165,16 @@ export const useVendooStore = create<VendooState>((set) => ({
         return;
       }
 
-      console.log(`✅ Scraped ${data.count} items from Vendoo`);
+      console.log(`✅ Scraped ${data.scrapedCount} items, updated ${data.updatedCount} in database`);
       set({ 
-        items: data.items,
+        items: data.items || [],
         lastScrapedAt: data.scrapedAt,
         isLoading: false,
         error: null 
       });
+
+      // Show success alert
+      alert(`✅ Success! Scraped ${data.scrapedCount} items from Vendoo and updated ${data.updatedCount} items in database.`);
 
     } catch (error) {
       console.error('❌ Failed to fetch Vendoo links:', error);
