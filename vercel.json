@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "name": "virtual-closet-arcade",
+  "name": "vite-react",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
