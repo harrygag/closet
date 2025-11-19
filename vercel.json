@@ -8,6 +8,12 @@
   "github": {
     "silent": false
   },
+  "build": {
+    "env": {
+      "VITE_SUPABASE_URL": "https://hqmujfbifgpcyqmpuwil.supabase.co",
+      "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxbXVqZmJpZmdwY3lxbXB1d2lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA0NjY0NzYsImV4cCI6MjA3NjA0MjQ3Nn0._1HulRiQ3wxfzgDCBRruiJIl4QjXnnhKkuWQOTIa7SQ"
+    }
+  },
   "headers": [
     {
       "source": "/sw.js",
