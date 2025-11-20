@@ -21,7 +21,9 @@ export interface Item {
   hangerId: string;
   tags: ItemTag[];
   vendooUrl?: string; // Vendoo marketplace link (primary)
-  ebayUrl: string;
+  ebayUrl?: string; // eBay listing URL
+  poshmarkUrl?: string; // Poshmark listing URL
+  depopUrl?: string; // Depop listing URL
   marketplaceUrls?: MarketplaceUrl[]; // Additional marketplace links
   imageUrl?: string; // Item image from Notion or uploaded
   costPrice: number;

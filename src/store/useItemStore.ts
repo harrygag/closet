@@ -59,7 +59,9 @@ const transformDbItem = (dbItem: any): Item => {
     hangerStatus: hangerId !== 'None' && hangerId ? 'assigned' : '',
     hangerId: hangerId !== 'None' ? hangerId : '',
     tags: (dbItem.normalizedTags || []).slice(0, 5),
-    ebayUrl: dbItem.imageUrls?.[0] || '',
+    ebayUrl: dbItem.ebayUrl || undefined,
+    poshmarkUrl: dbItem.poshmarkUrl || undefined,
+    depopUrl: dbItem.depopUrl || undefined,
     imageUrl: dbItem.imageUrls?.[0] || undefined,
     costPrice: dbItem.purchasePriceCents ? dbItem.purchasePriceCents / 100 : 0,
     sellingPrice: dbItem.manualPriceCents ? dbItem.manualPriceCents / 100 : 0,
@@ -83,7 +85,7 @@ const transformItemToDb = (item: Partial<Item>, userId: string) => ({
   status: item.status === 'Active' ? 'IN_STOCK' : 
           item.status === 'SOLD' ? 'SOLD' : 'IN_STOCK',
   normalizedTags: item.tags || [],
-  imageUrls: item.imageUrl ? [item.imageUrl] : item.ebayUrl ? [item.ebayUrl] : [],
+  imageUrls: item.imageUrl ? [item.imageUrl] : [],
   manualPriceCents: item.sellingPrice ? Math.round(item.sellingPrice * 100) : null,
   purchasePriceCents: item.costPrice ? Math.round(item.costPrice * 100) : null,
   soldPriceCents: item.status === 'SOLD' && item.sellingPrice 
@@ -97,6 +99,9 @@ const transformItemToDb = (item: Partial<Item>, userId: string) => ({
   category: 'Clothing',
   barcode: item.barcode || null,
   vendooUrl: item.vendooUrl || null,
+  ebayUrl: item.ebayUrl || null,
+  poshmarkUrl: item.poshmarkUrl || null,
+  depopUrl: item.depopUrl || null,
 });
 
 export const useItemStore = create<ItemState>()(

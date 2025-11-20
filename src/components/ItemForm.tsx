@@ -31,6 +31,9 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
     tags: [] as ItemTag[],
     imageUrl: '',
     vendooUrl: '',
+    ebayUrl: '',
+    poshmarkUrl: '',
+    depopUrl: '',
     costPrice: 0,
     sellingPrice: 0,
     ebayFees: 0,
@@ -52,6 +55,9 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
         tags: editItem.tags,
         imageUrl: editItem.imageUrl || '',
         vendooUrl: editItem.vendooUrl || '',
+        ebayUrl: editItem.ebayUrl || '',
+        poshmarkUrl: editItem.poshmarkUrl || '',
+        depopUrl: editItem.depopUrl || '',
         costPrice: editItem.costPrice,
         sellingPrice: editItem.sellingPrice,
         ebayFees: editItem.ebayFees,
@@ -74,6 +80,9 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
         tags: categoryFromStorage ? [categoryFromStorage as ItemTag] : [],
         imageUrl: '',
         vendooUrl: '',
+        ebayUrl: '',
+        poshmarkUrl: '',
+        depopUrl: '',
         costPrice: 0,
         sellingPrice: 0,
         ebayFees: 0,
@@ -116,9 +125,11 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
     
     const itemData = {
       ...formData,
-      ebayUrl: '', // Keep ebayUrl for backwards compatibility
       sellingPrice: Number(formData.sellingPrice) || 0,
       vendooUrl: formData.vendooUrl.trim() || undefined,
+      ebayUrl: formData.ebayUrl.trim() || undefined,
+      poshmarkUrl: formData.poshmarkUrl.trim() || undefined,
+      depopUrl: formData.depopUrl.trim() || undefined,
       marketplaceUrls: [] // Empty array for backwards compatibility
     };
     
@@ -349,21 +360,44 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
 
         {showAdvanced && (
           <div className="space-y-3 rounded-lg border border-gray-700 bg-gray-900/50 p-3">
-            {/* Vendoo URL */}
-            <div>
+            {/* Marketplace URLs */}
+            <div className="space-y-3">
+              <div>
+                <Input
+                  label="Vendoo URL"
+                  type="url"
+                  value={formData.vendooUrl}
+                  onChange={(e) => handleVendooUrlChange(e.target.value)}
+                  placeholder="https://web.vendoo.co/app/item/..."
+                />
+                {vendooUrlError && (
+                  <p className="mt-1 text-xs text-red-400">{vendooUrlError}</p>
+                )}
+              </div>
+
               <Input
-                label="Vendoo URL"
+                label="eBay URL"
                 type="url"
-                value={formData.vendooUrl}
-                onChange={(e) => handleVendooUrlChange(e.target.value)}
-                placeholder="https://web.vendoo.co/app/item/..."
+                value={formData.ebayUrl}
+                onChange={(e) => setFormData({ ...formData, ebayUrl: e.target.value })}
+                placeholder="https://ebay.com/itm/..."
               />
-              {vendooUrlError && (
-                <p className="mt-1 text-xs text-red-400">{vendooUrlError}</p>
-              )}
-              <p className="mt-1 text-xs text-gray-500">
-                Format: https://web.vendoo.co/app/item/[item_id]
-              </p>
+
+              <Input
+                label="Poshmark URL"
+                type="url"
+                value={formData.poshmarkUrl}
+                onChange={(e) => setFormData({ ...formData, poshmarkUrl: e.target.value })}
+                placeholder="https://poshmark.com/listing/..."
+              />
+
+              <Input
+                label="Depop URL"
+                type="url"
+                value={formData.depopUrl}
+                onChange={(e) => setFormData({ ...formData, depopUrl: e.target.value })}
+                placeholder="https://depop.com/products/..."
+              />
             </div>
 
             {/* Financial Details */}

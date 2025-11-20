@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketplace Scraper Manual Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .test-section h2 {
+            color: #667eea;
+            margin-top: 0;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+        .error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+        .info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+        }
+        input {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 100%;
+            margin: 10px 0;
+        }
+        .credentials {
+            display: grid;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        select {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛍️ Marketplace Scraper Test Suite</h1>
+        <p class="subtitle">Manual testing interface for eBay, Poshmark, and Depop scrapers</p>
+
+        <!-- Test 1: Similarity Algorithm -->
+        <div class="test-section">
+            <h2>📊 Test 1: Similarity Algorithm</h2>
+            <p>Test the fuzzy matching algorithm with custom strings</p>
+            <input type="text" id="string1" placeholder="String 1 (e.g., 'Nike Air Max')">
+            <input type="text" id="string2" placeholder="String 2 (e.g., 'Nike Air Max 90')">
+            <button onclick="testSimilarity()">Test Similarity</button>
+            <div id="similarity-result" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- Test 2: Item Matching -->
+        <div class="test-section">
+            <h2>🎯 Test 2: Item Matching</h2>
+            <p>Test matching a scraped title against mock database items</p>
+            <input type="text" id="scraped-title" placeholder="Scraped title (e.g., 'Supreme Hoodie Red')">
+            <input type="number" id="threshold" placeholder="Threshold (0.8)" step="0.1" min="0" max="1" value="0.8">
+            <button onclick="testMatching()">Test Match</button>
+            <div id="matching-result" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- Test 3: Scraper Endpoints -->
+        <div class="test-section">
+            <h2>🌐 Test 3: API Endpoint Test</h2>
+            <p>Test the scraper API endpoints (requires local server)</p>
+            <select id="marketplace">
+                <option value="ebay">eBay</option>
+                <option value="poshmark">Poshmark</option>
+                <option value="depop">Depop</option>
+            </select>
+            <select id="action">
+                <option value="fill-links">Fill Links</option>
+                <option value="import">Import</option>
+            </select>
+            <div class="credentials">
+                <input type="text" id="username" placeholder="Username/Email">
+                <input type="password" id="password" placeholder="Password">
+                <input type="text" id="shop-url" placeholder="Shop URL (Depop only, optional)">
+            </div>
+            <button onclick="testScraper()">Test Scraper</button>
+            <div id="scraper-result" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- Test 4: HTML Selector Test -->
+        <div class="test-section">
+            <h2>🔍 Test 4: HTML Selector Validation</h2>
+            <p>Test if selectors work on actual marketplace pages</p>
+            <select id="test-marketplace">
+                <option value="ebay">eBay</option>
+                <option value="poshmark">Poshmark</option>
+                <option value="depop">Depop</option>
+            </select>
+            <input type="url" id="test-url" placeholder="Paste marketplace URL to test">
+            <button onclick="testSelectors()">Test Selectors</button>
+            <div id="selector-result" class="result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Similarity Algorithm (Levenshtein Distance)
+        function calculateSimilarity(str1, str2) {
+            const s1 = str1.toLowerCase().trim();
+            const s2 = str2.toLowerCase().trim();
+            
+            if (s1 === s2) return 1.0;
+            
+            const len1 = s1.length;
+            const len2 = s2.length;
+            
+            if (len1 === 0 || len2 === 0) return 0;
+            
+            const matrix = [];
+            
+            for (let i = 0; i <= len2; i++) {
+                matrix[i] = [i];
+            }
+            
+            for (let j = 0; j <= len1; j++) {
+                matrix[0][j] = j;
+            }
+            
+            for (let i = 1; i <= len2; i++) {
+                for (let j = 1; j <= len1; j++) {
+                    const cost = s1[j - 1] === s2[i - 1] ? 0 : 1;
+                    matrix[i][j] = Math.min(
+                        matrix[i - 1][j] + 1,
+                        matrix[i][j - 1] + 1,
+                        matrix[i - 1][j - 1] + cost
+                    );
+                }
+            }
+            
+            const maxLen = Math.max(len1, len2);
+            const distance = matrix[len2][len1];
+            
+            return 1 - distance / maxLen;
+        }
+
+        // Test 1: Similarity
+        function testSimilarity() {
+            const str1 = document.getElementById('string1').value;
+            const str2 = document.getElementById('string2').value;
+            const result = document.getElementById('similarity-result');
+            
+            if (!str1 || !str2) {
+                result.className = 'result error';
+                result.style.display = 'block';
+                result.textContent = 'Please enter both strings';
+                return;
+            }
+            
+            const similarity = calculateSimilarity(str1, str2);
+            const percentage = (similarity * 100).toFixed(2);
+            
+            result.className = 'result ' + (similarity >= 0.8 ? 'success' : 'info');
+            result.style.display = 'block';
+            result.textContent = `Similarity Score: ${similarity.toFixed(4)} (${percentage}%)
+
+Match Status: ${similarity >= 0.8 ? '✅ WOULD MATCH (≥80%)' : '❌ NO MATCH (<80%)'}
+
+Details:
+- String 1: "${str1}"
+- String 2: "${str2}"
+- Threshold: 0.80`;
+        }
+
+        // Test 2: Matching
+        function testMatching() {
+            const scrapedTitle = document.getElementById('scraped-title').value;
+            const threshold = parseFloat(document.getElementById('threshold').value) || 0.8;
+            const result = document.getElementById('matching-result');
+            
+            if (!scrapedTitle) {
+                result.className = 'result error';
+                result.style.display = 'block';
+                result.textContent = 'Please enter a scraped title';
+                return;
+            }
+            
+            // Mock database items
+            const mockDbItems = [
+                { id: '1', title: 'Nike Air Max 90 White Size L' },
+                { id: '2', title: 'Adidas Ultraboost Black' },
+                { id: '3', title: 'Supreme Box Logo Hoodie Red' },
+                { id: '4', title: 'Carhartt WIP Jacket Brown' },
+                { id: '5', title: 'Champion Reverse Weave Hoodie' },
+            ];
+            
+            let bestMatch = null;
+            let bestScore = 0;
+            
+            for (const item of mockDbItems) {
+                const similarity = calculateSimilarity(scrapedTitle, item.title);
+                if (similarity > bestScore) {
+                    bestScore = similarity;
+                    bestMatch = item;
+                }
+            }
+            
+            result.style.display = 'block';
+            
+            if (bestScore >= threshold && bestMatch) {
+                result.className = 'result success';
+                result.textContent = `✅ MATCH FOUND!
+
+Best Match:
+- ID: ${bestMatch.id}
+- Title: "${bestMatch.title}"
+- Similarity: ${(bestScore * 100).toFixed(2)}%
+- Threshold: ${(threshold * 100)}%
+
+Scraped Title: "${scrapedTitle}"
+
+All Scores:
+${mockDbItems.map(item => {
+    const sim = calculateSimilarity(scrapedTitle, item.title);
+    return `- ${item.title}: ${(sim * 100).toFixed(2)}%`;
+}).join('\n')}`;
+            } else {
+                result.className = 'result error';
+                result.textContent = `❌ NO MATCH FOUND
+
+Scraped Title: "${scrapedTitle}"
+Threshold: ${(threshold * 100)}%
+Best Score: ${(bestScore * 100).toFixed(2)}%
+
+All Scores:
+${mockDbItems.map(item => {
+    const sim = calculateSimilarity(scrapedTitle, item.title);
+    return `- ${item.title}: ${(sim * 100).toFixed(2)}%`;
+}).join('\n')}`;
+            }
+        }
+
+        // Test 3: Scraper API
+        async function testScraper() {
+            const marketplace = document.getElementById('marketplace').value;
+            const action = document.getElementById('action').value;
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const shopUrl = document.getElementById('shop-url').value;
+            const result = document.getElementById('scraper-result');
+            
+            result.className = 'result info';
+            result.style.display = 'block';
+            result.innerHTML = '<div class="loader"></div><p>Testing scraper endpoint...</p>';
+            
+            try {
+                const response = await fetch(`http://localhost:3000/api/${marketplace}/scrape-listings`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer YOUR_TOKEN_HERE' // Replace with actual token
+                    },
+                    body: JSON.stringify({
+                        action,
+                        username,
+                        password,
+                        shopUrl: shopUrl || undefined
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    result.className = 'result success';
+                    result.textContent = `✅ SUCCESS!
+
+Scraped Count: ${data.scrapedCount}
+Imported: ${data.importedCount || 0}
+Updated: ${data.updatedCount || 0}
+Skipped: ${data.skippedCount || 0}
+
+Response:
+${JSON.stringify(data, null, 2)}`;
+                } else {
+                    result.className = 'result error';
+                    result.textContent = `❌ ERROR: ${data.error}
+
+Details:
+${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                result.className = 'result error';
+                result.textContent = `❌ REQUEST FAILED: ${error.message}
+
+Make sure:
+1. Server is running (npm run dev or vercel dev)
+2. You have a valid auth token
+3. Credentials are correct`;
+            }
+        }
+
+        // Test 4: Selector Test
+        function testSelectors() {
+            const marketplace = document.getElementById('test-marketplace').value;
+            const url = document.getElementById('test-url').value;
+            const result = document.getElementById('selector-result');
+            
+            if (!url) {
+                result.className = 'result error';
+                result.style.display = 'block';
+                result.textContent = 'Please enter a URL';
+                return;
+            }
+            
+            const selectors = {
+                ebay: {
+                    listings: '[data-test-id="listing-row"], .listing-item, .sh-ListingCard',
+                    title: '[data-test-id="listing-title"], .listing-title, .sh-ListingCard__title a',
+                    price: '[data-test-id="listing-price"], .listing-price, .sh-ListingCard__price',
+                    image: 'img'
+                },
+                poshmark: {
+                    listings: '.tile, [data-test="tile"], .card',
+                    title: '.tile__title, [data-test="tile-title"], .card__title',
+                    price: '.tile__price, [data-test="tile-price"], .card__price',
+                    brand: '.tile__details__pipe__brand, [data-test="tile-brand"]',
+                    size: '.tile__details__pipe__size, [data-test="tile-size"]'
+                },
+                depop: {
+                    listings: '[data-testid="product"], .product-item, a[href*="/products/"]',
+                    title: '[data-testid="product-title"], .product-title, h3, h2',
+                    price: '[data-testid="product-price"], .product-price, .price',
+                    soldBadge: '[data-testid="sold-badge"], .sold-badge'
+                }
+            };
+            
+            result.className = 'result info';
+            result.style.display = 'block';
+            result.textContent = `📋 Selectors for ${marketplace.toUpperCase()}:
+
+Open the URL in a browser and check DevTools:
+${url}
+
+Expected Selectors:
+${JSON.stringify(selectors[marketplace], null, 2)}
+
+Manual Test Steps:
+1. Open URL in browser
+2. Open DevTools (F12)
+3. Run in console:
+   document.querySelectorAll('${selectors[marketplace].listings}').length
+4. Should return number > 0 if selector works
+5. Test each selector individually
+
+Copy to console:
+const listings = document.querySelectorAll('${selectors[marketplace].listings}');
+console.log('Found', listings.length, 'listings');
+listings.forEach((el, i) => {
+    if (i < 3) console.log('Listing', i, el);
+});`;
+        }
+    </script>
+</body>
+</html>
+

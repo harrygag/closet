@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Shirt, BarChart3, LogOut, User, Download, Barcode } from 'lucide-react';
+import { Plus, Shirt, BarChart3, LogOut, User, Download, Barcode, ShoppingCart, Link2 } from 'lucide-react';
 import { useItemStore } from './store/useItemStore';
 import { useAuthStore } from './store/useAuthStore';
 import { Button } from './components/ui/Button';
@@ -12,10 +12,12 @@ import { LabelPrintModal } from './components/LabelPrintModal';
 import { BulkBarcodePrintModal } from './components/BulkBarcodePrintModal';
 import { BarcodeScanModal } from './components/BarcodeScanModal';
 import { VendooImporter } from './components/VendooImporter';
+import { MarketplaceImporter } from './components/MarketplaceImporter';
+import { MarketplacesPage } from './pages/MarketplacesPage';
 import { quickBackup } from './utils/recover-inventory';
 import type { Item, ItemTag, ItemStatus } from './types/item';
 
-type ViewMode = 'closet' | 'stats';
+type ViewMode = 'closet' | 'stats' | 'marketplaces';
 
 function App() {
   const {
@@ -49,6 +51,9 @@ function App() {
   
   // Vendoo importer modal state
   const [isVendooImporterOpen, setIsVendooImporterOpen] = useState(false);
+  
+  // Marketplace importer modal state
+  const [isMarketplaceImporterOpen, setIsMarketplaceImporterOpen] = useState(false);
 
   // Initialize auth on mount
   useEffect(() => {
@@ -235,6 +240,17 @@ function App() {
               </Button>
 
               <Button
+                onClick={() => setIsMarketplaceImporterOpen(true)}
+                variant="secondary"
+                size="lg"
+                title="Import from eBay, Poshmark, Depop"
+                className="border-blue-600 bg-blue-600/20 hover:bg-blue-600/30"
+              >
+                <ShoppingCart className="h-5 w-5 text-blue-400" />
+                <span className="ml-2 hidden sm:inline text-blue-400">Markets</span>
+              </Button>
+
+              <Button
                 onClick={handleBulkPrint}
                 variant="secondary"
                 size="lg"
@@ -266,29 +282,40 @@ function App() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        {/* View Mode Tabs */}
-        <div className="mb-6 flex gap-2 rounded-lg border border-gray-700 bg-gray-800 p-1">
+        {/* View Mode Tabs with Slide Animation */}
+        <div className="mb-6 flex gap-2 rounded-lg border border-gray-700 bg-gray-800 p-1 relative overflow-hidden">
           <button
             onClick={() => setViewMode('closet')}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors ${
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 font-medium transition-all duration-300 ${
               viewMode === 'closet'
-                ? 'bg-purple-600 text-white'
+                ? 'bg-purple-600 text-white scale-105 shadow-lg'
                 : 'text-gray-400 hover:bg-gray-700 hover:text-white'
             }`}
           >
             <Shirt className="h-5 w-5" />
-            Closet View
+            <span className="hidden sm:inline">Closet</span>
+          </button>
+          <button
+            onClick={() => setViewMode('marketplaces')}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 font-medium transition-all duration-300 ${
+              viewMode === 'marketplaces'
+                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white scale-105 shadow-lg'
+                : 'text-gray-400 hover:bg-gray-700 hover:text-white'
+            }`}
+          >
+            <Link2 className="h-5 w-5" />
+            <span className="hidden sm:inline">Marketplaces</span>
           </button>
           <button
             onClick={() => setViewMode('stats')}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors ${
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 font-medium transition-all duration-300 ${
               viewMode === 'stats'
-                ? 'bg-purple-600 text-white'
+                ? 'bg-purple-600 text-white scale-105 shadow-lg'
                 : 'text-gray-400 hover:bg-gray-700 hover:text-white'
             }`}
           >
             <BarChart3 className="h-5 w-5" />
-            Statistics
+            <span className="hidden sm:inline">Stats</span>
           </button>
         </div>
 
@@ -312,17 +339,40 @@ function App() {
           </div>
         )}
 
-        {/* Content based on view mode */}
-        <div className="mb-6">
-          {viewMode === 'closet' && (
-            <ClosetView items={filteredItems} onItemClick={handleEditItem} onAddItem={handleAddItem} onRequestPrint={handlePrintLabel} />
-          )}
+        {/* Content based on view mode with slide animation */}
+        <div className="mb-6 relative overflow-hidden">
+          <div 
+            className="transition-transform duration-500 ease-in-out"
+            style={{
+              transform: viewMode === 'closet' ? 'translateX(0%)' : 
+                        viewMode === 'marketplaces' ? 'translateX(-100%)' : 
+                        'translateX(-200%)'
+            }}
+          >
+            <div className="flex">
+              {/* Closet View */}
+              <div className="w-full flex-shrink-0">
+                {viewMode === 'closet' && (
+                  <ClosetView items={filteredItems} onItemClick={handleEditItem} onAddItem={handleAddItem} onRequestPrint={handlePrintLabel} />
+                )}
+              </div>
 
-          {viewMode === 'stats' && (
-            <div className="rounded-lg border border-gray-700 bg-gray-800 p-6">
-              <h2 className="mb-4 text-2xl font-bold text-white">Detailed Statistics</h2>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4 text-gray-300">
+              {/* Marketplaces View */}
+              <div className="w-full flex-shrink-0">
+                {viewMode === 'marketplaces' && (
+                  <div className="rounded-xl overflow-hidden border border-gray-700 shadow-2xl">
+                    <MarketplacesPage />
+                  </div>
+                )}
+              </div>
+
+              {/* Stats View */}
+              <div className="w-full flex-shrink-0">
+                {viewMode === 'stats' && (
+                  <div className="rounded-lg border border-gray-700 bg-gray-800 p-6">
+                    <h2 className="mb-4 text-2xl font-bold text-white">Detailed Statistics</h2>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4 text-gray-300">
                   <div>
                     <p className="text-sm text-gray-400">Total Items:</p>
                     <p className="text-2xl font-bold text-white">{stats.totalItems}</p>
@@ -365,28 +415,31 @@ function App() {
                   </div>
                 </div>
 
-                {stats.soldItems > 0 && (
-                  <div className="border-t border-gray-700 pt-4">
-                    <h3 className="mb-3 text-lg font-semibold text-white">Performance Metrics</h3>
-                    <div className="space-y-2 text-gray-300">
-                      <div className="flex justify-between">
-                        <span>Sell-through Rate:</span>
-                        <span className="font-semibold text-purple-400">
-                          {((stats.soldItems / stats.totalItems) * 100).toFixed(1)}%
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Active Inventory:</span>
-                        <span className="font-semibold text-green-400">
-                          {((stats.activeItems / stats.totalItems) * 100).toFixed(1)}%
-                        </span>
-                      </div>
+                      {stats.soldItems > 0 && (
+                        <div className="border-t border-gray-700 pt-4">
+                          <h3 className="mb-3 text-lg font-semibold text-white">Performance Metrics</h3>
+                          <div className="space-y-2 text-gray-300">
+                            <div className="flex justify-between">
+                              <span>Sell-through Rate:</span>
+                              <span className="font-semibold text-purple-400">
+                                {((stats.soldItems / stats.totalItems) * 100).toFixed(1)}%
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Active Inventory:</span>
+                              <span className="font-semibold text-green-400">
+                                {((stats.activeItems / stats.totalItems) * 100).toFixed(1)}%
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
               </div>
             </div>
-          )}
+          </div>
         </div>
       </main>
 
@@ -429,6 +482,15 @@ function App() {
       <VendooImporter
         open={isVendooImporterOpen}
         onClose={() => setIsVendooImporterOpen(false)}
+      />
+
+      {/* Marketplace Importer Modal */}
+      <MarketplaceImporter
+        open={isMarketplaceImporterOpen}
+        onOpenChange={setIsMarketplaceImporterOpen}
+        onImportComplete={() => {
+          initializeStore();
+        }}
       />
 
       {/* Footer */}

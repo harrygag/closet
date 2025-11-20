@@ -1,20 +1,17 @@
 {
-  "name": "ebay-oauth-backend",
+  "name": "virtual-closet-api",
   "version": "1.0.0",
+  "description": "API server for Virtual Closet Chrome extension",
   "type": "module",
-  "description": "Local backend for eBay OAuth integration",
-  "main": "index.js",
+  "main": "api.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "node --watch index.js"
+    "start": "node api.js",
+    "dev": "node --watch api.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.0",
+    "@supabase/supabase-js": "^2.39.3",
     "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
+    "dotenv": "^16.4.1",
     "express": "^4.18.2"
   }
 }
-
-
-
