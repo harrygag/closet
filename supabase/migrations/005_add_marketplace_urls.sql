@@ -16,3 +16,5 @@ COMMENT ON COLUMN "Item".ebayUrl IS 'Direct URL to eBay listing';
 COMMENT ON COLUMN "Item".poshmarkUrl IS 'Direct URL to Poshmark listing';
 COMMENT ON COLUMN "Item".depopUrl IS 'Direct URL to Depop listing';
 
+
+

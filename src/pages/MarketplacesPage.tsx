@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ExternalLink, CheckCircle, XCircle, RefreshCw, Cookie, Shield, Clock, AlertCircle } from 'lucide-react';
+import { ExternalLink, CheckCircle, XCircle, RefreshCw, Cookie, Shield, Clock, AlertCircle, Chrome } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { supabase } from '../lib/supabase/client';
 import { toast } from 'sonner';
@@ -141,6 +141,55 @@ export const MarketplacesPage: React.FC = () => {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
+  const handleDownloadExtension = () => {
+    // Create a blob with installation instructions
+    const instructions = `# Virtual Closet Chrome Extension
+
+## Installation Instructions
+
+### Windows:
+1. Run: install-extension.bat
+2. Go to chrome://extensions/
+3. Enable "Developer mode"
+4. Click "Load unpacked"
+5. Select the "VirtualCloset-Extension" folder from Downloads
+
+### Mac/Linux:
+1. Run: chmod +x install-extension.sh && ./install-extension.sh
+2. Go to chrome://extensions/
+3. Enable "Developer mode"
+4. Click "Load unpacked"
+5. Select the "VirtualCloset-Extension" folder from Downloads
+
+## How to Use:
+1. Open the extension and paste your auth token
+2. Visit eBay, Poshmark, or Depop
+3. Extension automatically syncs cookies
+4. Return here to see connection status
+
+## Get Your Auth Token:
+1. Press F12 in this app
+2. Go to Application > Local Storage
+3. Copy the value of "sb-access-token"
+
+---
+For more help, check extension/README.md in the project folder.
+`;
+
+    const blob = new Blob([instructions], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'EXTENSION_INSTALL_INSTRUCTIONS.md';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast.success('Installation instructions downloaded! Check your Downloads folder.');
+    toast.info('Extension files are in: C:\\Users\\mickk\\closet-2\\extension', { duration: 5000 });
+  };
+
   const formatTimeAgo = (dateString?: string) => {
     if (!dateString) return 'Never';
     const date = new Date(dateString);
@@ -183,20 +232,30 @@ export const MarketplacesPage: React.FC = () => {
       {/* Header */}
       <div className="sticky top-0 z-10 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700/50">
         <div className="p-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-3xl font-bold text-white mb-2">🔗 Marketplaces</h1>
-              <p className="text-gray-400">Manage your marketplace connections</p>
+              <p className="text-gray-400">Cookie-based authentication via Chrome extension</p>
             </div>
-            <Button
-              onClick={handleRefresh}
-              variant="secondary"
-              disabled={refreshing}
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
+            <div className="flex gap-3">
+              <Button
+                onClick={handleDownloadExtension}
+                variant="primary"
+                className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+              >
+                <Chrome className="h-4 w-4" />
+                Download Extension
+              </Button>
+              <Button
+                onClick={handleRefresh}
+                variant="secondary"
+                disabled={refreshing}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+            </div>
           </div>
 
           {/* Stats */}
@@ -249,9 +308,9 @@ export const MarketplacesPage: React.FC = () => {
               <div className="relative p-6">
                 {/* Header */}
                 <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-4 flex-1">
                     <div className="text-5xl">{info.icon}</div>
-                    <div>
+                    <div className="flex-1">
                       <h3 className="text-2xl font-bold text-white flex items-center gap-2">
                         {info.name}
                         {connection.connected && !isExpired ? (
@@ -265,16 +324,6 @@ export const MarketplacesPage: React.FC = () => {
                       <p className="text-gray-400 text-sm">{info.description}</p>
                     </div>
                   </div>
-
-                  <Button
-                    onClick={() => openMarketplace(info.url)}
-                    variant="secondary"
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    Open
-                  </Button>
                 </div>
 
                 {/* Connection Status */}
@@ -328,12 +377,21 @@ export const MarketplacesPage: React.FC = () => {
                       </div>
 
                       {/* Actions */}
-                      <div className="flex gap-2">
+                      <div className="flex gap-3 pt-2">
+                        <Button
+                          onClick={() => openMarketplace(info.url)}
+                          variant="secondary"
+                          size="sm"
+                          className="flex-1 flex items-center justify-center gap-2"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                          Open {info.name}
+                        </Button>
                         <Button
                           onClick={() => handleDisconnect(connection.marketplace)}
                           variant="secondary"
                           size="sm"
-                          className="flex-1 text-red-400 hover:text-red-300"
+                          className="px-6 text-red-400 hover:text-red-300 hover:bg-red-900/20"
                         >
                           Disconnect
                         </Button>
@@ -347,17 +405,28 @@ export const MarketplacesPage: React.FC = () => {
                           <AlertCircle className="h-5 w-5" />
                           <span className="font-semibold">Connection Expired</span>
                         </div>
-                        <p className="text-sm text-gray-300 mb-3">
-                          Your cookies have expired. Reconnect to continue scraping.
+                        <p className="text-sm text-gray-300 mb-4">
+                          Your cookies have expired. Visit {info.name} with the extension to reconnect automatically.
                         </p>
-                        <Button
-                          onClick={() => handleDisconnect(connection.marketplace)}
-                          variant="secondary"
-                          size="sm"
-                          className="w-full"
-                        >
-                          Reconnect
-                        </Button>
+                        <div className="flex gap-3">
+                          <Button
+                            onClick={() => openMarketplace(info.url)}
+                            variant="primary"
+                            size="sm"
+                            className="flex-1 flex items-center justify-center gap-2"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                            Open {info.name}
+                          </Button>
+                          <Button
+                            onClick={() => handleDisconnect(connection.marketplace)}
+                            variant="secondary"
+                            size="sm"
+                            className="px-6 text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                          >
+                            Remove
+                          </Button>
+                        </div>
                       </div>
                     </>
                   ) : (
@@ -368,11 +437,28 @@ export const MarketplacesPage: React.FC = () => {
                           <XCircle className="h-5 w-5" />
                           <span className="font-semibold">Not Connected</span>
                         </div>
-                        <p className="text-sm text-gray-400 mb-3">
-                          Connect your {info.name} account to start scraping
+                        <p className="text-sm text-gray-400 mb-4">
+                          Install the Chrome extension and visit {info.name} while logged in to connect automatically.
                         </p>
-                        <div className="text-xs text-gray-500">
-                          Use the Marketplace Importer to connect
+                        <div className="flex gap-3">
+                          <Button
+                            onClick={handleDownloadExtension}
+                            variant="primary"
+                            size="sm"
+                            className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600"
+                          >
+                            <Chrome className="h-4 w-4" />
+                            Download Extension
+                          </Button>
+                          <Button
+                            onClick={() => openMarketplace(info.url)}
+                            variant="secondary"
+                            size="sm"
+                            className="px-6 flex items-center gap-2"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                            Open
+                          </Button>
                         </div>
                       </div>
                     </>
@@ -388,27 +474,49 @@ export const MarketplacesPage: React.FC = () => {
       <div className="p-6 pb-24">
         <div className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 border border-purple-700/30 rounded-xl p-6">
           <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-            <Cookie className="h-5 w-5 text-purple-400" />
-            How to Connect
+            <Chrome className="h-5 w-5 text-purple-400" />
+            How to Connect with Extension
           </h3>
-          <ol className="space-y-2 text-sm text-gray-300">
-            <li className="flex gap-2">
-              <span className="text-purple-400 font-bold">1.</span>
-              <span>Open the Marketplace Importer (blue + button in header)</span>
+          <ol className="space-y-3 text-sm text-gray-300">
+            <li className="flex gap-3">
+              <span className="text-purple-400 font-bold min-w-[24px]">1.</span>
+              <div>
+                <div className="font-semibold text-white mb-1">Download & Install Extension</div>
+                <div>Click "Download Extension" above, follow the instructions to install in Chrome</div>
+              </div>
             </li>
-            <li className="flex gap-2">
-              <span className="text-purple-400 font-bold">2.</span>
-              <span>Select a marketplace and choose "Cookies" authentication</span>
+            <li className="flex gap-3">
+              <span className="text-purple-400 font-bold min-w-[24px]">2.</span>
+              <div>
+                <div className="font-semibold text-white mb-1">Get Your Auth Token</div>
+                <div>Press F12 → Application tab → Local Storage → Copy "sb-access-token"</div>
+              </div>
             </li>
-            <li className="flex gap-2">
-              <span className="text-purple-400 font-bold">3.</span>
-              <span>Export your cookies from the marketplace website</span>
+            <li className="flex gap-3">
+              <span className="text-purple-400 font-bold min-w-[24px]">3.</span>
+              <div>
+                <div className="font-semibold text-white mb-1">Activate Extension</div>
+                <div>Open extension popup, paste your token, click "Save Token"</div>
+              </div>
             </li>
-            <li className="flex gap-2">
-              <span className="text-purple-400 font-bold">4.</span>
-              <span>Paste the cookies and save - you're connected!</span>
+            <li className="flex gap-3">
+              <span className="text-purple-400 font-bold min-w-[24px]">4.</span>
+              <div>
+                <div className="font-semibold text-white mb-1">Visit Marketplaces</div>
+                <div>Go to eBay, Poshmark, or Depop - extension auto-syncs your cookies!</div>
+              </div>
             </li>
           </ol>
+          
+          <div className="mt-4 pt-4 border-t border-purple-700/30">
+            <div className="flex items-start gap-2 text-xs text-gray-400">
+              <Cookie className="h-4 w-4 text-purple-400 mt-0.5 shrink-0" />
+              <p>
+                <strong className="text-white">Why cookies?</strong> Cookies provide secure, password-free authentication.
+                Your cookies are encrypted and automatically refreshed. No passwords stored!
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

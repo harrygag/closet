@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Shirt, BarChart3, LogOut, User, Download, Barcode, ShoppingCart, Link2 } from 'lucide-react';
+import { Plus, Shirt, BarChart3, LogOut, User, Download, Barcode, Link2 } from 'lucide-react';
 import { useItemStore } from './store/useItemStore';
 import { useAuthStore } from './store/useAuthStore';
 import { Button } from './components/ui/Button';
@@ -12,7 +12,7 @@ import { LabelPrintModal } from './components/LabelPrintModal';
 import { BulkBarcodePrintModal } from './components/BulkBarcodePrintModal';
 import { BarcodeScanModal } from './components/BarcodeScanModal';
 import { VendooImporter } from './components/VendooImporter';
-import { MarketplaceImporter } from './components/MarketplaceImporter';
+// MarketplaceImporter removed - using Chrome extension for cookie-based auth only
 import { MarketplacesPage } from './pages/MarketplacesPage';
 import { quickBackup } from './utils/recover-inventory';
 import type { Item, ItemTag, ItemStatus } from './types/item';
@@ -53,7 +53,7 @@ function App() {
   const [isVendooImporterOpen, setIsVendooImporterOpen] = useState(false);
   
   // Marketplace importer modal state
-  const [isMarketplaceImporterOpen, setIsMarketplaceImporterOpen] = useState(false);
+  // MarketplaceImporter state removed - using extension-only auth
 
   // Initialize auth on mount
   useEffect(() => {
@@ -239,16 +239,7 @@ function App() {
                 <span className="ml-2 hidden sm:inline text-purple-400">Vendoo</span>
               </Button>
 
-              <Button
-                onClick={() => setIsMarketplaceImporterOpen(true)}
-                variant="secondary"
-                size="lg"
-                title="Import from eBay, Poshmark, Depop"
-                className="border-blue-600 bg-blue-600/20 hover:bg-blue-600/30"
-              >
-                <ShoppingCart className="h-5 w-5 text-blue-400" />
-                <span className="ml-2 hidden sm:inline text-blue-400">Markets</span>
-              </Button>
+              {/* MarketplaceImporter button removed - using Chrome extension for cookie-based auth */}
 
               <Button
                 onClick={handleBulkPrint}
@@ -484,14 +475,7 @@ function App() {
         onClose={() => setIsVendooImporterOpen(false)}
       />
 
-      {/* Marketplace Importer Modal */}
-      <MarketplaceImporter
-        open={isMarketplaceImporterOpen}
-        onOpenChange={setIsMarketplaceImporterOpen}
-        onImportComplete={() => {
-          initializeStore();
-        }}
-      />
+      {/* Marketplace Importer Modal - REMOVED: Using Chrome extension for cookie-based auth only */}
 
       {/* Footer */}
       <footer className="border-t border-gray-700 bg-gray-900/50 py-4">
