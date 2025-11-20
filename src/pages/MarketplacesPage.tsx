@@ -142,52 +142,35 @@ export const MarketplacesPage: React.FC = () => {
   };
 
   const handleDownloadExtension = () => {
-    // Create a blob with installation instructions
-    const instructions = `# Virtual Closet Chrome Extension
+    const extensionPath = 'C:\\Users\\mickk\\closet-2\\extension';
+    
+    // Copy path to clipboard
+    navigator.clipboard.writeText(extensionPath).then(() => {
+      toast.success('📋 Extension path copied to clipboard!', {
+        description: extensionPath,
+        duration: 10000,
+      });
+    }).catch(() => {
+      toast.info('📁 Extension Location', {
+        description: extensionPath,
+        duration: 10000,
+      });
+    });
+    
+    // Show installation steps
+    setTimeout(() => {
+      toast.info('🔧 Installation Steps', {
+        description: '1. Go to chrome://extensions/\n2. Enable "Developer mode" (top right)\n3. Click "Load unpacked"\n4. Paste the path from clipboard (or navigate to it)\n5. Click "Select Folder"',
+        duration: 20000,
+      });
+    }, 500);
 
-## Installation Instructions
-
-### Windows:
-1. Run: install-extension.bat
-2. Go to chrome://extensions/
-3. Enable "Developer mode"
-4. Click "Load unpacked"
-5. Select the "VirtualCloset-Extension" folder from Downloads
-
-### Mac/Linux:
-1. Run: chmod +x install-extension.sh && ./install-extension.sh
-2. Go to chrome://extensions/
-3. Enable "Developer mode"
-4. Click "Load unpacked"
-5. Select the "VirtualCloset-Extension" folder from Downloads
-
-## How to Use:
-1. Open the extension and paste your auth token
-2. Visit eBay, Poshmark, or Depop
-3. Extension automatically syncs cookies
-4. Return here to see connection status
-
-## Get Your Auth Token:
-1. Press F12 in this app
-2. Go to Application > Local Storage
-3. Copy the value of "sb-access-token"
-
----
-For more help, check extension/README.md in the project folder.
-`;
-
-    const blob = new Blob([instructions], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'EXTENSION_INSTALL_INSTRUCTIONS.md';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    toast.success('Installation instructions downloaded! Check your Downloads folder.');
-    toast.info('Extension files are in: C:\\Users\\mickk\\closet-2\\extension', { duration: 5000 });
+    setTimeout(() => {
+      toast.info('🔑 Get Your Auth Token', {
+        description: 'Press F12 → Application tab → Local Storage → Copy "sb-access-token" value',
+        duration: 20000,
+      });
+    }, 1000);
   };
 
   const formatTimeAgo = (dateString?: string) => {
@@ -477,12 +460,16 @@ For more help, check extension/README.md in the project folder.
             <Chrome className="h-5 w-5 text-purple-400" />
             How to Connect with Extension
           </h3>
+          <div className="mb-4 p-3 bg-blue-900/30 border border-blue-700/50 rounded-lg">
+            <div className="text-xs font-semibold text-blue-300 mb-1">📁 Extension Location:</div>
+            <code className="text-xs text-blue-200 break-all">C:\Users\mickk\closet-2\extension</code>
+          </div>
           <ol className="space-y-3 text-sm text-gray-300">
             <li className="flex gap-3">
               <span className="text-purple-400 font-bold min-w-[24px]">1.</span>
               <div>
-                <div className="font-semibold text-white mb-1">Download & Install Extension</div>
-                <div>Click "Download Extension" above, follow the instructions to install in Chrome</div>
+                <div className="font-semibold text-white mb-1">Install Extension</div>
+                <div>Click "Download Extension" button to copy the path, then load it in Chrome</div>
               </div>
             </li>
             <li className="flex gap-3">
