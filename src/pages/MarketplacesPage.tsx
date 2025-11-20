@@ -65,6 +65,20 @@ export const MarketplacesPage: React.FC = () => {
     const storedId = localStorage.getItem('extension_id');
     if (storedId) setExtensionId(storedId);
     loadConnections();
+
+    // Listen for extension ID broadcast
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'CLOSET_EXTENSION_ID' && event.data.extensionId) {
+        const id = event.data.extensionId;
+        if (id !== extensionId) {
+          setExtensionId(id);
+          localStorage.setItem('extension_id', id);
+          toast.success('Extension detected automatically!');
+        }
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
   }, []);
 
   const handleExtensionIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -299,20 +313,29 @@ export const MarketplacesPage: React.FC = () => {
           <div className="mt-6 bg-gray-800/50 rounded-lg p-4 border border-gray-700/50">
             <div className="flex items-center gap-4">
               <div className="p-2 bg-purple-500/10 rounded-lg">
-                <Key className="h-6 w-6 text-purple-400" />
+                {extensionId ? <CheckCircle className="h-6 w-6 text-green-400" /> : <Key className="h-6 w-6 text-purple-400" />}
               </div>
               <div className="flex-1">
-                <h3 className="text-white font-semibold mb-1">Extension Configuration</h3>
-                <p className="text-sm text-gray-400 mb-2">
-                  Enter the ID from <span className="font-mono bg-gray-900 px-1 rounded text-gray-300">chrome://extensions</span> to allow connection
-                </p>
-                <input
-                  type="text"
-                  value={extensionId}
-                  onChange={handleExtensionIdChange}
-                  placeholder="e.g. abcdefghijklmnopqrstuvwxyz123456"
-                  className="w-full max-w-xl bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 transition-colors font-mono text-sm"
-                />
+                <h3 className="text-white font-semibold mb-1">Extension Connection</h3>
+                {extensionId ? (
+                  <div className="text-sm text-green-400 flex items-center gap-2">
+                     Extension linked successfully. ID: <span className="font-mono bg-gray-900 px-1 rounded text-gray-400">{extensionId.substring(0, 8)}...</span>
+                     <button onClick={() => setExtensionId('')} className="text-xs text-gray-500 underline hover:text-gray-300">Change</button>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm text-gray-400 mb-2">
+                      Install the extension and reload this page to auto-connect. Or enter ID manually:
+                    </p>
+                    <input
+                      type="text"
+                      value={extensionId}
+                      onChange={handleExtensionIdChange}
+                      placeholder="Extension ID (auto-detected if installed)"
+                      className="w-full max-w-xl bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 transition-colors font-mono text-sm"
+                    />
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -569,8 +592,8 @@ export const MarketplacesPage: React.FC = () => {
             <li className="flex gap-3">
               <span className="text-purple-400 font-bold min-w-[24px]">2.</span>
               <div>
-                <div className="font-semibold text-white mb-1">Configure ID</div>
-                <div>Copy the ID from the extensions page and paste it into the input box above.</div>
+                <div className="font-semibold text-white mb-1">Auto-Connect</div>
+                <div>Reload this page. The extension should automatically connect. If not, enter the ID manually.</div>
               </div>
             </li>
             <li className="flex gap-3">

@@ -46,6 +46,14 @@
       ],
       "js": ["content.js"],
       "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "http://localhost:5173/*",
+        "https://*.vercel.app/*"
+      ],
+      "js": ["app-content.js"],
+      "run_at": "document_end"
     }
   ]
 }
