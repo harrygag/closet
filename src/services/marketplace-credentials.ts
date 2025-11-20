@@ -46,7 +46,7 @@ export async function saveMarketplaceCredentials(
   user: User
 ): Promise<{ success: boolean; error?: string; data?: MarketplaceCredential }> {
   try {
-    const { marketplace, cookies, email, autoSynced = false } = payload;
+    const { marketplace, cookies, email } = payload;
 
     if (!cookies || cookies.length === 0) {
       return { success: false, error: 'No cookies provided' };
@@ -75,7 +75,7 @@ export async function saveMarketplaceCredentials(
     };
 
     // Check if credentials already exist for this marketplace
-    const { data: existing, error: fetchError } = await supabase
+    const { data: existing, error: fetchError } = await (supabase as any)
       .from('user_marketplace_credentials')
       .select('*')
       .eq('user_id', user.id)
@@ -91,7 +91,7 @@ export async function saveMarketplaceCredentials(
 
     if (existing) {
       // Update existing credentials
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('user_marketplace_credentials')
         .update(credentialData)
         .eq('id', existing.id)
@@ -104,7 +104,7 @@ export async function saveMarketplaceCredentials(
       console.log(`[MarketplaceCredentials] Updated ${marketplace} credentials (${cookies.length} cookies)`);
     } else {
       // Insert new credentials
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('user_marketplace_credentials')
         .insert(credentialData)
         .select()
@@ -136,7 +136,7 @@ export async function getMarketplaceCredentials(
       return { success: false, error: 'Not authenticated' };
     }
 
-    let query = supabase
+    let query = (supabase as any)
       .from('user_marketplace_credentials')
       .select('*')
       .eq('user_id', user.id)
@@ -201,7 +201,7 @@ export async function deleteMarketplaceCredentials(
       return { success: false, error: 'Not authenticated' };
     }
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('user_marketplace_credentials')
       .update({ is_active: false })
       .eq('user_id', user.id)
