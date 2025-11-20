@@ -73,31 +73,61 @@ export const MarketplacesPage: React.FC = () => {
   // Check for extension and auto-connect
   useEffect(() => {
     const checkExtension = async () => {
-      // Check if extension content script has marked the page
-      const isInstalled = document.documentElement.getAttribute('data-extension-installed') === 'true';
+      // Check for the marker element injected by content script
+      const isInstalled = !!document.getElementById('vc-extension-installed');
       setExtensionDetected(isInstalled);
 
       if (isInstalled) {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.access_token) {
-          console.log('Extension detected, auto-sending auth token...');
-          window.dispatchEvent(new CustomEvent('CLOSET_SEND_TOKEN', { 
-            detail: session.access_token 
-          }));
-          
-          // Listen for confirmation
-          window.addEventListener('CLOSET_EXTENSION_CONNECTED', () => {
-            toast.success('Extension connected automatically!');
-          }, { once: true });
+          // Use postMessage for robust communication
+          window.postMessage({
+            type: 'CLOSET_SEND_TOKEN',
+            token: session.access_token
+          }, '*');
         }
       }
     };
 
+    // Listen for success response
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'CLOSET_EXTENSION_CONNECTED') {
+        toast.success('Extension connected automatically!');
+      }
+    };
+    window.addEventListener('message', handleMessage);
+
     checkExtension();
-    // Re-check periodically in case extension loads late
+    // Re-check periodically
     const interval = setInterval(checkExtension, 1000);
-    return () => clearInterval(interval);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('message', handleMessage);
+    };
   }, []);
+
+  const handleDownloadExtension = () => {
+    // Trigger direct download of the ZIP file
+    const link = document.createElement('a');
+    link.href = '/extension.zip';
+    link.download = 'VirtualCloset-Extension.zip';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success('Downloading extension...', {
+      description: 'Unzip this folder to install in Chrome',
+    });
+    
+    // Show installation steps
+    setTimeout(() => {
+      toast.info('🔧 Installation Steps', {
+        description: '1. Unzip the downloaded file\n2. Go to chrome://extensions/\n3. Enable "Developer mode"\n4. Click "Load unpacked"\n5. Select the unzipped folder',
+        duration: 20000,
+      });
+    }, 1000);
+  };
 
   const loadConnections = async () => {
     try {
@@ -169,31 +199,6 @@ export const MarketplacesPage: React.FC = () => {
 
   const openMarketplace = (url: string) => {
     window.open(url, '_blank', 'noopener,noreferrer');
-  };
-
-  const handleDownloadExtension = () => {
-    const extensionPath = 'C:\\Users\\mickk\\closet-2\\extension';
-    
-    // Copy path to clipboard
-    navigator.clipboard.writeText(extensionPath).then(() => {
-      toast.success('📋 Extension path copied to clipboard!', {
-        description: extensionPath,
-        duration: 10000,
-      });
-    }).catch(() => {
-      toast.info('📁 Extension Location', {
-        description: extensionPath,
-        duration: 10000,
-      });
-    });
-    
-    // Show installation steps
-    setTimeout(() => {
-      toast.info('🔧 Installation Steps', {
-        description: '1. Go to chrome://extensions/\n2. Enable "Developer mode"\n3. Load unpacked extension\n4. Refresh this page to auto-connect',
-        duration: 20000,
-      });
-    }, 500);
   };
 
   const formatTimeAgo = (dateString?: string) => {
@@ -483,16 +488,12 @@ export const MarketplacesPage: React.FC = () => {
             <Chrome className="h-5 w-5 text-purple-400" />
             How to Connect with Extension
           </h3>
-          <div className="mb-4 p-3 bg-blue-900/30 border border-blue-700/50 rounded-lg">
-            <div className="text-xs font-semibold text-blue-300 mb-1">📁 Extension Location:</div>
-            <code className="text-xs text-blue-200 break-all">C:\Users\mickk\closet-2\extension</code>
-          </div>
           <ol className="space-y-3 text-sm text-gray-300">
             <li className="flex gap-3">
               <span className="text-purple-400 font-bold min-w-[24px]">1.</span>
               <div>
                 <div className="font-semibold text-white mb-1">Install Extension</div>
-                <div>Click "Download Extension" button to copy the path, then load it in Chrome</div>
+                <div>Click "Download Extension" above to get the ZIP file. Unzip it, then load the folder in Chrome.</div>
               </div>
             </li>
             <li className="flex gap-3">
