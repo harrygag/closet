@@ -555,6 +555,38 @@ export interface Database {
           created_at?: string
         }
       }
+      user_marketplace_credentials: {
+        Row: {
+          user_uuid: string
+          marketplace: string
+          cookies_encrypted: string | null
+          last_validated_at: string | null
+          expires_at: string | null
+          email: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          user_uuid: string
+          marketplace: string
+          cookies_encrypted?: string | null
+          last_validated_at?: string | null
+          expires_at?: string | null
+          email?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          user_uuid?: string
+          marketplace?: string
+          cookies_encrypted?: string | null
+          last_validated_at?: string | null
+          expires_at?: string | null
+          email?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never

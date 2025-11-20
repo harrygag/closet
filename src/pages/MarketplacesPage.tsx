@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { ExternalLink, CheckCircle, XCircle, RefreshCw, Cookie, Shield, Clock, AlertCircle, Chrome } from 'lucide-react';
+import { ExternalLink, CheckCircle, XCircle, RefreshCw, Cookie, Shield, Clock, AlertCircle, Chrome, Key, HelpCircle } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { supabase } from '../lib/supabase/client';
 import { toast } from 'sonner';
 
 interface MarketplaceConnection {
-  marketplace: 'ebay' | 'poshmark' | 'depop' | 'vendoo';
+  marketplace: 'ebay' | 'poshmark' | 'depop';
   connected: boolean;
   lastValidated?: string;
   expiresAt?: string;
@@ -51,82 +51,26 @@ const marketplaceData = {
     textColor: 'text-red-400',
     icon: '🛍️',
     description: 'Fashion marketplace community',
-  },
-  vendoo: {
-    name: 'Vendoo',
-    url: 'https://www.vendoo.com',
-    color: 'from-blue-500 to-cyan-500',
-    bgColor: 'bg-blue-500/10',
-    borderColor: 'border-blue-500/30',
-    textColor: 'text-blue-400',
-    icon: '📦',
-    description: 'Crosslist to multiple platforms',
-  },
+  }
 };
 
 export const MarketplacesPage: React.FC = () => {
   const [connections, setConnections] = useState<MarketplaceConnection[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [extensionDetected, setExtensionDetected] = useState(false);
+  const [extensionId, setExtensionId] = useState('');
+  const [syncing, setSyncing] = useState<string | null>(null);
 
-  // Check for extension and auto-connect
   useEffect(() => {
-    const checkExtension = async () => {
-      // Check for the marker element injected by content script
-      const isInstalled = !!document.getElementById('vc-extension-installed');
-      setExtensionDetected(isInstalled);
-
-      if (isInstalled) {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.access_token) {
-          // Use postMessage for robust communication
-          window.postMessage({
-            type: 'CLOSET_SEND_TOKEN',
-            token: session.access_token
-          }, '*');
-        }
-      }
-    };
-
-    // Listen for success response
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data.type === 'CLOSET_EXTENSION_CONNECTED') {
-        toast.success('Extension connected automatically!');
-      }
-    };
-    window.addEventListener('message', handleMessage);
-
-    checkExtension();
-    // Re-check periodically
-    const interval = setInterval(checkExtension, 1000);
-    
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('message', handleMessage);
-    };
+    const storedId = localStorage.getItem('extension_id');
+    if (storedId) setExtensionId(storedId);
+    loadConnections();
   }, []);
 
-  const handleDownloadExtension = () => {
-    // Trigger direct download of the ZIP file
-    const link = document.createElement('a');
-    link.href = '/extension.zip';
-    link.download = 'VirtualCloset-Extension.zip';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    toast.success('Downloading extension...', {
-      description: 'Unzip this folder to install in Chrome',
-    });
-    
-    // Show installation steps
-    setTimeout(() => {
-      toast.info('🔧 Installation Steps', {
-        description: '1. Unzip the downloaded file\n2. Go to chrome://extensions/\n3. Enable "Developer mode"\n4. Click "Load unpacked"\n5. Select the unzipped folder',
-        duration: 20000,
-      });
-    }, 1000);
+  const handleExtensionIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value.trim();
+    setExtensionId(newValue);
+    localStorage.setItem('extension_id', newValue);
   };
 
   const loadConnections = async () => {
@@ -142,7 +86,7 @@ export const MarketplacesPage: React.FC = () => {
       if (error) throw error;
 
       // Map all marketplaces to connection status
-      const allMarketplaces: MarketplaceConnection[] = ['ebay', 'poshmark', 'depop', 'vendoo'].map(mp => {
+      const allMarketplaces: MarketplaceConnection[] = ['ebay', 'poshmark', 'depop'].map(mp => {
         const cred = (data as MarketplaceCredential[] | null)?.find(c => c.marketplace === mp);
         const now = new Date();
         const expiresAt = cred?.expires_at ? new Date(cred.expires_at) : null;
@@ -164,6 +108,79 @@ export const MarketplacesPage: React.FC = () => {
       toast.error('Failed to load marketplace connections');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSyncCookies = async (marketplace: string) => {
+    if (!extensionId) {
+      toast.error('Please enter your Extension ID first');
+      return;
+    }
+
+    setSyncing(marketplace);
+    const toastId = toast.loading(`Connecting to extension for ${marketplaceData[marketplace as keyof typeof marketplaceData].name}...`);
+
+    try {
+      // Check if chrome runtime is available
+      if (!(window as any).chrome || !(window as any).chrome.runtime) {
+        throw new Error('Chrome runtime not found. Are you in Chrome?');
+      }
+
+      // Send message to extension
+      (window as any).chrome.runtime.sendMessage(
+        extensionId,
+        { type: 'GET_MARKETPLACE_COOKIES', marketplace },
+        async (response: any) => {
+          // Handle Chrome runtime errors (e.g., extension not installed or wrong ID)
+          if ((window as any).chrome.runtime.lastError) {
+            console.error('Extension Error:', (window as any).chrome.runtime.lastError);
+            toast.error('Could not connect to extension', {
+              id: toastId,
+              description: 'Check if the Extension ID is correct and the extension is installed.'
+            });
+            setSyncing(null);
+            return;
+          }
+
+          if (response && response.success) {
+            try {
+              const { data: { session } } = await supabase.auth.getSession();
+              if (!session) throw new Error('No session found');
+
+              // Upsert credentials to Supabase
+              const { error } = await (supabase
+                .from('user_marketplace_credentials') as any)
+                .upsert({
+                  user_uuid: session.user.id,
+                  marketplace: marketplace,
+                  cookies_encrypted: JSON.stringify(response.cookies),
+                  last_validated_at: new Date().toISOString(),
+                  expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Approx 30 days
+                }, {
+                  onConflict: 'user_uuid,marketplace'
+                });
+
+              if (error) throw error;
+
+              toast.success(`Successfully synced ${marketplaceData[marketplace as keyof typeof marketplaceData].name}!`, { id: toastId });
+              loadConnections();
+            } catch (err: any) {
+              console.error('Supabase Error:', err);
+              toast.error('Failed to save credentials', { id: toastId, description: err.message });
+            }
+          } else {
+            toast.error('Sync failed', { 
+              id: toastId, 
+              description: response?.error || 'No cookies found. Please visit the marketplace first.' 
+            });
+          }
+          setSyncing(null);
+        }
+      );
+    } catch (error: any) {
+      console.error('Sync Error:', error);
+      toast.error('Sync error', { id: toastId, description: error.message });
+      setSyncing(null);
     }
   };
 
@@ -201,6 +218,19 @@ export const MarketplacesPage: React.FC = () => {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
+  const handleDownloadExtension = () => {
+    const link = document.createElement('a');
+    link.href = '/extension.zip';
+    link.download = 'VirtualCloset-Extension.zip';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success('Downloading extension...', {
+      description: 'Unzip this folder to install in Chrome',
+    });
+  };
+
   const formatTimeAgo = (dateString?: string) => {
     if (!dateString) return 'Never';
     const date = new Date(dateString);
@@ -226,10 +256,6 @@ export const MarketplacesPage: React.FC = () => {
     return `${Math.floor(seconds / 86400)}d`;
   };
 
-  useEffect(() => {
-    loadConnections();
-  }, []);
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -246,7 +272,7 @@ export const MarketplacesPage: React.FC = () => {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-3xl font-bold text-white mb-2">🔗 Marketplaces</h1>
-              <p className="text-gray-400">Cookie-based authentication via Chrome extension</p>
+              <p className="text-gray-400">Passive cookie sync via Chrome extension</p>
             </div>
             <div className="flex gap-3">
               <Button
@@ -266,6 +292,28 @@ export const MarketplacesPage: React.FC = () => {
                 <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
                 Refresh
               </Button>
+            </div>
+          </div>
+
+          {/* Extension Configuration */}
+          <div className="mt-6 bg-gray-800/50 rounded-lg p-4 border border-gray-700/50">
+            <div className="flex items-center gap-4">
+              <div className="p-2 bg-purple-500/10 rounded-lg">
+                <Key className="h-6 w-6 text-purple-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-white font-semibold mb-1">Extension Configuration</h3>
+                <p className="text-sm text-gray-400 mb-2">
+                  Enter the ID from <span className="font-mono bg-gray-900 px-1 rounded text-gray-300">chrome://extensions</span> to allow connection
+                </p>
+                <input
+                  type="text"
+                  value={extensionId}
+                  onChange={handleExtensionIdChange}
+                  placeholder="e.g. abcdefghijklmnopqrstuvwxyz123456"
+                  className="w-full max-w-xl bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 transition-colors font-mono text-sm"
+                />
+              </div>
             </div>
           </div>
 
@@ -298,6 +346,7 @@ export const MarketplacesPage: React.FC = () => {
         {connections.map((connection) => {
           const info = marketplaceData[connection.marketplace];
           const isExpired = connection.expiresAt && new Date(connection.expiresAt) < new Date();
+          const isSyncing = syncing === connection.marketplace;
           
           return (
             <div
@@ -390,6 +439,16 @@ export const MarketplacesPage: React.FC = () => {
                       {/* Actions */}
                       <div className="flex gap-3 pt-2">
                         <Button
+                          onClick={() => handleSyncCookies(connection.marketplace)}
+                          variant="primary"
+                          size="sm"
+                          disabled={isSyncing}
+                          className="flex-1 flex items-center justify-center gap-2"
+                        >
+                          <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                          {isSyncing ? 'Syncing...' : 'Re-Sync Cookies'}
+                        </Button>
+                        <Button
                           onClick={() => openMarketplace(info.url)}
                           variant="secondary"
                           size="sm"
@@ -417,12 +476,22 @@ export const MarketplacesPage: React.FC = () => {
                           <span className="font-semibold">Connection Expired</span>
                         </div>
                         <p className="text-sm text-gray-300 mb-4">
-                          Your cookies have expired. Visit {info.name} with the extension to reconnect automatically.
+                          Your cookies have expired. Visit {info.name} to refresh them, then click Re-Sync.
                         </p>
                         <div className="flex gap-3">
+                           <Button
+                            onClick={() => handleSyncCookies(connection.marketplace)}
+                            variant="primary"
+                            size="sm"
+                            disabled={isSyncing}
+                            className="flex-1 flex items-center justify-center gap-2"
+                          >
+                            <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                            {isSyncing ? 'Syncing...' : 'Re-Sync'}
+                          </Button>
                           <Button
                             onClick={() => openMarketplace(info.url)}
-                            variant="primary"
+                            variant="secondary"
                             size="sm"
                             className="flex-1 flex items-center justify-center gap-2"
                           >
@@ -449,17 +518,18 @@ export const MarketplacesPage: React.FC = () => {
                           <span className="font-semibold">Not Connected</span>
                         </div>
                         <p className="text-sm text-gray-400 mb-4">
-                          Install the Chrome extension and visit {info.name} while logged in to connect automatically.
+                          Install extension, visit {info.name}, then click Sync.
                         </p>
                         <div className="flex gap-3">
                           <Button
-                            onClick={handleDownloadExtension}
+                            onClick={() => handleSyncCookies(connection.marketplace)}
                             variant="primary"
                             size="sm"
+                            disabled={isSyncing}
                             className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600"
                           >
-                            <Chrome className="h-4 w-4" />
-                            Download Extension
+                            <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                            {isSyncing ? 'Syncing...' : 'Sync Cookies'}
                           </Button>
                           <Button
                             onClick={() => openMarketplace(info.url)}
@@ -485,51 +555,39 @@ export const MarketplacesPage: React.FC = () => {
       <div className="p-6 pb-24">
         <div className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 border border-purple-700/30 rounded-xl p-6">
           <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-            <Chrome className="h-5 w-5 text-purple-400" />
-            How to Connect with Extension
+            <HelpCircle className="h-5 w-5 text-purple-400" />
+            How to Connect
           </h3>
           <ol className="space-y-3 text-sm text-gray-300">
             <li className="flex gap-3">
               <span className="text-purple-400 font-bold min-w-[24px]">1.</span>
               <div>
                 <div className="font-semibold text-white mb-1">Install Extension</div>
-                <div>Click "Download Extension" above to get the ZIP file. Unzip it, then load the folder in Chrome.</div>
+                <div>Click "Download Extension" above. Unzip and load in <span className="font-mono bg-gray-900 px-1 rounded">chrome://extensions</span></div>
               </div>
             </li>
             <li className="flex gap-3">
               <span className="text-purple-400 font-bold min-w-[24px]">2.</span>
               <div>
-                <div className="font-semibold text-white mb-1">Auto-Connect</div>
-                <div>
-                  {extensionDetected ? (
-                    <span className="text-green-400 flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4" />
-                      Extension detected & connected!
-                    </span>
-                  ) : (
-                    <span>Refresh this page after installing. We'll automatically send your credentials to the extension.</span>
-                  )}
-                </div>
+                <div className="font-semibold text-white mb-1">Configure ID</div>
+                <div>Copy the ID from the extensions page and paste it into the input box above.</div>
               </div>
             </li>
             <li className="flex gap-3">
               <span className="text-purple-400 font-bold min-w-[24px]">3.</span>
               <div>
-                <div className="font-semibold text-white mb-1">Visit Marketplaces</div>
-                <div>Go to eBay, Poshmark, or Depop - extension auto-syncs your cookies!</div>
+                <div className="font-semibold text-white mb-1">Visit Marketplace</div>
+                <div>Log in to eBay, Poshmark, or Depop in another tab. The extension will capture your session.</div>
+              </div>
+            </li>
+            <li className="flex gap-3">
+              <span className="text-purple-400 font-bold min-w-[24px]">4.</span>
+              <div>
+                <div className="font-semibold text-white mb-1">Sync</div>
+                <div>Come back here and click "Sync Cookies" on the marketplace card.</div>
               </div>
             </li>
           </ol>
-          
-          <div className="mt-4 pt-4 border-t border-purple-700/30">
-            <div className="flex items-start gap-2 text-xs text-gray-400">
-              <Cookie className="h-4 w-4 text-purple-400 mt-0.5 shrink-0" />
-              <p>
-                <strong className="text-white">Why cookies?</strong> Cookies provide secure, password-free authentication.
-                Your cookies are encrypted and automatically refreshed. No passwords stored!
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     </div>

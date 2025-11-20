@@ -11,10 +11,14 @@
   "host_permissions": [
     "https://*.ebay.com/*",
     "https://*.poshmark.com/*",
-    "https://*.depop.com/*",
-    "https://*.vendoo.com/*",
-    "http://localhost:5173/*"
+    "https://*.depop.com/*"
   ],
+  "externally_connectable": {
+    "matches": [
+      "http://localhost:5173/*",
+      "https://*.vercel.app/*"
+    ]
+  },
   "background": {
     "service_worker": "background.js"
   },
@@ -38,20 +42,10 @@
       "matches": [
         "https://*.ebay.com/*",
         "https://*.poshmark.com/*",
-        "https://*.depop.com/*",
-        "https://*.vendoo.com/*"
+        "https://*.depop.com/*"
       ],
       "js": ["content.js"],
       "run_at": "document_idle"
-    },
-    {
-      "matches": [
-        "http://localhost:5173/*",
-        "https://*.vercel.app/*"
-      ],
-      "js": ["app-content.js"],
-      "run_at": "document_end"
     }
   ]
 }
-
