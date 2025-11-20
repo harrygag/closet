@@ -23,6 +23,14 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
 // Listen for messages from content script or popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'SAVE_TOKEN') {
+    chrome.storage.local.set({ authToken: message.token }, () => {
+      console.log('[VirtualCloset] Token saved from web app');
+      sendResponse({ success: true });
+    });
+    return true; // Keep channel open
+  }
+
   if (message.type === 'SYNC_MARKETPLACE') {
     handleManualSync(message.marketplace)
       .then(result => sendResponse(result))

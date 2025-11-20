@@ -68,6 +68,36 @@ export const MarketplacesPage: React.FC = () => {
   const [connections, setConnections] = useState<MarketplaceConnection[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [extensionDetected, setExtensionDetected] = useState(false);
+
+  // Check for extension and auto-connect
+  useEffect(() => {
+    const checkExtension = async () => {
+      // Check if extension content script has marked the page
+      const isInstalled = document.documentElement.getAttribute('data-extension-installed') === 'true';
+      setExtensionDetected(isInstalled);
+
+      if (isInstalled) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          console.log('Extension detected, auto-sending auth token...');
+          window.dispatchEvent(new CustomEvent('CLOSET_SEND_TOKEN', { 
+            detail: session.access_token 
+          }));
+          
+          // Listen for confirmation
+          window.addEventListener('CLOSET_EXTENSION_CONNECTED', () => {
+            toast.success('Extension connected automatically!');
+          }, { once: true });
+        }
+      }
+    };
+
+    checkExtension();
+    // Re-check periodically in case extension loads late
+    const interval = setInterval(checkExtension, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const loadConnections = async () => {
     try {
@@ -160,17 +190,10 @@ export const MarketplacesPage: React.FC = () => {
     // Show installation steps
     setTimeout(() => {
       toast.info('🔧 Installation Steps', {
-        description: '1. Go to chrome://extensions/\n2. Enable "Developer mode" (top right)\n3. Click "Load unpacked"\n4. Paste the path from clipboard (or navigate to it)\n5. Click "Select Folder"',
+        description: '1. Go to chrome://extensions/\n2. Enable "Developer mode"\n3. Load unpacked extension\n4. Refresh this page to auto-connect',
         duration: 20000,
       });
     }, 500);
-
-    setTimeout(() => {
-      toast.info('🔑 Get Your Auth Token', {
-        description: 'Press F12 → Application tab → Local Storage → Copy "sb-access-token" value',
-        duration: 20000,
-      });
-    }, 1000);
   };
 
   const formatTimeAgo = (dateString?: string) => {
@@ -475,19 +498,21 @@ export const MarketplacesPage: React.FC = () => {
             <li className="flex gap-3">
               <span className="text-purple-400 font-bold min-w-[24px]">2.</span>
               <div>
-                <div className="font-semibold text-white mb-1">Get Your Auth Token</div>
-                <div>Press F12 → Application tab → Local Storage → Copy "sb-access-token"</div>
+                <div className="font-semibold text-white mb-1">Auto-Connect</div>
+                <div>
+                  {extensionDetected ? (
+                    <span className="text-green-400 flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4" />
+                      Extension detected & connected!
+                    </span>
+                  ) : (
+                    <span>Refresh this page after installing. We'll automatically send your credentials to the extension.</span>
+                  )}
+                </div>
               </div>
             </li>
             <li className="flex gap-3">
               <span className="text-purple-400 font-bold min-w-[24px]">3.</span>
-              <div>
-                <div className="font-semibold text-white mb-1">Activate Extension</div>
-                <div>Open extension popup, paste your token, click "Save Token"</div>
-              </div>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-purple-400 font-bold min-w-[24px]">4.</span>
               <div>
                 <div className="font-semibold text-white mb-1">Visit Marketplaces</div>
                 <div>Go to eBay, Poshmark, or Depop - extension auto-syncs your cookies!</div>
