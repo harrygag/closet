@@ -32,6 +32,7 @@
     "@sparticuz/chromium": "^141.0.0",
     "@supabase/supabase-js": "^2.75.0",
     "@use-gesture/react": "^10.3.1",
+    "@vercel/analytics": "^1.5.0",
     "@zxing/library": "^0.21.3",
     "axios": "^1.12.2",
     "chart.js": "^4.4.1",
