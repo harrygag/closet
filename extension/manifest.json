@@ -1,48 +1,42 @@
 {
   "manifest_version": 3,
-  "name": "Virtual Closet - Marketplace Connector",
-  "version": "1.0.0",
-  "description": "Automatically sync your marketplace cookies to Virtual Closet for seamless scraping",
+  "name": "Virtual Closet Cookie Manager",
+  "version": "2.0.0",
+  "description": "Saves and injects marketplace cookies",
+  
   "permissions": [
     "cookies",
     "storage",
-    "tabs"
+    "downloads",
+    "activeTab"
   ],
+  
   "host_permissions": [
-    "https://*.ebay.com/*",
-    "https://*.poshmark.com/*",
-    "https://*.depop.com/*"
+    "*://*.ebay.com/*",
+    "*://*.poshmark.com/*",
+    "*://*.depop.com/*"
   ],
-  "externally_connectable": {
-    "matches": [
-      "http://localhost:5173/*",
-      "https://*.vercel.app/*"
-    ]
-  },
+  
   "background": {
     "service_worker": "background.js"
   },
+  
   "action": {
     "default_popup": "popup.html",
+    "default_title": "Virtual Closet Cookie Manager",
     "default_icon": {
       "16": "icons/icon16.png",
-      "32": "icons/icon32.png",
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     }
   },
-  "icons": {
-    "16": "icons/icon16.png",
-    "32": "icons/icon32.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
-  },
+  
   "content_scripts": [
     {
       "matches": [
-        "https://*.ebay.com/*",
-        "https://*.poshmark.com/*",
-        "https://*.depop.com/*"
+        "*://*.ebay.com/*",
+        "*://*.poshmark.com/*",
+        "*://*.depop.com/*"
       ],
       "js": ["content.js"],
       "run_at": "document_idle"
@@ -50,10 +44,17 @@
     {
       "matches": [
         "http://localhost:5173/*",
+        "http://127.0.0.1:5173/*",
         "https://*.vercel.app/*"
       ],
       "js": ["app-content.js"],
       "run_at": "document_end"
     }
-  ]
+  ],
+  
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
 }

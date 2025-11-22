@@ -1,100 +1,161 @@
-/**
- * Virtual Closet - Marketplace Connector
- * Background Service Worker
- * 
- * Passive Mode:
- * 1. Listens for marketplace visits
- * 2. Saves cookies to local storage
- * 3. Responds to external messages from the web app
- */
+// Extension Service Worker - Cookie Manager
+console.log('[Extension] Service worker started');
 
 const MARKETPLACES = {
-  'ebay.com': { name: 'eBay', key: 'ebay', domain: '.ebay.com' },
-  'poshmark.com': { name: 'Poshmark', key: 'poshmark', domain: '.poshmark.com' },
-  'depop.com': { name: 'Depop', key: 'depop', domain: '.depop.com' }
+  ebay: { domain: '.ebay.com' },
+  poshmark: { domain: '.poshmark.com' },
+  depop: { domain: '.depop.com' }
 };
 
-// Listen for tab updates to detect marketplace visits
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === 'complete' && tab.url) {
-    checkAndCaptureCookies(tab.url);
+// Listen for messages
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log('[Extension] Message received:', message.type);
+  
+  switch (message.type) {
+    case 'SAVE_COOKIES':
+      handleSaveCookies(message.marketplace, sendResponse);
+      return true; // Async response
+      
+    case 'INJECT_COOKIES':
+      handleInjectCookies(message.marketplace, message.cookies, sendResponse);
+      return true;
+      
+    case 'GET_COOKIES':
+      handleGetCookies(message.marketplace, sendResponse);
+      return true;
+      
+    default:
+      sendResponse({ success: false, error: 'Unknown message type' });
+      return false;
   }
 });
 
-// Listen for messages from the Web App (Virtual Closet)
-chrome.runtime.onMessageExternal.addListener((request, sender, sendResponse) => {
-  if (request.type === 'GET_MARKETPLACE_COOKIES') {
-    const marketplaceKey = request.marketplace;
-    
-    if (!marketplaceKey) {
-      sendResponse({ success: false, error: 'No marketplace specified' });
-      return;
-    }
-
-    // Retrieve stored cookies for the requested marketplace
-    chrome.storage.local.get([`${marketplaceKey}_cookies`, `${marketplaceKey}_lastCaptured`], (result) => {
-      const cookies = result[`${marketplaceKey}_cookies`];
-      const lastCaptured = result[`${marketplaceKey}_lastCaptured`];
-
-      if (cookies && cookies.length > 0) {
+/**
+ * Save all cookies from a marketplace domain
+ */
+async function handleSaveCookies(marketplace, sendResponse) {
+  const config = MARKETPLACES[marketplace];
+  if (!config) {
+    sendResponse({ success: false, error: 'Invalid marketplace' });
+    return;
+  }
+  
+  try {
+    // Get all cookies for this domain
+    chrome.cookies.getAll({ domain: config.domain }, (cookies) => {
+      if (chrome.runtime.lastError) {
+        sendResponse({ success: false, error: chrome.runtime.lastError.message });
+        return;
+      }
+      
+      console.log(`[Extension] Saved ${cookies.length} cookies from ${marketplace}`);
+      
+      // Store in chrome.storage
+      const storageKey = `cookies_${marketplace}`;
+      chrome.storage.local.set({
+        [storageKey]: cookies,
+        [`${storageKey}_timestamp`]: Date.now()
+      }, () => {
         sendResponse({ 
           success: true, 
-          cookies: cookies,
-          lastCaptured: lastCaptured
+          cookieCount: cookies.length,
+          marketplace 
         });
-      } else {
-        sendResponse({ success: false, error: 'No cookies found. Please visit the marketplace first.' });
-      }
+      });
+    });
+  } catch (error) {
+    console.error('[Extension] Save error:', error);
+    sendResponse({ success: false, error: error.message });
+  }
+}
+
+/**
+ * Inject cookies into Chrome for a marketplace domain
+ */
+async function handleInjectCookies(marketplace, cookies, sendResponse) {
+  const config = MARKETPLACES[marketplace];
+  if (!config) {
+    sendResponse({ success: false, error: 'Invalid marketplace' });
+    return;
+  }
+  
+  if (!cookies || cookies.length === 0) {
+    sendResponse({ success: false, error: 'No cookies provided' });
+    return;
+  }
+  
+  try {
+    // Use Promise.allSettled to handle all cookies and respond once
+    const promises = cookies.map(cookie => {
+      return new Promise((resolve, reject) => {
+        const cookieDetails = {
+          url: `https://${config.domain.replace(/^\./, '')}`,
+          name: cookie.name,
+          value: cookie.value,
+          domain: cookie.domain,
+          path: cookie.path || '/',
+          secure: cookie.secure !== undefined ? cookie.secure : true,
+          httpOnly: cookie.httpOnly || false,
+          expirationDate: cookie.expirationDate
+        };
+        
+        chrome.cookies.set(cookieDetails, (result) => {
+          if (chrome.runtime.lastError) {
+            console.warn('[Extension] Failed to inject cookie:', cookie.name, chrome.runtime.lastError.message);
+            reject(chrome.runtime.lastError);
+          } else if (result) {
+            resolve(result);
+          } else {
+            console.warn('[Extension] Failed to inject cookie:', cookie.name);
+            reject(new Error('Cookie set returned null'));
+          }
+        });
+      });
     });
     
-    return true; // Keep channel open for async response
-  }
-});
-
-/**
- * Check if the URL matches a marketplace and capture cookies
- */
-async function checkAndCaptureCookies(url) {
-  const marketplace = getMarketplaceFromUrl(url);
-  if (!marketplace) return;
-
-  console.log(`[VirtualCloset] Detected visit to ${marketplace.name}`);
-
-  try {
-    // Get all cookies for the domain
-    const cookies = await chrome.cookies.getAll({ domain: marketplace.domain });
-    
-    if (cookies.length > 0) {
-      // Filter for important auth cookies (basic check)
-      // We store all of them to be safe, as different flows need different cookies
-      const storeKey = `${marketplace.key}_cookies`;
-      const timeKey = `${marketplace.key}_lastCaptured`;
+    Promise.allSettled(promises).then(results => {
+      const injected = results.filter(r => r.status === 'fulfilled').length;
+      const failed = results.filter(r => r.status === 'rejected').length;
       
-      await chrome.storage.local.set({
-        [storeKey]: cookies,
-        [timeKey]: Date.now()
+      console.log(`[Extension] Injected ${injected}/${cookies.length} cookies for ${marketplace}`);
+      sendResponse({ 
+        success: true, 
+        injected, 
+        failed,
+        total: cookies.length
       });
-      
-      console.log(`[VirtualCloset] Captured ${cookies.length} cookies for ${marketplace.name}`);
-    }
+    });
   } catch (error) {
-    console.error(`[VirtualCloset] Error capturing cookies for ${marketplace.name}:`, error);
+    console.error('[Extension] Inject error:', error);
+    sendResponse({ success: false, error: error.message });
   }
 }
 
 /**
- * Identify marketplace from URL
+ * Get saved cookies from storage
  */
-function getMarketplaceFromUrl(url) {
-  for (const [domain, info] of Object.entries(MARKETPLACES)) {
-    if (url.includes(domain)) {
-      return info;
+async function handleGetCookies(marketplace, sendResponse) {
+  const storageKey = `cookies_${marketplace}`;
+  
+  chrome.storage.local.get([storageKey, `${storageKey}_timestamp`], (result) => {
+    if (chrome.runtime.lastError) {
+      sendResponse({ success: false, error: chrome.runtime.lastError.message });
+      return;
     }
-  }
-  return null;
+    
+    const cookies = result[storageKey] || [];
+    const timestamp = result[`${storageKey}_timestamp`] || null;
+    
+    sendResponse({ 
+      success: true, 
+      cookies,
+      timestamp,
+      count: cookies.length
+    });
+  });
 }
 
-// Log installation
+// Log when service worker activates
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('[VirtualCloset] Extension installed - Passive Mode');
+  console.log('[Extension] Installed/Updated');
 });
