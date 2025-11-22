@@ -1,0 +1,25 @@
+{
+  "timestamp": "2025-11-22T03:38:17.315Z",
+  "files": [
+    {
+      "name": ".env",
+      "exists": true,
+      "critical": true
+    },
+    {
+      "name": "tokens.json",
+      "exists": false,
+      "critical": false
+    },
+    {
+      "name": "imported-inventory.json",
+      "exists": false,
+      "critical": false
+    },
+    {
+      "name": "logs",
+      "exists": false,
+      "critical": false
+    }
+  ]
+}

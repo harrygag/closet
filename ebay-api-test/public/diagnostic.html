@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>eBay OAuth Diagnostic Tool</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      max-width: 900px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #0a0a0a;
+      color: #0f0;
+    }
+    .header {
+      border: 2px solid #0f0;
+      padding: 20px;
+      margin-bottom: 20px;
+      background: #001100;
+    }
+    .section {
+      border: 1px solid #0a0;
+      padding: 15px;
+      margin: 15px 0;
+      background: #000a00;
+    }
+    .good { color: #0f0; }
+    .bad { color: #f00; }
+    .warn { color: #ff0; }
+    button {
+      background: #0f0;
+      color: #000;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      margin: 5px;
+    }
+    button:hover {
+      background: #0c0;
+    }
+    pre {
+      background: #000;
+      padding: 10px;
+      overflow-x: auto;
+      border-left: 3px solid #0f0;
+    }
+    .step {
+      margin: 10px 0;
+      padding: 10px;
+      border-left: 3px solid #0a0;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🔧 eBay OAuth Diagnostic Tool</h1>
+    <p>This tool will help diagnose why OAuth isn't completing.</p>
+  </div>
+
+  <div class="section">
+    <h2>📊 Current Configuration</h2>
+    <div id="config"></div>
+  </div>
+
+  <div class="section">
+    <h2>🧪 Test OAuth Flow</h2>
+    <p>Click to open OAuth popup and see what happens:</p>
+    <button onclick="testOAuth()">🔐 Test OAuth (Open Popup)</button>
+    <div id="popup-status" style="margin-top: 10px;"></div>
+  </div>
+
+  <div class="section">
+    <h2>📡 Connection Test</h2>
+    <button onclick="testConnection()">Test Server Connection</button>
+    <div id="connection-result"></div>
+  </div>
+
+  <div class="section">
+    <h2>📝 Diagnostic Log</h2>
+    <pre id="log"></pre>
+  </div>
+
+  <div class="section">
+    <h2>✅ Fix Checklist</h2>
+    <div id="checklist"></div>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin;
+    
+    function log(msg, type = 'info') {
+      const logEl = document.getElementById('log');
+      const timestamp = new Date().toLocaleTimeString();
+      const color = type === 'error' ? '#f00' : type === 'success' ? '#0f0' : type === 'warn' ? '#ff0' : '#0f0';
+      logEl.innerHTML += `<span style="color: ${color}">[${timestamp}] ${msg}</span>\n`;
+    }
+
+    async function loadConfig() {
+      log('Loading configuration...', 'info');
+      const configEl = document.getElementById('config');
+      
+      try {
+        const response = await fetch(`${API_BASE}/api/ebay/status`);
+        const data = await response.json();
+        
+        configEl.innerHTML = `
+          <div class="step">
+            <strong>Server:</strong> <span class="${data.connected ? 'good' : 'bad'}">${API_BASE}</span>
+          </div>
+          <div class="step">
+            <strong>Status:</strong> <span class="${data.connected ? 'good' : 'bad'}">${data.connected ? '✅ CONNECTED' : '❌ NOT CONNECTED'}</span>
+          </div>
+          <div class="step">
+            <strong>Tokens Saved:</strong> <span class="${data.connected ? 'good' : 'bad'}">${data.connected ? 'YES' : 'NO'}</span>
+          </div>
+          <div class="step">
+            <strong>OAuth URL:</strong>
+            <pre>https://auth.ebay.com/oauth2/authorize?
+client_id=JamesKen-eba-PRD-4c56c7b0c-90f1e045
+&response_type=code
+&redirect_uri=James_Kennedy-JamesKen-eba-PR-jwqknyy
+&scope=...</pre>
+          </div>
+          <div class="step">
+            <strong class="warn">⚠️ RuName:</strong> <code>James_Kennedy-JamesKen-eba-PR-jwqknyy</code>
+            <br><small>This RuName MUST be configured to redirect to: <code>${API_BASE}/auth/ebay/callback</code></small>
+          </div>
+        `;
+        
+        log('Configuration loaded successfully', 'success');
+        updateChecklist(data.connected);
+      } catch (error) {
+        configEl.innerHTML = `<span class="bad">❌ Failed to load config: ${error.message}</span>`;
+        log(`Error: ${error.message}`, 'error');
+      }
+    }
+
+    function testOAuth() {
+      log('Opening OAuth popup...', 'info');
+      const statusEl = document.getElementById('popup-status');
+      statusEl.innerHTML = '<span class="warn">⏳ Popup opened. Complete OAuth and watch what happens...</span>';
+      
+      const popup = window.open(
+        `${API_BASE}/auth/ebay`,
+        'eBay OAuth Test',
+        'width=600,height=700'
+      );
+      
+      if (!popup) {
+        statusEl.innerHTML = '<span class="bad">❌ Popup blocked! Allow popups and try again.</span>';
+        log('Popup blocked', 'error');
+        return;
+      }
+      
+      log('Popup opened successfully', 'success');
+      log('Waiting for OAuth to complete...', 'info');
+      
+      // Monitor popup
+      const checkPopup = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(checkPopup);
+          log('Popup closed', 'info');
+          statusEl.innerHTML = '<span class="warn">⏳ Popup closed. Checking if tokens were saved...</span>';
+          
+          setTimeout(() => {
+            testConnection();
+          }, 1000);
+        }
+      }, 500);
+      
+      // Listen for success message
+      window.addEventListener('message', (event) => {
+        if (event.data.type === 'EBAY_AUTH_SUCCESS') {
+          log('✅ Received success message from popup!', 'success');
+          statusEl.innerHTML = '<span class="good">✅ OAuth completed! Tokens should be saved.</span>';
+        }
+      });
+    }
+
+    async function testConnection() {
+      log('Testing server connection...', 'info');
+      const resultEl = document.getElementById('connection-result');
+      resultEl.innerHTML = '<span class="warn">⏳ Checking...</span>';
+      
+      try {
+        const response = await fetch(`${API_BASE}/api/ebay/status`);
+        const data = await response.json();
+        
+        if (data.connected) {
+          resultEl.innerHTML = `
+            <div class="good">✅ SUCCESS! Connected to eBay</div>
+            <div>Last sync: ${data.lastSync || 'N/A'}</div>
+            <div>Token expiry: ${data.tokenExpiry || 'N/A'}</div>
+          `;
+          log('Server reports: CONNECTED', 'success');
+        } else {
+          resultEl.innerHTML = `
+            <div class="bad">❌ NOT CONNECTED</div>
+            <div class="warn">⚠️ This means tokens were not saved!</div>
+            <div>Likely issue: RuName not configured correctly</div>
+          `;
+          log('Server reports: NOT CONNECTED', 'error');
+        }
+        
+        updateChecklist(data.connected);
+      } catch (error) {
+        resultEl.innerHTML = `<span class="bad">❌ Connection failed: ${error.message}</span>`;
+        log(`Connection error: ${error.message}`, 'error');
+      }
+    }
+
+    function updateChecklist(isConnected) {
+      const checklistEl = document.getElementById('checklist');
+      
+      const checks = [
+        { 
+          name: 'Server Running', 
+          done: true, 
+          help: 'Server is running on ' + API_BASE 
+        },
+        { 
+          name: 'RuName Configured', 
+          done: isConnected, 
+          help: 'Go to https://developer.ebay.com/my/auth/?env=production and set redirect URL to: ' + API_BASE + '/auth/ebay/callback' 
+        },
+        { 
+          name: 'Tokens Saved', 
+          done: isConnected, 
+          help: 'Check if tokens.json exists in ebay-api-test folder' 
+        },
+        { 
+          name: 'OAuth Working', 
+          done: isConnected, 
+          help: 'Popup should close automatically and main page should update' 
+        }
+      ];
+      
+      checklistEl.innerHTML = checks.map(check => `
+        <div class="step">
+          <span class="${check.done ? 'good' : 'bad'}">${check.done ? '✅' : '❌'} ${check.name}</span>
+          ${!check.done ? `<br><small class="warn">Fix: ${check.help}</small>` : ''}
+        </div>
+      `).join('');
+    }
+
+    // Load config on page load
+    loadConfig();
+    
+    // Check connection every 10 seconds
+    setInterval(() => {
+      testConnection();
+    }, 10000);
+    
+    log('🚀 Diagnostic tool loaded', 'success');
+    log('Click "Test OAuth" to debug the flow', 'info');
+  </script>
+</body>
+</html>
+

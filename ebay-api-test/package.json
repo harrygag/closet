@@ -1,0 +1,26 @@
+{
+  "name": "ebay-api-test",
+  "version": "1.0.0",
+  "description": "Test eBay API integration for Virtual Closet",
+  "type": "module",
+  "scripts": {
+    "test": "node test-oauth.js",
+    "test:inventory": "node import-inventory.js",
+    "test:all": "jest --verbose --detectOpenHandles",
+    "start": "node server.js",
+    "cypress": "cypress run --record --key 79b6b242-7610-47d0-b1a6-430738a87697",
+    "cypress:open": "cypress open",
+    "monitor": "cypress run --record --key 79b6b242-7610-47d0-b1a6-430738a87697 --spec 'cypress/e2e/ebay-import.cy.js'"
+  },
+  "dependencies": {
+    "axios": "^1.6.2",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "open": "^10.0.3"
+  },
+  "devDependencies": {
+    "cypress": "^15.7.0",
+    "jest": "^29.7.0",
+    "puppeteer": "^22.1.0"
+  }
+}

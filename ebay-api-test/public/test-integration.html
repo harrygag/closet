@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>eBay Integration Test</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 1200px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #fff;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 24px;
+      margin: 16px 0;
+    }
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      border-radius: 8px;
+      margin: 16px 0;
+    }
+    .status.connected { background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; }
+    .status.disconnected { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; }
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .dot.green { background: #10b981; }
+    .dot.red { background: #ef4444; }
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      margin: 8px 8px 8px 0;
+      transition: all 0.2s;
+    }
+    .primary { background: #8b5cf6; color: white; }
+    .primary:hover { background: #7c3aed; }
+    .success { background: #059669; color: white; }
+    .success:hover { background: #047857; }
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .stat-card {
+      background: rgba(139, 92, 246, 0.1);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .stat-value {
+      font-size: 32px;
+      font-weight: bold;
+      margin: 8px 0;
+    }
+    .stat-label {
+      color: rgba(255,255,255,0.6);
+      font-size: 14px;
+    }
+    .log {
+      background: #000;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 20px;
+    }
+    .log-entry {
+      margin: 4px 0;
+      padding: 4px;
+    }
+    .log-success { color: #10b981; }
+    .log-error { color: #ef4444; }
+    .log-info { color: #3b82f6; }
+  </style>
+</head>
+<body>
+  <h1>🛒 eBay Integration Test</h1>
+  <p>Real-time connection monitoring and testing</p>
+
+  <!-- Connection Status -->
+  <div class="card">
+    <h2>Connection Status</h2>
+    <div id="status" class="status disconnected">
+      <div class="dot red"></div>
+      <div>
+        <strong>Disconnected</strong>
+        <div style="font-size: 14px; color: rgba(255,255,255,0.6);">Checking...</div>
+      </div>
+    </div>
+    
+    <button class="primary" onclick="connectEbay()">🔐 Connect eBay</button>
+    <button class="success" onclick="checkStatus()">🔄 Refresh Status</button>
+    <button class="success" onclick="fetchStats()">📊 Fetch Stats</button>
+  </div>
+
+  <!-- Stats Dashboard -->
+  <div class="card" id="stats-section" style="display: none;">
+    <h2>eBay Stats</h2>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Listings</div>
+        <div class="stat-value" id="stat-listings">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active Listings</div>
+        <div class="stat-value" id="stat-active">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Orders</div>
+        <div class="stat-value" id="stat-orders">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Revenue</div>
+        <div class="stat-value" id="stat-revenue">$0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activity Log -->
+  <div class="card">
+    <h2>Activity Log</h2>
+    <div class="log" id="log"></div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:3002';
+    let checkInterval = null;
+
+    // Logging
+    function log(message, type = 'info') {
+      const logEl = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.className = `log-entry log-${type}`;
+      const timestamp = new Date().toLocaleTimeString();
+      entry.textContent = `[${timestamp}] ${message}`;
+      logEl.insertBefore(entry, logEl.firstChild);
+    }
+
+    // Check connection status
+    async function checkStatus() {
+      try {
+        log('Checking eBay connection status...', 'info');
+        const response = await fetch(`${API_BASE}/api/ebay/status`);
+        const data = await response.json();
+        
+        updateStatusUI(data.connected);
+        
+        if (data.connected) {
+          log('✅ Connected to eBay!', 'success');
+          document.getElementById('stats-section').style.display = 'block';
+          fetchStats();
+        } else {
+          log('❌ Not connected to eBay', 'error');
+          document.getElementById('stats-section').style.display = 'none';
+        }
+        
+        return data.connected;
+      } catch (error) {
+        log(`❌ Error checking status: ${error.message}`, 'error');
+        updateStatusUI(false);
+        return false;
+      }
+    }
+
+    // Update status UI
+    function updateStatusUI(connected) {
+      const statusEl = document.getElementById('status');
+      const dot = statusEl.querySelector('.dot');
+      const strong = statusEl.querySelector('strong');
+      const subtitle = statusEl.querySelector('div div');
+      
+      if (connected) {
+        statusEl.className = 'status connected';
+        dot.className = 'dot green';
+        strong.textContent = 'Connected';
+        subtitle.textContent = 'Ready to sync inventory';
+      } else {
+        statusEl.className = 'status disconnected';
+        dot.className = 'dot red';
+        strong.textContent = 'Disconnected';
+        subtitle.textContent = 'Click "Connect eBay" to authenticate';
+      }
+    }
+
+    // Fetch stats
+    async function fetchStats() {
+      try {
+        log('Fetching eBay stats...', 'info');
+        const response = await fetch(`${API_BASE}/api/ebay/stats`);
+        
+        if (response.status === 401) {
+          log('❌ Not authenticated', 'error');
+          return;
+        }
+        
+        const data = await response.json();
+        
+        document.getElementById('stat-listings').textContent = data.totalListings;
+        document.getElementById('stat-active').textContent = data.activeListings;
+        document.getElementById('stat-orders').textContent = data.totalOrders;
+        document.getElementById('stat-revenue').textContent = `$${data.revenue.toFixed(2)}`;
+        
+        log(`✅ Stats updated: ${data.totalListings} listings`, 'success');
+      } catch (error) {
+        log(`❌ Error fetching stats: ${error.message}`, 'error');
+      }
+    }
+
+    // Connect to eBay
+    function connectEbay() {
+      log('Opening eBay OAuth window...', 'info');
+      
+      const width = 600;
+      const height = 700;
+      const left = window.screen.width / 2 - width / 2;
+      const top = window.screen.height / 2 - height / 2;
+      
+      const popup = window.open(
+        `${API_BASE}/auth/ebay`,
+        'eBay OAuth',
+        `width=${width},height=${height},left=${left},top=${top}`
+      );
+      
+      if (!popup) {
+        log('❌ Popup blocked! Please allow popups.', 'error');
+        alert('Popup blocked! Please allow popups for this site.');
+        return;
+      }
+      
+      log('Waiting for OAuth completion...', 'info');
+      
+      // Check if popup closed
+      const checkClosed = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(checkClosed);
+          log('OAuth window closed, checking status...', 'info');
+          setTimeout(() => {
+            checkStatus();
+          }, 1000);
+        }
+      }, 500);
+    }
+
+    // Listen for OAuth success
+    window.addEventListener('message', (event) => {
+      if (event.data.type === 'EBAY_AUTH_SUCCESS') {
+        log('🎉 OAuth successful! Updating status...', 'success');
+        setTimeout(() => {
+          checkStatus();
+        }, 500);
+      }
+    });
+
+    // Auto-refresh status every 10 seconds
+    function startAutoRefresh() {
+      checkInterval = setInterval(() => {
+        checkStatus();
+      }, 10000);
+      log('Auto-refresh enabled (every 10 seconds)', 'info');
+    }
+
+    // Initial check
+    log('🚀 eBay Integration Test loaded', 'success');
+    checkStatus();
+    startAutoRefresh();
+  </script>
+</body>
+</html>
+

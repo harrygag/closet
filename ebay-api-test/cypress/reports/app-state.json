@@ -1,0 +1,13 @@
+{
+  "timestamp": "2025-11-22T03:38:16.201Z",
+  "server": {
+    "running": true,
+    "url": "http://localhost:3002"
+  },
+  "authentication": {
+    "authenticated": false,
+    "hasConnectButton": true,
+    "hasImportButton": false
+  },
+  "environment": "PRODUCTION"
+}
