@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { SignIn } from './components/SignIn';
-import { ClosetView } from './components/ClosetView';
+import { ClosetPage } from './pages/ClosetPage';
 import { EbayIntegrationPage } from './pages/EbayIntegrationPage';
 import { useAuthStore } from './store/useAuthStore';
 
@@ -19,7 +19,7 @@ function App() {
           />
           <Route
             path="/closet"
-            element={user ? <ClosetView /> : <Navigate to="/" />}
+            element={user ? <ClosetPage /> : <Navigate to="/" />}
           />
           <Route
             path="/ebay"
