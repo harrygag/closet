@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, ShoppingBag, LogOut, Settings } from 'lucide-react';
+import { Home, ShoppingBag, LogOut } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 
 export const Navigation = () => {
