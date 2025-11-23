@@ -1,0 +1,13 @@
+{
+  "title": "Safe Cookie Injection Pattern",
+  "steps": [
+    "1. Use cy.session() for session management",
+    "2. Add delays between cookie operations (50-100ms)",
+    "3. Validate session after injection",
+    "4. Check for security warnings/captchas",
+    "5. Preserve user agent and other fingerprints",
+    "6. Don't inject cookies too frequently",
+    "7. Use the same IP address if possible"
+  ],
+  "example": "\ncy.session('my-session', () => {\n  cy.visit('https://ebay.com');\n  savedCookies.forEach((cookie, i) => {\n    cy.wait(50); // Delay\n    cy.setCookie(cookie.name, cookie.value, {...});\n  });\n}, {\n  validate() {\n    cy.visit('https://ebay.com');\n    cy.getCookies().should('have.length.greaterThan', 0);\n  }\n});\n        "
+}

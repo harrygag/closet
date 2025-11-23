@@ -1,0 +1,150 @@
+{
+  "timestamp": "2025-11-21T23:49:45.516Z",
+  "count": 18,
+  "cookies": [
+    {
+      "name": "utag_main__se",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "valueLength": 15
+    },
+    {
+      "name": "utag_main__ss",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "valueLength": 15
+    },
+    {
+      "name": "utag_main__st",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "valueLength": 27
+    },
+    {
+      "name": "utag_main_ses_id",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "valueLength": 27
+    },
+    {
+      "name": "utag_main__pn",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "valueLength": 15
+    },
+    {
+      "name": "__uzma",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "valueLength": 36
+    },
+    {
+      "name": "__uzmb",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "valueLength": 10
+    },
+    {
+      "name": "__uzmc",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "valueLength": 12
+    },
+    {
+      "name": "__uzmd",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "valueLength": 10
+    },
+    {
+      "name": "__uzme",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "valueLength": 4
+    },
+    {
+      "name": "__uzmf",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "valueLength": 75
+    },
+    {
+      "name": "__deba",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": true,
+      "httpOnly": true,
+      "valueLength": 152
+    },
+    {
+      "name": "utag_main__sn",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "valueLength": 1
+    },
+    {
+      "name": "dp1",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": true,
+      "httpOnly": false,
+      "valueLength": 15
+    },
+    {
+      "name": "nonsession",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": true,
+      "httpOnly": true,
+      "valueLength": 129
+    },
+    {
+      "name": "s",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": true,
+      "httpOnly": true,
+      "valueLength": 61
+    },
+    {
+      "name": "ds2",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": true,
+      "httpOnly": false,
+      "valueLength": 38
+    },
+    {
+      "name": "ebay",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": true,
+      "httpOnly": false,
+      "valueLength": 21
+    }
+  ]
+}

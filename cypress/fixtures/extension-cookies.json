@@ -1,0 +1,273 @@
+{
+  "marketplace": "ebay",
+  "capturedAt": "2025-11-21T23:51:16.731Z",
+  "count": 27,
+  "cookies": [
+    {
+      "url": "https://ebay.com",
+      "name": "utag_main__se",
+      "value": "1%3Bexp-session",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "expirationDate": 1763770873
+    },
+    {
+      "url": "https://ebay.com",
+      "name": "utag_main__ss",
+      "value": "1%3Bexp-session",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "expirationDate": 1763770873
+    },
+    {
+      "url": "https://ebay.com",
+      "name": "utag_main__st",
+      "value": "1763770873917%3Bexp-session",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "expirationDate": 1763770873
+    },
+    {
+      "url": "https://ebay.com",
+      "name": "utag_main_ses_id",
+      "value": "1763769073917%3Bexp-session",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "expirationDate": 1763770873
+    },
+    {
+      "url": "https://ebay.com",
+      "name": "utag_main__pn",
+      "value": "1%3Bexp-session",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "expirationDate": 1763770873
+    },
+    {
+      "url": "https://ebay.com",
+      "name": "_ScCbts",
+      "value": "%5B%5D",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "expirationDate": 1764373874
+    },
+    {
+      "url": "https://ebay.com",
+      "name": "_rdt_uuid",
+      "value": "1763769073966.db60c62f-491f-44e2-98bc-9b9a6b0ff788",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": true,
+      "httpOnly": false,
+      "expirationDate": 1771545073
+    },
+    {
+      "url": "https://ebay.com",
+      "name": "_fbp",
+      "value": "fb.1.1763769073992.869741307335382079",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "expirationDate": 1771545073
+    },
+    {
+      "url": "https://ebay.com",
+      "name": "_gcl_au",
+      "value": "1.1.783467567.1763769074",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "expirationDate": 1771545074
+    },
+    {
+      "url": "https://ebay.com",
+      "name": "__uzma",
+      "value": "f679d148-a7a5-446a-b4a2-4398c91cc1c5",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "expirationDate": 1779321073.257122
+    },
+    {
+      "url": "https://ebay.com",
+      "name": "__uzmb",
+      "value": "1763769072",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "expirationDate": 1779321073.257142
+    },
+    {
+      "url": "https://ebay.com",
+      "name": "__uzmc",
+      "value": "623911034783",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "expirationDate": 1779321073.257157
+    },
+    {
+      "url": "https://ebay.com",
+      "name": "__uzmd",
+      "value": "1763769072",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "expirationDate": 1779321073.257173
+    },
+    {
+      "url": "https://ebay.com",
+      "name": "__uzme",
+      "value": "9350",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "expirationDate": 1779321073.257188
+    },
+    {
+      "url": "https://ebay.com",
+      "name": "__uzmf",
+      "value": "7f6000507fd8b6-5968-4e29-be13-a1d8305900ae17637690720780-4f798bf95c26282410",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "expirationDate": 1779321073.257204
+    },
+    {
+      "url": "https://ebay.com",
+      "name": "__deba",
+      "value": "JRYFZZjJQP-Y79pP9zlFzBq7PrbNsOZ3-7K2ceGFAvYDLG3Z2P0XJ4jR2SJflvW3XR8UW1J2_XMwSXzXGqPFGBowfOYy8oPkwmGd4bJaDfh1mQ2jiiQz-u_Ki2nPnNsdeALohqzVnLmWGyf3Nzv29g==",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": true,
+      "httpOnly": true,
+      "expirationDate": 1779321076.243318
+    },
+    {
+      "url": "https://ebay.com",
+      "name": "utag_main__sn",
+      "value": "1",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "expirationDate": 1795305073
+    },
+    {
+      "url": "https://ebay.com",
+      "name": "_pin_unauth",
+      "value": "dWlkPU1EZ3dORFJtT1RNdE9EQTFNeTAwWmpVNExUa3lZekF0TldNek5HWXdaRGMyT0dRMA",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "expirationDate": 1795305074
+    },
+    {
+      "url": "https://ebay.com",
+      "name": "_scid",
+      "value": "SuHnq3VedWvo6MiB6Y9zvi72oy0qYAn9",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "expirationDate": 1797897073
+    },
+    {
+      "url": "https://ebay.com",
+      "name": "_scid_r",
+      "value": "SuHnq3VedWvo6MiB6Y9zvi72oy0qYAn9",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "expirationDate": 1797897073
+    },
+    {
+      "url": "https://ebay.com",
+      "name": "cto_bundle",
+      "value": "9ka3DF9qcTNqTGRuRSUyQkkzakRrclNDMzQ1N25aMEt3Q0VIMGRXMEJUMWhPQyUyQjNtYzBKZGFnZXF1enFTZ01FJTJGVk9WdjNMZWZRMktuNm04NTc1SWVlZG9RTUFVZDFKNUt6dzNYWjU2eEdSM2w0U3pIcnNxTlBiYzFyV3JmOVFKekU3SEdnV0hGaENmRmVSMThuRSUyRk16Y3p0OFFSdyUzRCUzRA",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "expirationDate": 1797933074
+    },
+    {
+      "url": "https://ebay.com",
+      "name": "dp1",
+      "value": "bbl/US6ce361f3^",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": true,
+      "httpOnly": false,
+      "expirationDate": 1798329076.243209
+    },
+    {
+      "url": "https://ebay.com",
+      "name": "nonsession",
+      "value": "BAQAAAZpgwzgIAAaAADMABWsCLnM3NTIzOADKACBs42HzYThkMzIwZWYxOWEwYTJlMTcyNGExODYxZmZmM2VmMWEAywABaSEB+zb0nSqG7PsKlVxsOq7TRwnDeGaFJw**",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": true,
+      "httpOnly": true,
+      "expirationDate": 1798329076.243242
+    },
+    {
+      "url": "https://ebay.com",
+      "name": "ds2",
+      "value": "amsg/a8d320ef19a0a2e1724a1861fff3ef1a^",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": true,
+      "httpOnly": false
+    },
+    {
+      "url": "https://ebay.com",
+      "name": "ds2",
+      "value": "amsg/a8d320ef19a0a2e1724a1861fff3ef1a^",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": true,
+      "httpOnly": false
+    },
+    {
+      "url": "https://ebay.com",
+      "name": "s",
+      "value": "CgAD4ACBpIkxpYThkMzIwZWYxOWEwYTJlMTcyNGExODYxZmZmM2VmMWG7jyt5",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": true,
+      "httpOnly": true
+    },
+    {
+      "url": "https://ebay.com",
+      "name": "ebay",
+      "value": "%5Ejs%3D1%5Esbf%3D%23000000%5E",
+      "domain": ".ebay.com",
+      "path": "/",
+      "secure": true,
+      "httpOnly": false
+    }
+  ]
+}

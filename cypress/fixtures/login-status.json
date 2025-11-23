@@ -1,0 +1,10 @@
+{
+  "timestamp": "2025-11-21T23:51:24.294Z",
+  "isLoggedIn": true,
+  "indicators": {
+    "hasMyEbay": true,
+    "hasSignOut": true,
+    "hasHiGreeting": false,
+    "hasAccountMenu": true
+  }
+}

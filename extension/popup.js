@@ -320,7 +320,7 @@ async function handleDownload() {
       
       const jsonString = JSON.stringify(exportData, null, 2);
       
-      // Convert to data URL (Chrome downloads API doesn't support blob: URLs)
+      // Convert to data URL (Chrome downloads API requires data:, http:, or https: URLs)
       const base64 = btoa(unescape(encodeURIComponent(jsonString)));
       const dataUrl = `data:application/json;base64,${base64}`;
       

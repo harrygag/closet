@@ -1,0 +1,10 @@
+{
+  "timestamp": "2025-11-21T23:54:49.809Z",
+  "indicators": {
+    "hasMyEbay": true,
+    "hasWatchlist": true,
+    "hasNotifications": true,
+    "hasCart": true
+  },
+  "valid": true
+}

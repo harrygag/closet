@@ -1,9 +1,11 @@
 import React from 'react';
-import { TrendingUp, Package, DollarSign, BarChart3, Download } from 'lucide-react';
+import { TrendingUp, Package, DollarSign, BarChart3, Download, Import } from 'lucide-react';
 import type { ItemStats } from '../types/item';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 import { exportToCSV } from '../utils/csvExport';
 import { formatCurrency } from '../utils/formatters';
+import { toast } from 'sonner';
+import { supabase } from '../lib/supabase/client';
 
 interface StatsDashboardProps {
   stats: ItemStats;
@@ -11,6 +13,83 @@ interface StatsDashboardProps {
 }
 
 export const StatsDashboard: React.FC<StatsDashboardProps> = ({ stats, items = [] }) => {
+  const [isImporting, setIsImporting] = React.useState(false);
+
+  const handleImport = async () => {
+    setIsImporting(true);
+    const toastId = toast.loading('Connecting to extension...');
+    
+    try {
+      // 1. Detect Extension ID
+      const extensionId = localStorage.getItem('extension_id');
+      if (!extensionId) {
+        throw new Error('Extension not detected. Please go to Marketplaces to connect.');
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('No session found');
+
+      // 2. Trigger Client-Side Import via Extension
+      toast.loading('Waiting for extension to fetch items...', { id: toastId });
+      
+      const items = await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('Extension timed out')), 15000);
+        
+        if (!(window as any).chrome?.runtime) {
+          clearTimeout(timeout);
+          return reject(new Error('Chrome extension runtime not found'));
+        }
+
+        (window as any).chrome.runtime.sendMessage(
+          extensionId,
+          { type: 'IMPORT_MARKETPLACE', marketplace: 'ebay' },
+          (response: any) => {
+            clearTimeout(timeout);
+            const err = (window as any).chrome.runtime.lastError;
+            if (err) return reject(new Error(err.message));
+            if (!response) return reject(new Error('No response from extension'));
+            if (!response.success) return reject(new Error(response.error || 'Import failed'));
+            
+            resolve(response.items || []);
+          }
+        );
+      });
+
+      if (!Array.isArray(items) || items.length === 0) {
+        throw new Error('No active listings found on eBay.');
+      }
+
+      toast.loading(`Saving ${items.length} items to inventory...`, { id: toastId });
+
+      // 3. Send to Server for Storage
+      const response = await fetch('http://localhost:3000/api/ebay/import', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ items }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to save items');
+      }
+
+      toast.success(`Successfully imported ${result.count} items!`, { id: toastId });
+      
+      // Trigger a reload (in a real app, we'd invalidate a react-query cache)
+      setTimeout(() => window.location.reload(), 1500);
+      
+    } catch (error: any) {
+      console.error('Import error:', error);
+      toast.error(error.message, { id: toastId });
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   // Calculate enhanced stats
   const totalInvested = items.reduce((sum, item) => sum + (item.costPrice || 0), 0);
   const roi = totalInvested > 0 ? Math.round(((stats.totalValue - totalInvested) / totalInvested) * 100) : 0;
@@ -115,8 +194,17 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ stats, items = [
 
   return (
     <div>
-      {/* Export Button */}
-      <div className="mb-6 flex justify-end">
+      {/* Actions Bar */}
+      <div className="mb-6 flex justify-end gap-3">
+        <button
+          onClick={handleImport}
+          disabled={isImporting}
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-lg transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Import className={`h-4 w-4 ${isImporting ? 'animate-spin' : ''}`} />
+          {isImporting ? 'Importing...' : 'Import from eBay'}
+        </button>
+        
         <button
           onClick={() => exportToCSV(items)}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"

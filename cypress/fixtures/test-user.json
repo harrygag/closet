@@ -1,0 +1,16 @@
+{
+  "email": "test@example.com",
+  "password": "TestPassword123!",
+  "mockSession": {
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test",
+    "user": {
+      "id": "test-user-123",
+      "email": "test@example.com",
+      "app_metadata": {},
+      "user_metadata": {},
+      "aud": "authenticated",
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  }
+}
+

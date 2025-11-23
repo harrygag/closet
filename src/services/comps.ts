@@ -79,7 +79,7 @@ export async function searchComps(params: CompSearchParams): Promise<ClothingCom
     }
 
     console.log('Found comps:', data?.length || 0);
-    return (data as ClothingComp[]) || [];
+    return ((data as unknown) as ClothingComp[]) || [];
   } catch (error) {
     console.error('Error searching comps:', error);
     return [];

@@ -85,9 +85,9 @@ async function handleInjectCookies(marketplace, cookies, sendResponse) {
   }
   
   try {
-    // Use Promise.allSettled to handle all cookies and respond once
-    const promises = cookies.map(cookie => {
-      return new Promise((resolve, reject) => {
+    // Use Promise.all to handle all cookie operations safely
+    const cookiePromises = cookies.map((cookie) => {
+      return new Promise((resolve) => {
         const cookieDetails = {
           url: `https://${config.domain.replace(/^\./, '')}`,
           name: cookie.name,
@@ -100,22 +100,20 @@ async function handleInjectCookies(marketplace, cookies, sendResponse) {
         };
         
         chrome.cookies.set(cookieDetails, (result) => {
-          if (chrome.runtime.lastError) {
-            console.warn('[Extension] Failed to inject cookie:', cookie.name, chrome.runtime.lastError.message);
-            reject(chrome.runtime.lastError);
-          } else if (result) {
-            resolve(result);
+          if (result) {
+            resolve({ success: true });
           } else {
             console.warn('[Extension] Failed to inject cookie:', cookie.name);
-            reject(new Error('Cookie set returned null'));
+            resolve({ success: false });
           }
         });
       });
     });
     
-    Promise.allSettled(promises).then(results => {
-      const injected = results.filter(r => r.status === 'fulfilled').length;
-      const failed = results.filter(r => r.status === 'rejected').length;
+    // Wait for all cookies to be processed, then send response ONCE
+    Promise.all(cookiePromises).then((results) => {
+      const injected = results.filter(r => r.success).length;
+      const failed = results.filter(r => !r.success).length;
       
       console.log(`[Extension] Injected ${injected}/${cookies.length} cookies for ${marketplace}`);
       sendResponse({ 

@@ -1,366 +1,105 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Virtual Closet Connector</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
     body {
-      width: 360px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      width: 400px;
+      padding: 16px;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #1a1a1a;
       color: #fff;
     }
-
-    .container {
-      padding: 0;
-    }
-
-    .header {
-      background: rgba(0, 0, 0, 0.2);
-      padding: 20px;
-      text-align: center;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .header h1 {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-
-    .header p {
-      font-size: 12px;
-      opacity: 0.8;
-    }
-
-    .status {
-      padding: 16px 20px;
-      background: rgba(0, 0, 0, 0.15);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .status-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      margin-bottom: 4px;
-    }
-
-    .status-item:last-child {
-      margin-bottom: 0;
-    }
-
-    .status-icon {
+    
+    h3 {
+      margin: 0 0 12px 0;
       font-size: 16px;
+      color: #a855f7;
     }
-
-    .auth-section {
-      padding: 20px;
-      background: rgba(0, 0, 0, 0.15);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .auth-section.connected {
-      background: rgba(76, 175, 80, 0.2);
-    }
-
-    .auth-section.disconnected {
-      background: rgba(244, 67, 54, 0.2);
-    }
-
-    .auth-input {
+    
+    button {
       width: 100%;
-      padding: 10px 12px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 6px;
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
-      font-size: 13px;
-      margin-bottom: 10px;
-    }
-
-    .auth-input::placeholder {
-      color: rgba(255, 255, 255, 0.5);
-    }
-
-    .btn {
-      width: 100%;
-      padding: 10px;
+      padding: 12px;
+      margin: 8px 0;
+      background: #8b5cf6;
       border: none;
       border-radius: 6px;
-      background: rgba(255, 255, 255, 0.2);
-      color: #fff;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn:hover {
-      background: rgba(255, 255, 255, 0.3);
-    }
-
-    .btn:active {
-      transform: scale(0.98);
-    }
-
-    .btn-primary {
-      background: rgba(76, 175, 80, 0.8);
-    }
-
-    .btn-primary:hover {
-      background: rgba(76, 175, 80, 1);
-    }
-
-    .btn-danger {
-      background: rgba(244, 67, 54, 0.8);
-      margin-top: 8px;
-    }
-
-    .btn-danger:hover {
-      background: rgba(244, 67, 54, 1);
-    }
-
-    .marketplaces {
-      padding: 16px 20px;
-    }
-
-    .marketplace-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px;
-      margin-bottom: 8px;
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .marketplace-item:last-child {
-      margin-bottom: 0;
-    }
-
-    .marketplace-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex: 1;
-    }
-
-    .marketplace-icon {
-      font-size: 24px;
-    }
-
-    .marketplace-details {
-      flex: 1;
-    }
-
-    .marketplace-name {
+      color: white;
       font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 2px;
+      cursor: pointer;
+      font-weight: 500;
     }
-
-    .marketplace-status {
-      font-size: 11px;
-      opacity: 0.7;
+    
+    button:hover {
+      background: #7c3aed;
     }
-
-    .marketplace-actions {
-      display: flex;
-      gap: 4px;
+    
+    button:disabled {
+      background: #4b5563;
+      cursor: not-allowed;
     }
-
-    .btn-small {
-      padding: 6px 12px;
-      font-size: 11px;
-      width: auto;
+    
+    .status {
+      padding: 8px;
+      margin: 8px 0;
+      border-radius: 4px;
+      font-size: 13px;
+      background: #374151;
     }
-
-    .indicator {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      display: inline-block;
-      margin-right: 4px;
-    }
-
-    .indicator.green {
-      background: #4caf50;
-      box-shadow: 0 0 8px #4caf50;
-    }
-
-    .indicator.red {
-      background: #f44336;
-    }
-
-    .indicator.yellow {
-      background: #ffc107;
-    }
-
-    .help {
-      padding: 16px 20px;
-      background: rgba(0, 0, 0, 0.15);
-      font-size: 11px;
-      opacity: 0.8;
-      text-align: center;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .help a {
-      color: #fff;
-      text-decoration: underline;
-    }
-
-    #loading {
-      text-align: center;
-      padding: 40px 20px;
-    }
-
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid rgba(255, 255, 255, 0.2);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 12px;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .hidden {
-      display: none !important;
+    
+    .success { background: #065f46; color: #d1fae5; }
+    .error { background: #7f1d1d; color: #fecaca; }
+    
+    .info {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #374151;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- Loading State -->
-    <div id="loading">
-      <div class="spinner"></div>
-      <p>Loading...</p>
-    </div>
-
-    <!-- Main Content -->
-    <div id="content" class="hidden">
-      <!-- Header -->
-      <div class="header">
-        <h1>👗 Virtual Closet</h1>
-        <p>Marketplace Connector</p>
-      </div>
-
-      <!-- Auth Section -->
-      <div id="authSection" class="auth-section">
-        <div id="authDisconnected">
-          <div style="margin-bottom: 12px;">
-            <div class="status-item">
-              <span class="status-icon">🔒</span>
-              <span>Not connected to Virtual Closet</span>
-            </div>
-          </div>
-          <input 
-            type="text" 
-            id="authTokenInput" 
-            class="auth-input" 
-            placeholder="Paste your auth token here"
-          />
-          <button id="connectBtn" class="btn btn-primary">Connect to Virtual Closet</button>
-        </div>
-
-        <div id="authConnected" class="hidden">
-          <div style="margin-bottom: 12px;">
-            <div class="status-item">
-              <span class="status-icon">✅</span>
-              <span>Connected to Virtual Closet</span>
-            </div>
-          </div>
-          <button id="disconnectBtn" class="btn btn-danger">Disconnect</button>
-        </div>
-      </div>
-
-      <!-- Marketplaces -->
-      <div class="marketplaces">
-        <div class="marketplace-item">
-          <div class="marketplace-info">
-            <div class="marketplace-icon">🏷️</div>
-            <div class="marketplace-details">
-              <div class="marketplace-name">eBay</div>
-              <div class="marketplace-status" id="ebay-status">
-                <span class="indicator red"></span>Not synced
-              </div>
-            </div>
-          </div>
-          <div class="marketplace-actions">
-            <button class="btn btn-small" data-marketplace="ebay">Sync Now</button>
-          </div>
-        </div>
-
-        <div class="marketplace-item">
-          <div class="marketplace-info">
-            <div class="marketplace-icon">👗</div>
-            <div class="marketplace-details">
-              <div class="marketplace-name">Poshmark</div>
-              <div class="marketplace-status" id="poshmark-status">
-                <span class="indicator red"></span>Not synced
-              </div>
-            </div>
-          </div>
-          <div class="marketplace-actions">
-            <button class="btn btn-small" data-marketplace="poshmark">Sync Now</button>
-          </div>
-        </div>
-
-        <div class="marketplace-item">
-          <div class="marketplace-info">
-            <div class="marketplace-icon">🛍️</div>
-            <div class="marketplace-details">
-              <div class="marketplace-name">Depop</div>
-              <div class="marketplace-status" id="depop-status">
-                <span class="indicator red"></span>Not synced
-              </div>
-            </div>
-          </div>
-          <div class="marketplace-actions">
-            <button class="btn btn-small" data-marketplace="depop">Sync Now</button>
-          </div>
-        </div>
-
-        <div class="marketplace-item">
-          <div class="marketplace-info">
-            <div class="marketplace-icon">📦</div>
-            <div class="marketplace-details">
-              <div class="marketplace-name">Vendoo</div>
-              <div class="marketplace-status" id="vendoo-status">
-                <span class="indicator red"></span>Not synced
-              </div>
-            </div>
-          </div>
-          <div class="marketplace-actions">
-            <button class="btn btn-small" data-marketplace="vendoo">Sync Now</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Help -->
-      <div class="help">
-        Visit your marketplace → Login → Extension auto-syncs cookies<br>
-        <a href="http://localhost:5173" target="_blank">Open Virtual Closet</a>
-      </div>
-    </div>
+  <h3>🔗 Cookie Manager</h3>
+  
+  <div id="marketplace-info" class="status">
+    Detecting marketplace...
   </div>
-
+  
+  <button id="save-btn" disabled>
+    💾 Save Cookies
+  </button>
+  
+  <button id="inject-btn" disabled>
+    📥 Inject Cookies
+  </button>
+  
+  <button id="view-btn" disabled>
+    👁️ View Saved
+  </button>
+  
+  <button id="export-btn" disabled>
+    📋 Copy to Clipboard
+  </button>
+  
+  <button id="download-btn" disabled>
+    💾 Download JSON
+  </button>
+  
+  <div id="status"></div>
+  
+  <div id="cookie-details" style="display: none; max-height: 300px; overflow-y: auto; margin-top: 12px; padding: 8px; background: #111; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 11px;">
+  </div>
+  
+  <div class="info">
+    <strong>How to use:</strong><br>
+    1. Visit ebay.com, poshmark.com, or depop.com<br>
+    2. Log in to your account<br>
+    3. Click "💾 Save Cookies" to store them<br>
+    4. Click "👁️ View Saved" to see details<br>
+    5. Click "📋 Copy to Clipboard" to validate cookies<br>
+    6. Use "📥 Inject Cookies" to restore session
+  </div>
+  
   <script src="popup.js"></script>
 </body>
 </html>
-

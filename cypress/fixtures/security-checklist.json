@@ -1,0 +1,12 @@
+{
+  "timestamp": "2025-11-21T23:55:02.799Z",
+  "practices": {
+    "Using cy.session()": true,
+    "Adding delays between requests": true,
+    "Validating sessions": true,
+    "Checking for security warnings": true,
+    "Not making rapid requests": true,
+    "Preserving user agent": true
+  },
+  "allFollowed": true
+}
