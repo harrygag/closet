@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { Analytics } from '@vercel/analytics/react';
@@ -7,7 +8,12 @@ import { EbayIntegrationPage } from './pages/EbayIntegrationPage';
 import { useAuthStore } from './store/useAuthStore';
 
 function App() {
-  const { user } = useAuthStore();
+  const { user, initialize } = useAuthStore();
+
+  // Initialize auth on mount
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
 
   return (
     <BrowserRouter>
