@@ -5,19 +5,12 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "installCommand": "npm install",
-  "env": {
-    "VITE_SUPABASE_URL": "https://hqmujfbifgpcyqmpuwil.supabase.co",
-    "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxbXVqZmJpZmdwY3lxbXB1d2lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA0NjY0NzYsImV4cCI6MjA3NjA0MjQ3Nn0._1HulRiQ3wxfzgDCBRruiJIl4QjXnnhKkuWQOTIa7SQ",
-    "SUPABASE_SERVICE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxbXVqZmJpZmdwY3lxbXB1d2lsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDQ2NjQ3NiwiZXhwIjoyMDc2MDQyNDc2fQ.z-HPpEXneiERG3GzLqNcHRHu9L3Y-GcxKzRdsUBYIo"
-  },
+  "env": {},
   "github": {
     "silent": false
   },
   "build": {
-    "env": {
-      "VITE_SUPABASE_URL": "https://hqmujfbifgpcyqmpuwil.supabase.co",
-      "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxbXVqZmJpZmdwY3lxbXB1d2lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA0NjY0NzYsImV4cCI6MjA3NjA0MjQ3Nn0._1HulRiQ3wxfzgDCBRruiJIl4QjXnnhKkuWQOTIa7SQ"
-    }
+    "env": {}
   },
   "headers": [
     {

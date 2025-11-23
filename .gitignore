@@ -64,3 +64,6 @@ workers/scrapy/*.log
 
 # Duplicate directories to ignore
 closet-react/
+
+# Scripts with secrets
+scripts/set-vercel-env-ebay.js
