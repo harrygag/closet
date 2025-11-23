@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { Analytics } from '@vercel/analytics/react';
 import { SignIn } from './components/SignIn';
+import { Navigation } from './components/Navigation';
 import { ClosetPage } from './pages/ClosetPage';
 import { EbayIntegrationPage } from './pages/EbayIntegrationPage';
 import { useAuthStore } from './store/useAuthStore';
@@ -20,6 +21,7 @@ function App() {
       <div className="min-h-screen bg-gray-900">
         <Toaster position="top-right" theme="dark" />
         <Analytics />
+        {user && <Navigation />}
         <Routes>
           <Route
             path="/"
