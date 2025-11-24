@@ -6,6 +6,8 @@ import { SignIn } from './components/SignIn';
 import { Navigation } from './components/Navigation';
 import { ClosetPage } from './pages/ClosetPage';
 import { EbayIntegrationPage } from './pages/EbayIntegrationPage';
+import ShopifyStorefront from './pages/ShopifyStorefront';
+import ShopifyAdminPage from './pages/ShopifyAdminPage';
 import { useAuthStore } from './store/useAuthStore';
 
 function App() {
@@ -34,6 +36,16 @@ function App() {
           <Route
             path="/ebay"
             element={user ? <EbayIntegrationPage /> : <Navigate to="/" />}
+          />
+          {/* Shopify Storefront - Public Route */}
+          <Route
+            path="/shop"
+            element={<ShopifyStorefront />}
+          />
+          {/* Shopify Admin - Protected Route */}
+          <Route
+            path="/shopify"
+            element={user ? <ShopifyAdminPage /> : <Navigate to="/" />}
           />
           {/* Test route - NO AUTH REQUIRED */}
           <Route

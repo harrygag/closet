@@ -11,7 +11,11 @@
     "SUPABASE_SERVICE_KEY": "@supabase_service_key",
     "EBAY_CLIENT_ID": "@ebay_client_id",
     "EBAY_CLIENT_SECRET": "@ebay_client_secret",
-    "EBAY_RUNAME": "@ebay_runame"
+    "EBAY_RUNAME": "@ebay_runame",
+    "SHOPIFY_STORE_DOMAIN": "@shopify_store_domain",
+    "SHOPIFY_ADMIN_ACCESS_TOKEN": "@shopify_admin_access_token",
+    "SHOPIFY_STOREFRONT_ACCESS_TOKEN": "@shopify_storefront_access_token",
+    "SHOPIFY_WEBHOOK_SECRET": "@shopify_webhook_secret"
   },
   "github": {
     "silent": false

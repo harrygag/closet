@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, ShoppingBag, LogOut } from 'lucide-react';
+import { Home, ShoppingBag, LogOut, Store } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 
 export const Navigation = () => {
@@ -9,6 +9,7 @@ export const Navigation = () => {
   const navItems = [
     { path: '/closet', label: 'Inventory', icon: Home },
     { path: '/ebay', label: 'eBay', icon: ShoppingBag },
+    { path: '/shopify', label: 'Shopify Store', icon: Store },
   ];
 
   const isActive = (path: string) => location.pathname === path;
