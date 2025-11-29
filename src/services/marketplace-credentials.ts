@@ -3,8 +3,13 @@
  * Handles saving and retrieving marketplace cookies from Chrome extension
  */
 
-import { supabase } from '../lib/supabase/client';
-import type { User } from '@supabase/supabase-js';
+import { database } from '../lib/database/client';
+
+// Firebase User type
+interface User {
+  id: string;
+  email?: string | null;
+}
 
 export interface MarketplaceCookie {
   name: string;
@@ -18,7 +23,7 @@ export interface MarketplaceCookie {
 }
 
 export interface SaveCredentialsPayload {
-  marketplace: 'ebay' | 'poshmark' | 'depop' | 'vendoo';
+  marketplace: 'ebay' | 'poshmark' | 'depop';
   cookies: MarketplaceCookie[];
   email?: string;
   autoSynced?: boolean;
@@ -75,7 +80,7 @@ export async function saveMarketplaceCredentials(
     };
 
     // Check if credentials already exist for this marketplace
-    const { data: existing, error: fetchError } = await (supabase as any)
+    const { data: existing, error: fetchError } = await (database as any)
       .from('user_marketplace_credentials')
       .select('*')
       .eq('user_id', user.id)
@@ -91,7 +96,7 @@ export async function saveMarketplaceCredentials(
 
     if (existing) {
       // Update existing credentials
-      const { data, error } = await (supabase as any)
+      const { data, error } = await (database as any)
         .from('user_marketplace_credentials')
         .update(credentialData)
         .eq('id', existing.id)
@@ -104,7 +109,7 @@ export async function saveMarketplaceCredentials(
       console.log(`[MarketplaceCredentials] Updated ${marketplace} credentials (${cookies.length} cookies)`);
     } else {
       // Insert new credentials
-      const { data, error } = await (supabase as any)
+      const { data, error } = await (database as any)
         .from('user_marketplace_credentials')
         .insert(credentialData)
         .select()
@@ -130,13 +135,13 @@ export async function getMarketplaceCredentials(
   marketplace?: string
 ): Promise<{ success: boolean; error?: string; data?: MarketplaceCredential[] }> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await database.auth.getUser();
 
     if (!user) {
       return { success: false, error: 'Not authenticated' };
     }
 
-    let query = (supabase as any)
+    let query = (database as any)
       .from('user_marketplace_credentials')
       .select('*')
       .eq('user_id', user.id)
@@ -195,13 +200,13 @@ export async function deleteMarketplaceCredentials(
   marketplace: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await database.auth.getUser();
 
     if (!user) {
       return { success: false, error: 'Not authenticated' };
     }
 
-    const { error } = await (supabase as any)
+    const { error } = await (database as any)
       .from('user_marketplace_credentials')
       .update({ is_active: false })
       .eq('user_id', user.id)

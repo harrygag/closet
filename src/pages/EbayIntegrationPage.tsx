@@ -25,6 +25,7 @@ import { toast } from 'sonner';
 import { useEbayAuth } from '../hooks/useEbayAuth';
 import { useEbayStats } from '../hooks/useEbayStats';
 import { ebayService } from '../services/ebayService';
+import { EbayImportModal } from '../components/ebay/EbayImportModal';
 
 const formatNumber = (num: number): string => num.toLocaleString('en-US');
 const formatCurrency = (amount: number): string => 
@@ -47,9 +48,10 @@ const formatRelativeTime = (dateString: string | null): string => {
 const ConnectionHeader: React.FC<{
   isConnected: boolean;
   isLoading: boolean;
+  ebayUsername: string | null;
   onConnect: () => void;
   onDisconnect: () => void;
-}> = ({ isConnected, isLoading, onConnect, onDisconnect }) => (
+}> = ({ isConnected, isLoading, ebayUsername, onConnect, onDisconnect }) => (
   <div className="flex items-center justify-between mb-8">
     <div>
       <h1 className="text-4xl font-bold text-white mb-2 flex items-center gap-3">
@@ -76,7 +78,9 @@ const ConnectionHeader: React.FC<{
             className="flex items-center gap-2 px-4 py-2 bg-green-900/30 border border-green-500/30 rounded-lg"
           >
             <CheckCircle className="h-5 w-5 text-green-400" />
-            <span className="text-green-400 font-medium">Connected</span>
+            <span className="text-green-400 font-medium">
+              Connected{ebayUsername ? ` as ${ebayUsername}` : ''}
+            </span>
           </motion.div>
           <Button
             variant="ghost"
@@ -105,10 +109,11 @@ const ConnectionHeader: React.FC<{
 
 const StatusCard: React.FC<{
   isConnected: boolean;
+  ebayUsername: string | null;
   lastSync: string | null;
   tokenExpiry: string | null;
   onRefresh: () => void;
-}> = ({ isConnected, lastSync, tokenExpiry, onRefresh }) => (
+}> = ({ isConnected, ebayUsername, lastSync, tokenExpiry, onRefresh }) => (
   <Card className="mb-6">
     <CardHeader>
       <div className="flex items-center justify-between">
@@ -119,7 +124,7 @@ const StatusCard: React.FC<{
       </div>
     </CardHeader>
     <CardContent>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-gray-900/50 p-4 rounded-lg">
           <div className="text-gray-400 text-sm mb-2">Status</div>
           <div className="flex items-center gap-2">
@@ -127,6 +132,13 @@ const StatusCard: React.FC<{
             <span className="text-white font-medium">
               {isConnected ? 'Connected' : 'Not Connected'}
             </span>
+          </div>
+        </div>
+
+        <div className="bg-gray-900/50 p-4 rounded-lg">
+          <div className="text-gray-400 text-sm mb-2">eBay Account</div>
+          <div className="text-white font-medium truncate">
+            {ebayUsername || 'Loading...'}
           </div>
         </div>
 
@@ -305,13 +317,15 @@ const NotConnectedState: React.FC<{ onConnect: () => void }> = ({ onConnect }) =
 
 export const EbayIntegrationPage: React.FC = () => {
   const [isSyncing, setIsSyncing] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const { isConnected, isLoading, status, connect, disconnect, refreshStatus } = useEbayAuth();
   const { stats, isLoading: statsLoading, refreshStats } = useEbayStats(isConnected);
 
   const handleSyncInventory = async () => {
     setIsSyncing(true);
     try {
-      const result = await ebayService.syncInventory();
+      // Use syncListings instead of syncInventory
+      const result = await ebayService.syncListings();
       if (result.success) {
         toast.success(`✅ Synced ${result.imported} items from eBay!`);
         refreshStats();
@@ -329,6 +343,7 @@ export const EbayIntegrationPage: React.FC = () => {
         <ConnectionHeader
           isConnected={isConnected}
           isLoading={isLoading}
+          ebayUsername={status?.ebayUsername || null}
           onConnect={connect}
           onDisconnect={disconnect}
         />
@@ -337,6 +352,7 @@ export const EbayIntegrationPage: React.FC = () => {
           <>
             <StatusCard
               isConnected={isConnected}
+              ebayUsername={status?.ebayUsername || null}
               lastSync={status?.lastSync || null}
               tokenExpiry={status?.tokenExpiry || null}
               onRefresh={refreshStatus}
@@ -355,14 +371,53 @@ export const EbayIntegrationPage: React.FC = () => {
             <ActionsPanel
               onSyncInventory={handleSyncInventory}
               onRefreshStats={refreshStats}
-              onManageListings={() => toast.info('Coming soon!')}
+              onManageListings={() => {
+                console.log('[DEBUG] Manage Listings clicked');
+                console.log('[DEBUG] Current showImportModal:', showImportModal);
+                setShowImportModal(true);
+                console.log('[DEBUG] After setShowImportModal(true)');
+              }}
               onViewAnalytics={() => toast.info('Coming soon!')}
               isSyncing={isSyncing}
             />
+
+            {/* Test Trading API Button */}
+            <div className="mt-4">
+              <Button
+                onClick={async () => {
+                  toast.info('Testing Trading API...');
+                  try {
+                    const result = await ebayService.getAllListings();
+                    console.log('[TEST] Trading API result:', result);
+                    toast.success(`Found ${result.total} listings!`);
+                    alert(`Trading API returned ${result.total} listings!\n\nFirst listing: ${result.listings?.[0]?.title || 'N/A'}`);
+                  } catch (err) {
+                    console.error('[TEST] Trading API error:', err);
+                    toast.error('Trading API failed: ' + (err as Error).message);
+                  }
+                }}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                Test Trading API (Get All Listings)
+              </Button>
+            </div>
           </>
         ) : (
           <NotConnectedState onConnect={connect} />
         )}
+
+        <EbayImportModal
+          open={showImportModal}
+          onClose={() => {
+            console.log('[DEBUG] Closing modal');
+            setShowImportModal(false);
+          }}
+        />
+
+        {/* Debug: Show modal state */}
+        <div className="fixed bottom-4 right-4 bg-black/80 text-white px-4 py-2 rounded text-xs z-[100]">
+          Modal State: {showImportModal ? 'OPEN' : 'CLOSED'}
+        </div>
       </div>
     </div>
   );

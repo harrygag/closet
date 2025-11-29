@@ -8,7 +8,14 @@ export interface EbayListing {
   quantity: number;
   format: string;
   categoryName?: string;
-  itemSpecifics?: Array<{ name: string; value: string }>;
+  // Extended fields for copy/paste relisting
+  description?: string;
+  condition?: string;
+  conditionID?: string;
+  primaryCategoryID?: string;
+  primaryCategoryName?: string;
+  itemSpecifics?: Record<string, string>;
+  pictureURLs?: string[];
 }
 
 export interface EbayConnection {

@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase/client'
+import { database } from '../lib/database/client'
 
 /**
  * RAG-powered comp search for ItemForm
@@ -45,12 +45,13 @@ export async function findCompsWithRAG(params: FindCompsParams): Promise<RAGComp
 
     // 2. Generate embedding on backend (we'll need an API endpoint for this)
     // For now, use simple text search as fallback
-    const { data, error } = await supabase
+    const result = await (database
       .from('clothing_comps')
       .select('*')
       .ilike('title', `%${params.itemName}%`)
       .order('scraped_at', { ascending: false })
-      .limit(params.limit || 10)
+      .limit(params.limit || 10) as any);
+    const { data, error } = result;
 
     if (error) {
       console.error('Error fetching comps:', error)

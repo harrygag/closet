@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { ShoppingCart, Heart, Search, Filter, X, Sparkles, Zap, TrendingUp, Eye, Rocket } from 'lucide-react';
+import { ShoppingCart, Heart, Search, X, Sparkles, Zap, TrendingUp, Eye, Rocket } from 'lucide-react';
 import { toast } from 'sonner';
 import { triggerConfetti, triggerCartAnimation } from '../utils/confetti';
 
@@ -490,7 +490,7 @@ export default function ShopifyStorefront() {
 function ProductCard({ product, onAddToCart }: { product: ShopifyProduct; onAddToCart: () => void }) {
   const [isLiked, setIsLiked] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [views, setViews] = useState(Math.floor(Math.random() * 100) + 20);
+  const [views] = useState(Math.floor(Math.random() * 100) + 20);
   const cardRef = useRef<HTMLDivElement>(null);
   
   // Mouse tracking for 3D tilt effect

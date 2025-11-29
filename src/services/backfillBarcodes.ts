@@ -3,7 +3,7 @@
  * Run this ONCE to add barcodes to all items created before barcode system was implemented
  */
 
-import { SupabaseClient } from '@supabase/supabase-js';
+type DatabaseClient = any;
 import { generateBarcode } from './barcodes';
 
 interface BackfillResult {
@@ -18,7 +18,7 @@ interface BackfillResult {
  */
 export async function backfillBarcodes(
   userId: string,
-  supabase: SupabaseClient
+  database: DatabaseClient
 ): Promise<BackfillResult> {
   const result: BackfillResult = {
     success: true,
@@ -31,7 +31,7 @@ export async function backfillBarcodes(
     console.log('🔍 Finding items without barcodes...');
 
     // Get all items for this user that don't have a barcode
-    const { data: items, error: fetchError } = await supabase
+    const { data: items, error: fetchError } = await database
       .from('Item')
       .select('id, title, barcode, createdAt')
       .eq('user_uuid', userId)
@@ -57,11 +57,11 @@ export async function backfillBarcodes(
 
       try {
         // Generate barcode
-        const barcode = await generateBarcode(userId, supabase);
+        const barcode = await generateBarcode(userId, database);
         console.log(`  ✅ Item "${item.title}" (${item.id}) -> ${barcode}`);
 
         // Update item with barcode
-        const { error: updateError } = await supabase
+        const { error: updateError } = await database
           .from('Item')
           .update({ barcode: barcode })
           .eq('id', item.id)
@@ -112,9 +112,9 @@ export async function backfillBarcodes(
  */
 export async function countItemsNeedingBarcodes(
   userId: string,
-  supabase: SupabaseClient
+  database: DatabaseClient
 ): Promise<number> {
-  const { count, error } = await supabase
+  const { count, error } = await database
     .from('Item')
     .select('id', { count: 'exact', head: true })
     .eq('user_uuid', userId)

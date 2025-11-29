@@ -1,99 +1,72 @@
 /**
  * Barcode Generation Service
- * 
+ *
  * Generates unique barcodes for inventory items
  * Format: INV-YYYYMMDD-XXXXX
- * 
+ *
  * Example: INV-20241118-00001
  */
 
-import type { SupabaseClient } from '@supabase/supabase-js';
+type DatabaseClient = any;
 
 /**
  * Generates a unique barcode for a new item
  * Format: INV-YYYYMMDD-XXX-NNNNN (3-letter prefix + 5-digit number)
- * 
+ *
  * @param userId - The user's UUID
- * @param supabaseClient - Supabase client instance
+ * @param databaseClient - Database client instance
  * @returns Promise<string> - Generated barcode
  * @throws Error if generation fails after retries
  */
 export async function generateBarcode(
   userId: string,
-  supabaseClient: SupabaseClient
+  databaseClient: DatabaseClient
 ): Promise<string> {
-  const MAX_RETRIES = 5;
-  
+  const MAX_RETRIES = 10;
+
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
       // Get current date in YYYYMMDD format
       const today = new Date();
       const dateStr = today.toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
-      
+
       // Generate 3-letter prefix from user ID
       const userPrefix = userId.substring(0, 3).toUpperCase().replace(/[^A-Z0-9]/g, '0');
-      
-      // Query for highest barcode number today with this prefix
-      const todayPrefix = `INV-${dateStr}-${userPrefix}-%`;
-      
-      const { data, error } = await supabaseClient
-        .from('Item')
-        .select('barcode')
-        .eq('user_uuid', userId)
-        .like('barcode', todayPrefix)
-        .order('barcode', { ascending: false })
-        .limit(1);
-      
-      if (error) {
-        console.error('Error querying barcodes:', error);
-        throw new Error(`Failed to query barcodes: ${error.message}`);
-      }
-      
-      // Determine next number
-      let nextNumber = 1;
-      
-      if (data && data.length > 0 && data[0].barcode) {
-        // Extract number from barcode (INV-20241118-XXX-00001 -> 00001)
-        const match = data[0].barcode.match(/INV-\d{8}-[A-Z0-9]{3}-(\d{5})$/);
-        if (match && match[1]) {
-          const currentNumber = parseInt(match[1], 10);
-          nextNumber = currentNumber + 1;
-        }
-      }
-      
-      // Format as 5-digit number with leading zeros
-      const numberStr = nextNumber.toString().padStart(5, '0');
-      
+
+      // Generate a random 5-digit number (avoids complex Firestore queries)
+      const randomNum = Math.floor(Math.random() * 90000) + 10000; // 10000-99999
+      const numberStr = randomNum.toString();
+
       // Construct barcode: INV-YYYYMMDD-XXX-NNNNN
       const barcode = `INV-${dateStr}-${userPrefix}-${numberStr}`;
-      
+
       // Validate format
       if (!isValidBarcodeFormat(barcode)) {
         throw new Error(`Generated invalid barcode format: ${barcode}`);
       }
-      
-      // Verify uniqueness (extra safety check)
-      const exists = await barcodeExists(barcode, userId, supabaseClient);
+
+      // Verify uniqueness - this uses a simple eq query that works with Firestore
+      const exists = await barcodeExists(barcode, userId, databaseClient);
       if (exists) {
         console.warn(`Barcode collision detected: ${barcode}, retrying...`);
-        continue; // Retry with incremented number
+        continue; // Retry with new random number
       }
-      
-      console.log(`✅ Generated barcode: ${barcode} (attempt ${attempt + 1})`);
+
+      console.log(`Generated barcode: ${barcode} (attempt ${attempt + 1})`);
       return barcode;
-      
+
     } catch (error) {
       console.error(`Barcode generation attempt ${attempt + 1} failed:`, error);
-      
+
       if (attempt === MAX_RETRIES - 1) {
         throw new Error(`Failed to generate barcode after ${MAX_RETRIES} attempts`);
       }
-      
+
       // Wait a bit before retrying
-      await new Promise(resolve => setTimeout(resolve, 100 * (attempt + 1)));
+      await new Promise(resolve => setTimeout(resolve, 50 * (attempt + 1)));
     }
   }
-  
+
   throw new Error('Failed to generate barcode');
 }
 
@@ -128,18 +101,18 @@ export function isValidBarcodeFormat(barcode: string): boolean {
 
 /**
  * Checks if barcode exists in database
- * 
+ *
  * @param barcode - Barcode to check
  * @param userId - User UUID
- * @param supabaseClient - Supabase client
+ * @param databaseClient - Database client
  * @returns Promise<boolean> - True if exists
  */
 export async function barcodeExists(
   barcode: string,
   userId: string,
-  supabaseClient: SupabaseClient
+  databaseClient: DatabaseClient
 ): Promise<boolean> {
-  const { data, error } = await supabaseClient
+  const { data, error } = await databaseClient
     .from('Item')
     .select('id')
     .eq('user_uuid', userId)
@@ -189,10 +162,10 @@ export async function logBarcodePrintEvent(
   payload: Record<string, any> = {}
 ): Promise<void> {
   try {
-    // Import supabase client dynamically to avoid circular imports
-    const { supabase } = await import('../lib/supabase/client');
+    // Import database client dynamically to avoid circular imports
+    const { database } = await import('../lib/database/client');
 
-    const { error } = await (supabase as any)
+    const { error } = await (database as any)
       .from('barcode_events')
       .insert({
         item_id: itemId,

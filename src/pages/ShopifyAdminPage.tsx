@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Upload, RefreshCw, CheckCircle, XCircle, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';

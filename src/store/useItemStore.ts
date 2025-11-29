@@ -1,8 +1,8 @@
-// Zustand store for item management with Supabase backend
+// Zustand store for item management with database backend
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import type { Item, ItemStats, FilterOptions, SortOption } from '../types/item';
-import { supabase } from '../lib/supabase/client';
+import { database } from '../lib/database/client';
 import { INITIAL_ITEMS } from '../data/initial-items';
 import { generateBarcode } from '../services/barcodes';
 import { backfillBarcodes, countItemsNeedingBarcodes } from '../services/backfillBarcodes';
@@ -11,11 +11,12 @@ interface ItemState {
   items: Item[];
   filteredItems: Item[];
   isLoading: boolean;
+  isInitializing: boolean; // Lock to prevent concurrent initializeStore calls
   error: string | null;
   filterOptions: FilterOptions;
   sortOption: SortOption;
   selectedItem: Item | null;
-  
+
   // Actions
   initializeStore: (userId?: string) => Promise<void>;
   loadItems: () => Promise<void>;
@@ -73,7 +74,6 @@ const transformDbItem = (dbItem: any): Item => {
     notes: cleanedNotes || dbItem.conditionNotes || '',
     dateAdded: dbItem.createdAt,
     barcode: dbItem.barcode || undefined,
-    vendooUrl: dbItem.vendooUrl || undefined,
   };
 };
 
@@ -98,7 +98,6 @@ const transformItemToDb = (item: Partial<Item>, userId: string) => ({
   brand: 'Unknown',
   category: 'Clothing',
   barcode: item.barcode || null,
-  vendooUrl: item.vendooUrl || null,
   ebayUrl: item.ebayUrl || null,
   poshmarkUrl: item.poshmarkUrl || null,
   depopUrl: item.depopUrl || null,
@@ -109,27 +108,34 @@ export const useItemStore = create<ItemState>()(
     items: [],
     filteredItems: [],
     isLoading: false,
+    isInitializing: false,
     error: null,
     filterOptions: defaultFilterOptions,
     sortOption: defaultSortOption,
     selectedItem: null,
 
     initializeStore: async () => {
-      set({ isLoading: true, error: null });
-      
+      // Prevent concurrent initialization calls
+      if (get().isInitializing) {
+        console.log('⏳ initializeStore already in progress, skipping...');
+        return;
+      }
+
+      set({ isLoading: true, isInitializing: true, error: null });
+
       try {
         // Get current user
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await database.auth.getUser();
         console.log('🔐 Current user:', user?.id, user?.email);
         if (!user) {
           throw new Error('User not authenticated');
         }
 
-        // Load items from Supabase
+        // Load items from database
         console.log('📊 Fetching items for user:', user.id);
         console.log('📊 Query: SELECT * FROM Item WHERE user_uuid =', user.id);
-        
-        const { data: dbItems, error: fetchError } = await (supabase as any)
+
+        const { data: dbItems, error: fetchError } = await (database as any)
           .from('Item')
           .select('*')
           .eq('user_uuid', user.id)
@@ -154,7 +160,7 @@ export const useItemStore = create<ItemState>()(
             }, user.id)
           );
 
-          const { data: insertedItems, error: insertError } = await (supabase as any)
+          const { data: insertedItems, error: insertError } = await (database as any)
             .from('Item')
             .insert(itemsToInsert as any)
             .select();
@@ -172,20 +178,20 @@ export const useItemStore = create<ItemState>()(
       } catch (error) {
         set({ error: error instanceof Error ? error.message : 'Failed to initialize store' });
       } finally {
-        set({ isLoading: false });
+        set({ isLoading: false, isInitializing: false });
       }
     },
 
     loadItems: async () => {
       set({ isLoading: true, error: null });
-      
+
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await database.auth.getUser();
         if (!user) {
           throw new Error('User not authenticated');
         }
 
-        const { data: dbItems, error: fetchError } = await (supabase as any)
+        const { data: dbItems, error: fetchError } = await (database as any)
           .from('Item')
           .select('*')
           .eq('user_uuid', user.id)
@@ -205,14 +211,14 @@ export const useItemStore = create<ItemState>()(
 
     addItem: async (itemData) => {
       set({ isLoading: true, error: null });
-      
+
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await database.auth.getUser();
         if (!user) throw new Error('User not authenticated');
 
         // Generate barcode automatically
         console.log('🏷️ Generating barcode for new item...');
-        const barcode = await generateBarcode(user.id, supabase);
+        const barcode = await generateBarcode(user.id, database);
         console.log('✅ Generated barcode:', barcode);
 
         // Add barcode to item data
@@ -222,8 +228,8 @@ export const useItemStore = create<ItemState>()(
         };
 
         const dbItem = transformItemToDb(itemWithBarcode, user.id);
-        
-        const { data: insertedItem, error: insertError } = await (supabase as any)
+
+        const { data: insertedItem, error: insertError } = await (database as any)
           .from('Item')
           .insert([dbItem] as any)
           .select()
@@ -253,15 +259,15 @@ export const useItemStore = create<ItemState>()(
 
     updateItem: async (item) => {
       set({ isLoading: true, error: null });
-      
+
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await database.auth.getUser();
         if (!user) throw new Error('User not authenticated');
 
         const dbItem = transformItemToDb(item, user.id);
-        
+
         // Security: Add explicit user_uuid check (defense-in-depth)
-        const { data: updatedItem, error: updateError } = await (supabase as any)
+        const { data: updatedItem, error: updateError } = await (database as any)
           .from('Item')
           .update(dbItem as any)
           .eq('id', item.id)
@@ -292,13 +298,13 @@ export const useItemStore = create<ItemState>()(
 
     deleteItem: async (id) => {
       set({ isLoading: true, error: null });
-      
+
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await database.auth.getUser();
         if (!user) throw new Error('User not authenticated');
 
         // Security: Add explicit user_uuid check (defense-in-depth)
-        const { error: deleteError } = await (supabase as any)
+        const { error: deleteError } = await (database as any)
           .from('Item')
           .delete()
           .eq('id', id)
@@ -422,13 +428,13 @@ export const useItemStore = create<ItemState>()(
 
     backfillBarcodesForExistingItems: async () => {
       set({ isLoading: true, error: null });
-      
+
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await database.auth.getUser();
         if (!user) throw new Error('User not authenticated');
 
         console.log('🚀 Starting barcode backfill...');
-        const result = await backfillBarcodes(user.id, supabase);
+        const result = await backfillBarcodes(user.id, database);
         
         if (result.success) {
           // Reload items to show new barcodes
@@ -453,10 +459,10 @@ export const useItemStore = create<ItemState>()(
 
     countItemsNeedingBarcodes: async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await database.auth.getUser();
         if (!user) return 0;
 
-        return await countItemsNeedingBarcodes(user.id, supabase);
+        return await countItemsNeedingBarcodes(user.id, database);
       } catch (error) {
         console.error('Failed to count items needing barcodes:', error);
         return 0;

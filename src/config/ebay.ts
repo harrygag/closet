@@ -6,45 +6,49 @@
  */
 
 /**
- * Get eBay API base URL from environment
- * Falls back to localhost for development
+ * Firebase Cloud Functions base URL for eBay API
  */
-export const EBAY_API_BASE_URL = 
-  import.meta.env.VITE_EBAY_API_URL || 
-  'http://localhost:3002';
+export const FIREBASE_FUNCTIONS_URL = 'https://us-central1-closet-da8f2.cloudfunctions.net';
 
 /**
- * eBay API Endpoints
+ * Legacy base URL (for local development only)
+ */
+export const EBAY_API_BASE_URL =
+  import.meta.env.VITE_EBAY_API_URL ||
+  FIREBASE_FUNCTIONS_URL;
+
+/**
+ * eBay API Endpoints - Using Firebase Cloud Functions
  * All endpoints used in the application
  */
 export const EBAY_ENDPOINTS = {
-  // Authentication
-  AUTH_CONNECT: `${EBAY_API_BASE_URL}/auth/ebay`,
-  AUTH_CALLBACK: `${EBAY_API_BASE_URL}/auth/ebay/callback`,
-  AUTH_LOGOUT: `${EBAY_API_BASE_URL}/auth/logout`,
-  
+  // Authentication - Firebase Cloud Functions
+  AUTH_CONNECT: `${FIREBASE_FUNCTIONS_URL}/ebayOAuthUrl`,
+  AUTH_CALLBACK: `${FIREBASE_FUNCTIONS_URL}/ebayCallback`,
+  AUTH_LOGOUT: `${FIREBASE_FUNCTIONS_URL}/ebayDisconnect`,
+
   // Status & Stats
-  STATUS: `${EBAY_API_BASE_URL}/api/ebay/status`,
-  STATS: `${EBAY_API_BASE_URL}/api/ebay/stats`,
-  
+  STATUS: `${FIREBASE_FUNCTIONS_URL}/ebayStatus`,
+  STATS: `${FIREBASE_FUNCTIONS_URL}/ebayStatus`,
+
   // Inventory Operations
-  IMPORT_INVENTORY: `${EBAY_API_BASE_URL}/api/ebay/import/inventory`,
-  TEST_INVENTORY: `${EBAY_API_BASE_URL}/api/ebay/test/inventory`,
-  SYNC_INVENTORY: `${EBAY_API_BASE_URL}/api/ebay/sync`,
-  
+  IMPORT_INVENTORY: `${FIREBASE_FUNCTIONS_URL}/ebayFetchInventory`,
+  TEST_INVENTORY: `${FIREBASE_FUNCTIONS_URL}/ebayFetchInventory`,
+  SYNC_INVENTORY: `${FIREBASE_FUNCTIONS_URL}/ebaySyncListings`,
+
   // Listing Management
-  GET_LISTINGS: `${EBAY_API_BASE_URL}/api/ebay/listings`,
-  CREATE_LISTING: `${EBAY_API_BASE_URL}/api/ebay/listings/create`,
-  UPDATE_LISTING: `${EBAY_API_BASE_URL}/api/ebay/listings/update`,
-  DELETE_LISTING: `${EBAY_API_BASE_URL}/api/ebay/listings/delete`,
-  
+  GET_LISTINGS: `${FIREBASE_FUNCTIONS_URL}/ebaySyncListings`,
+  CREATE_LISTING: `${FIREBASE_FUNCTIONS_URL}/ebaySyncListings`,
+  UPDATE_LISTING: `${FIREBASE_FUNCTIONS_URL}/ebaySyncListings`,
+  DELETE_LISTING: `${FIREBASE_FUNCTIONS_URL}/ebaySyncListings`,
+
   // Orders
-  GET_ORDERS: `${EBAY_API_BASE_URL}/api/ebay/orders`,
-  GET_ORDER: `${EBAY_API_BASE_URL}/api/ebay/orders/:id`,
-  
+  GET_ORDERS: `${FIREBASE_FUNCTIONS_URL}/ebayGetOrders`,
+  GET_ORDER: `${FIREBASE_FUNCTIONS_URL}/ebayGetOrders`,
+
   // Analytics
-  GET_ANALYTICS: `${EBAY_API_BASE_URL}/api/ebay/analytics`,
-  GET_TRAFFIC: `${EBAY_API_BASE_URL}/api/ebay/analytics/traffic`,
+  GET_ANALYTICS: `${FIREBASE_FUNCTIONS_URL}/ebayStatus`,
+  GET_TRAFFIC: `${FIREBASE_FUNCTIONS_URL}/ebayStatus`,
 } as const;
 
 /**

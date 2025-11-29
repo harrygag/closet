@@ -19,7 +19,7 @@ const STATUS_OPTIONS: { value: ItemStatus; label: string }[] = [
   { value: 'SOLD', label: 'SOLD' },
 ];
 
-const TAG_OPTIONS: ItemTag[] = ['Hoodie', 'Jersey', 'polo', 'Pullover/Jackets', 'T-shirts', 'Bottoms'];
+const TAG_OPTIONS: ItemTag[] = ['Hoodie', 'Jersey', 'Polo', 'Pullover/Jackets', 'T-shirts', 'Bottoms'];
 
 export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit, editItem }) => {
   const [formData, setFormData] = useState({
@@ -30,7 +30,6 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
     hangerId: '',
     tags: [] as ItemTag[],
     imageUrl: '',
-    vendooUrl: '',
     ebayUrl: '',
     poshmarkUrl: '',
     depopUrl: '',
@@ -42,7 +41,6 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
     notes: '',
   });
 
-  const [vendooUrlError, setVendooUrlError] = useState('');
 
   useEffect(() => {
     if (editItem) {
@@ -54,7 +52,6 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
         hangerId: editItem.hangerId,
         tags: editItem.tags,
         imageUrl: editItem.imageUrl || '',
-        vendooUrl: editItem.vendooUrl || '',
         ebayUrl: editItem.ebayUrl || '',
         poshmarkUrl: editItem.poshmarkUrl || '',
         depopUrl: editItem.depopUrl || '',
@@ -79,7 +76,6 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
         hangerId: hangerIdFromStorage || '',
         tags: categoryFromStorage ? [categoryFromStorage as ItemTag] : [],
         imageUrl: '',
-        vendooUrl: '',
         ebayUrl: '',
         poshmarkUrl: '',
         depopUrl: '',
@@ -95,52 +91,28 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
       sessionStorage.removeItem('newItemCategory');
       sessionStorage.removeItem('newItemHangerId');
     }
-    setVendooUrlError('');
   }, [editItem, open]);
-
-  // Validate Vendoo URL
-  const validateVendooUrl = (url: string): boolean => {
-    if (!url || url.trim() === '') return true; // Empty is okay
-    const vendooPattern = /^https:\/\/web\.vendoo\.co\/app\/item\/[a-zA-Z0-9]+$/;
-    return vendooPattern.test(url);
-  };
-
-  const handleVendooUrlChange = (url: string) => {
-    setFormData({ ...formData, vendooUrl: url });
-    if (url && !validateVendooUrl(url)) {
-      setVendooUrlError('Invalid Vendoo URL. Must be: https://web.vendoo.co/app/item/{item_id}');
-    } else {
-      setVendooUrlError('');
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate Vendoo URL before submitting
-    if (formData.vendooUrl && !validateVendooUrl(formData.vendooUrl)) {
-      setVendooUrlError('Invalid Vendoo URL. Must be: https://web.vendoo.co/app/item/{item_id}');
-      return;
-    }
-    
+
     const itemData = {
       ...formData,
       sellingPrice: Number(formData.sellingPrice) || 0,
-      vendooUrl: formData.vendooUrl.trim() || undefined,
       ebayUrl: formData.ebayUrl.trim() || undefined,
       poshmarkUrl: formData.poshmarkUrl.trim() || undefined,
       depopUrl: formData.depopUrl.trim() || undefined,
       marketplaceUrls: [] // Empty array for backwards compatibility
     };
-    
+
     console.log('Final data being saved:', itemData);
-    
+
     if (editItem) {
       onSubmit({ ...editItem, ...itemData });
     } else {
       onSubmit(itemData);
     }
-    
+
     onOpenChange(false);
   };
 
@@ -362,19 +334,6 @@ export const ItemForm: React.FC<ItemFormProps> = ({ open, onOpenChange, onSubmit
           <div className="space-y-3 rounded-lg border border-gray-700 bg-gray-900/50 p-3">
             {/* Marketplace URLs */}
             <div className="space-y-3">
-              <div>
-                <Input
-                  label="Vendoo URL"
-                  type="url"
-                  value={formData.vendooUrl}
-                  onChange={(e) => handleVendooUrlChange(e.target.value)}
-                  placeholder="https://web.vendoo.co/app/item/..."
-                />
-                {vendooUrlError && (
-                  <p className="mt-1 text-xs text-red-400">{vendooUrlError}</p>
-                )}
-              </div>
-
               <Input
                 label="eBay URL"
                 type="url"

@@ -4,6 +4,7 @@ import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
 import { buildCode128Segments } from '../utils/code128';
 import { logBarcodePrintEvent } from '../services/barcodes';
+import { generateQRCodeUrl } from '../utils/qrcode';
 import { toast } from 'sonner';
 
 interface LabelPrintModalProps {
@@ -16,6 +17,7 @@ interface LabelPrintModalProps {
 const LABEL_PRESETS = [
   { id: 'small', label: '1" × 2"', widthIn: 2, heightIn: 1 },
   { id: 'medium', label: '2" × 3"', widthIn: 3, heightIn: 2 },
+  { id: 'large', label: '4" × 3"', widthIn: 4, heightIn: 3 },
 ];
 
 const PX_PER_INCH = 96;
@@ -39,6 +41,12 @@ export const LabelPrintModal = ({ item, open, onClose, userId }: LabelPrintModal
   const previewHeight = preset.heightIn * PX_PER_INCH;
   const totalUnits = segments.reduce((sum, segment) => sum + segment.width, 0);
   const moduleWidth = totalUnits ? previewWidth / totalUnits : 2;
+
+  // Generate QR code URL for this item
+  const qrCodeUrl = useMemo(() => {
+    if (!item?.id) return null;
+    return generateQRCodeUrl(item.id, 150);
+  }, [item?.id]);
 
   const handlePrint = async () => {
     if (!labelRef.current || !item?.barcode) return;
@@ -102,6 +110,8 @@ export const LabelPrintModal = ({ item, open, onClose, userId }: LabelPrintModal
               Size {item.size || '—'} • Hanger {item.hangerId || '—'}
             </span>
           </div>
+
+          {/* Barcode Section */}
           <div className="mt-2 flex items-center justify-center bg-white p-2">
             {item.barcode && segments.length > 0 ? (
               <svg width={previewWidth} height={previewHeight} viewBox={`0 0 ${previewWidth} ${previewHeight}`}>
@@ -126,7 +136,24 @@ export const LabelPrintModal = ({ item, open, onClose, userId }: LabelPrintModal
               <p className="text-sm text-gray-500">Unable to render barcode</p>
             )}
           </div>
-          <div className="mt-2 text-center text-sm font-mono">{item.barcode || 'Barcode pending'}</div>
+          <div className="mt-1 text-center text-sm font-mono">{item.barcode || 'Barcode pending'}</div>
+
+          {/* QR Code Section */}
+          {qrCodeUrl && (
+            <div className="mt-3 border-t border-gray-300 pt-3">
+              <div className="flex items-center justify-center bg-white p-2">
+                <img
+                  src={qrCodeUrl}
+                  alt="QR Code"
+                  width={120}
+                  height={120}
+                  className="block"
+                  crossOrigin="anonymous"
+                />
+              </div>
+              <p className="mt-1 text-center text-xs text-gray-600">Scan to view item details</p>
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end gap-2">

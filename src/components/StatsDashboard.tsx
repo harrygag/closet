@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 import { exportToCSV } from '../utils/csvExport';
 import { formatCurrency } from '../utils/formatters';
 import { toast } from 'sonner';
-import { supabase } from '../lib/supabase/client';
+import { database } from '../lib/database/client';
 
 interface StatsDashboardProps {
   stats: ItemStats;
@@ -26,7 +26,7 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ stats, items = [
         throw new Error('Extension not detected. Please go to Marketplaces to connect.');
       }
 
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await database.auth.getSession();
       if (!session) throw new Error('No session found');
 
       // 2. Trigger Client-Side Import via Extension

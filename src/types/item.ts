@@ -2,7 +2,7 @@
 
 export type ItemStatus = 'Active' | 'Inactive' | 'SOLD';
 
-export type ItemTag = 'Hoodie' | 'Jersey' | 'polo' | 'Pullover/Jackets' | 'T-shirts' | 'Bottoms';
+export type ItemTag = 'Hoodie' | 'Jersey' | 'Polo' | 'Pullover/Jackets' | 'T-shirts' | 'Bottoms';
 
 export type MarketplaceType = 'ebay' | 'poshmark' | 'mercari' | 'depop' | 'grailed' | 'other';
 
@@ -20,7 +20,6 @@ export interface Item {
   hangerStatus: string;
   hangerId: string;
   tags: ItemTag[];
-  vendooUrl?: string; // Vendoo marketplace link (primary)
   ebayUrl?: string; // eBay listing URL
   poshmarkUrl?: string; // Poshmark listing URL
   depopUrl?: string; // Depop listing URL

@@ -1,6 +1,14 @@
 import { create } from 'zustand';
-import { supabase } from '../lib/supabase/client';
-import type { User as SupabaseUser, Session } from '@supabase/supabase-js';
+import { auth } from '../lib/firebase/client';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
+  type User as FirebaseUser
+} from 'firebase/auth';
 
 export interface User {
   id: string;
@@ -11,25 +19,26 @@ export interface User {
 
 interface AuthState {
   user: User | null;
-  session: Session | null;
+  session: any | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   signUp: (email: string, password: string, displayName?: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
-  initialize: () => Promise<void>;
+  initialize: () => void;
   clearError: () => void;
 }
 
-// Helper to transform Supabase user to our User type
-const transformUser = (supabaseUser: SupabaseUser): User => ({
-  id: supabaseUser.id,
-  email: supabaseUser.email!,
-  display_name: supabaseUser.user_metadata?.display_name,
-  created_at: supabaseUser.created_at,
+// Helper to transform Firebase user to our User type
+const transformUser = (firebaseUser: FirebaseUser): User => ({
+  id: firebaseUser.uid,
+  email: firebaseUser.email!,
+  display_name: firebaseUser.displayName || undefined,
+  created_at: firebaseUser.metadata.creationTime || new Date().toISOString(),
 });
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -39,32 +48,18 @@ export const useAuthStore = create<AuthState>((set) => ({
   isLoading: true,
   error: null,
 
-  signUp: async (email: string, password: string, displayName?: string) => {
+  signUp: async (email: string, password: string, _displayName?: string) => {
     set({ isLoading: true, error: null });
-    
+
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            display_name: displayName || email.split('@')[0],
-          },
-        },
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+      set({
+        user: transformUser(userCredential.user),
+        session: null,
+        isAuthenticated: true,
+        isLoading: false,
       });
-
-      if (error) throw error;
-
-      if (data.user) {
-        // Create user record in public.users table (if needed)
-        // This will be handled by a database trigger or here
-        set({
-          user: transformUser(data.user),
-          session: data.session,
-          isAuthenticated: !!data.session,
-          isLoading: false,
-        });
-      }
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to sign up',
@@ -76,23 +71,16 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   signIn: async (email: string, password: string) => {
     set({ isLoading: true, error: null });
-    
+
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+
+      set({
+        user: transformUser(userCredential.user),
+        session: null,
+        isAuthenticated: true,
+        isLoading: false,
       });
-
-      if (error) throw error;
-
-      if (data.user && data.session) {
-        set({
-          user: transformUser(data.user),
-          session: data.session,
-          isAuthenticated: true,
-          isLoading: false,
-        });
-      }
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to sign in',
@@ -102,13 +90,37 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
+  signInWithGoogle: async () => {
+    console.log('[AUTH] signInWithGoogle called');
+    set({ error: null });
+
+    try {
+      const provider = new GoogleAuthProvider();
+      console.log('[AUTH] Calling signInWithPopup...');
+      const result = await signInWithPopup(auth, provider);
+      console.log('[AUTH] signInWithPopup success:', result.user.email);
+
+      set({
+        user: transformUser(result.user),
+        session: null,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+    } catch (error: any) {
+      console.error('[AUTH] signInWithPopup error:', error.code, error.message);
+      set({
+        error: error.message,
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
+
   signOut: async () => {
     set({ isLoading: true, error: null });
-    
+
     try {
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) throw error;
+      await firebaseSignOut(auth);
 
       set({
         user: null,
@@ -125,19 +137,36 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  initialize: async () => {
-    set({ isLoading: true });
-    
-    try {
-      // Get current session
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error) throw error;
+  initialize: () => {
+    console.log('[AUTH] Initializing auth, current user:', auth.currentUser?.email);
 
-      if (session?.user) {
+    // Check if user is already signed in
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      console.log('[AUTH] User already signed in:', currentUser.email);
+      set({
+        user: transformUser(currentUser),
+        session: null,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+      return;
+    }
+
+    // Set a timeout to prevent infinite loading
+    const timeout = setTimeout(() => {
+      console.warn('[AUTH] onAuthStateChanged timeout - setting loading to false');
+      set({ isLoading: false });
+    }, 2000);
+
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      clearTimeout(timeout);
+      console.log('[AUTH] Auth state changed:', user ? user.email : 'No user');
+
+      if (user) {
         set({
-          user: transformUser(session.user),
-          session,
+          user: transformUser(user),
+          session: null,
           isAuthenticated: true,
           isLoading: false,
         });
@@ -149,29 +178,9 @@ export const useAuthStore = create<AuthState>((set) => ({
           isLoading: false,
         });
       }
+    });
 
-      // Listen for auth changes
-      supabase.auth.onAuthStateChange((_event, session) => {
-        if (session?.user) {
-          set({
-            user: transformUser(session.user),
-            session,
-            isAuthenticated: true,
-          });
-        } else {
-          set({
-            user: null,
-            session: null,
-            isAuthenticated: false,
-          });
-        }
-      });
-    } catch (error) {
-      set({
-        error: error instanceof Error ? error.message : 'Failed to initialize auth',
-        isLoading: false,
-      });
-    }
+    return unsubscribe;
   },
 
   clearError: () => set({ error: null }),

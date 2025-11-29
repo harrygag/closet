@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ExternalLink, CheckCircle, XCircle, RefreshCw, Cookie, Shield, Clock, AlertCircle, Chrome, HelpCircle, Download, Import, Terminal } from 'lucide-react';
 import { Button } from '../components/ui/Button';
-import { supabase } from '../lib/supabase/client';
+import { database } from '../lib/database/client';
 import { toast } from 'sonner';
 import { DiagnosticsModal } from '../components/DiagnosticsModal';
 
@@ -208,7 +208,7 @@ export const MarketplacesPage: React.FC = () => {
         
         // Auto-authenticate with delay
         setTimeout(async () => {
-          const { data: { session } } = await supabase.auth.getSession();
+          const { data: { session } } = await database.auth.getSession();
           if (session?.access_token && session?.user) {
             console.log('[MarketplacesPage] Auto-authenticating extension...');
             window.postMessage({
@@ -257,14 +257,15 @@ export const MarketplacesPage: React.FC = () => {
     let credentials: MarketplaceCredential[] = [];
 
     try {
-      const sessionResult = await supabase.auth.getSession();
+      const sessionResult = await database.auth.getSession();
       session = sessionResult.data.session;
 
       if (session) {
-        const { data, error } = await supabase
+        const result = await (database
           .from('user_marketplace_credentials')
           .select('marketplace, last_validated_at, expires_at, email, cookies_encrypted')
-          .eq('user_uuid', session.user.id);
+          .eq('user_uuid', session.user.id) as any);
+        const { data, error } = result;
 
         if (error) {
            if (error.message.includes('does not exist')) {
@@ -405,7 +406,7 @@ export const MarketplacesPage: React.FC = () => {
     const toastId = toast.loading(`Importing items from ${marketplaceData[marketplace as keyof typeof marketplaceData].name}...`);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await database.auth.getSession();
       if (!session) throw new Error('No session found');
 
       toast.loading('Waiting for extension to fetch items...', { id: toastId });
@@ -479,14 +480,15 @@ export const MarketplacesPage: React.FC = () => {
 
   const handleDisconnect = async (marketplace: string) => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await database.auth.getSession();
       if (!session) return;
 
-      const { error } = await supabase
+      const result = await (database
         .from('user_marketplace_credentials')
         .delete()
         .eq('user_uuid', session.user.id)
-        .eq('marketplace', marketplace);
+        .eq('marketplace', marketplace) as any);
+      const { error } = result;
 
       if (error) throw error;
 

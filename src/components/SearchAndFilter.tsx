@@ -15,7 +15,7 @@ interface SearchAndFilterProps {
 }
 
 const STATUS_OPTIONS: (ItemStatus | 'All')[] = ['All', 'Active', 'Inactive', 'SOLD'];
-const TAG_OPTIONS: ItemTag[] = ['Hoodie', 'Jersey', 'polo', 'Pullover/Jackets', 'T-shirts', 'Bottoms'];
+const TAG_OPTIONS: ItemTag[] = ['Hoodie', 'Jersey', 'Polo', 'Pullover/Jackets', 'T-shirts', 'Bottoms'];
 
 // Smart filter presets for reselling workflow
 const FILTER_PRESETS = [

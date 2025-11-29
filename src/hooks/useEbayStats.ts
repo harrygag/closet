@@ -50,19 +50,26 @@ export function useEbayStats(isConnected: boolean): UseEbayStatsReturn {
     try {
       setIsLoading(true);
       setError(null);
-      
+
+      // Call the ebayGetStats Cloud Function
       const data = await ebayService.getStats();
       setStats(data);
-      
+
       console.log('✅ Stats fetched:', data);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to fetch stats';
       setError(errorMsg);
       console.error('❌ Stats fetch failed:', err);
-      
+
       // Don't show toast for every error (user might not be authenticated yet)
       if (!errorMsg.includes('authenticated')) {
-        toast.error(errorMsg);
+        // Set fallback stats
+        setStats({
+          totalListings: 0,
+          activeListings: 0,
+          totalOrders: 0,
+          revenue: 0
+        });
       }
     } finally {
       setIsLoading(false);

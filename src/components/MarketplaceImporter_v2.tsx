@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
-import { supabase } from '../lib/supabase/client';
+import { database } from '../lib/database/client';
 import { Loader2, Download, Link2, CheckCircle2, AlertCircle, Cookie, ExternalLink, Info } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -116,7 +116,7 @@ export const MarketplaceImporter: React.FC<MarketplaceImporterProps> = ({
     setIsLoading(true);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await database.auth.getSession();
       if (!session) {
         toast.error('Please log in to continue');
         return;
@@ -165,7 +165,7 @@ export const MarketplaceImporter: React.FC<MarketplaceImporterProps> = ({
     setResult(null);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await database.auth.getSession();
       if (!session) {
         toast.error('Please log in to continue');
         return;

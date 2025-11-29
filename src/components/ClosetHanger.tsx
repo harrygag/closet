@@ -2,23 +2,18 @@
 import React, { useState } from 'react';
 import type { Item, ItemTag } from '../types/item';
 import { clsx } from 'clsx';
-import { Save, X, Image as ImageIcon } from 'lucide-react';
+import { Save, X, Image as ImageIcon, Printer } from 'lucide-react';
+import { toast } from 'sonner';
+import { BarcodeImage } from './BarcodeImage';
 
 // Pokemon energy types for each category with border colors
 const ENERGY_TYPES: Record<ItemTag, { symbol: string; color: string; borderColor: string; name: string }> = {
   'Hoodie': { symbol: '👻', color: 'text-purple-500', borderColor: '#A040A0', name: 'Psychic' },
   'Jersey': { symbol: '🌿', color: 'text-green-500', borderColor: '#78C850', name: 'Grass' },
-  'polo': { symbol: '⚙️', color: 'text-gray-400', borderColor: '#B8B8D0', name: 'Steel' },
+  'Polo': { symbol: '⚙️', color: 'text-gray-400', borderColor: '#B8B8D0', name: 'Steel' },
   'Pullover/Jackets': { symbol: '🔥', color: 'text-red-500', borderColor: '#F08030', name: 'Fire' },
   'T-shirts': { symbol: '💧', color: 'text-blue-500', borderColor: '#6890F0', name: 'Water' },
   'Bottoms': { symbol: '👊', color: 'text-orange-700', borderColor: '#C03028', name: 'Fighting' },
-};
-
-// Toast notification helper
-const toast = {
-  success: (message: string) => {
-    console.log('✓', message);
-  }
 };
 
 interface ClosetHangerProps {
@@ -31,11 +26,14 @@ interface ClosetHangerProps {
   position?: number;
 }
 
+// All category options for the switcher
+const ALL_CATEGORIES: ItemTag[] = ['Hoodie', 'Jersey', 'Polo', 'Pullover/Jackets', 'T-shirts', 'Bottoms'];
+
 export const ClosetHanger: React.FC<ClosetHangerProps> = ({
   item,
   onImageUpload,
   onUpdate,
-  onPrintLabel,
+  onPrintLabel: _onPrintLabel, // Print handled inline now
   isDragging = false,
 }) => {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -43,6 +41,7 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
   const [isDropping, setIsDropping] = useState(false);
   const [editData, setEditData] = useState(item);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [showCategorySwitcher, setShowCategorySwitcher] = useState(false);
   
   // Get energy type based on primary tag
   const energyType = item.tags.length > 0 
@@ -115,12 +114,11 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
     return daysListed >= DAYS_UNTIL_ELIMINATION;
   };
   
-  // Warning system - yellow border for missing BOTH vendoo link AND images
+  // Warning system - yellow border for missing images
   const hasYellowWarning = (): boolean => {
-    // Yellow warning if no Vendoo URL AND no images
-    const noVendooUrl = !item.vendooUrl || item.vendooUrl.trim() === '';
+    // Yellow warning if no images
     const noImages = !item.imageUrl && imageGallery.length === 0;
-    return noVendooUrl && noImages;
+    return noImages;
   };
   
   const showYellowBorder = hasYellowWarning();
@@ -241,6 +239,19 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
     setIsFlipped(false);
   };
 
+  // Handle category/gym change
+  const handleCategoryChange = (newCategory: ItemTag) => {
+    if (onUpdate && newCategory !== item.tags[0]) {
+      const updatedItem = {
+        ...item,
+        tags: [newCategory],
+      };
+      onUpdate(updatedItem);
+      toast.success(`Moved to ${ENERGY_TYPES[newCategory].name}!`);
+    }
+    setShowCategorySwitcher(false);
+  };
+
   return (
     <div
       onDragOver={handleDragOver}
@@ -298,14 +309,23 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
             }}
           >
           {/* Header - Energy Type Name (left), Category, and HP (right) */}
-          <div className="px-2.5 pt-1 pb-0">
+          <div className="px-2.5 pt-1 pb-0 relative">
             <div className="flex justify-between items-center">
-              {/* Left: Energy Type Name with Symbol */}
-              <div className="flex items-center gap-0.5">
+              {/* Left: Energy Type Name with Symbol - CLICKABLE for category change */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowCategorySwitcher(!showCategorySwitcher);
+                }}
+                className="flex items-center gap-0.5 hover:opacity-80 transition-opacity rounded px-1 -ml-1 hover:bg-white/10"
+                title="Click to change category"
+              >
                 <span className="text-sm leading-none">{energyType.symbol}</span>
                 <span className="text-[9px] font-bold" style={{ color: energyType.borderColor }}>{energyType.name}</span>
-              </div>
-              
+                <span className="text-[8px] text-gray-400 ml-0.5">▼</span>
+              </button>
+
               {/* Right: HP */}
               <div className="flex items-center gap-0.5 flex-shrink-0">
                 <span className="text-[9px] font-bold text-gray-400">HP</span>
@@ -315,17 +335,50 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
               </div>
             </div>
 
+            {/* Category Switcher Dropdown */}
+            {showCategorySwitcher && (
+              <div
+                className="absolute top-full left-0 mt-1 z-50 bg-gray-900 border border-gray-600 rounded-lg shadow-xl overflow-hidden"
+                style={{ minWidth: '140px' }}
+              >
+                {ALL_CATEGORIES.map((cat) => {
+                  const catEnergy = ENERGY_TYPES[cat];
+                  const isCurrentCategory = item.tags[0] === cat;
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCategoryChange(cat);
+                      }}
+                      className={clsx(
+                        "w-full flex items-center gap-2 px-2 py-1.5 text-left hover:bg-gray-700 transition-colors",
+                        isCurrentCategory && "bg-gray-700"
+                      )}
+                    >
+                      <span className="text-sm">{catEnergy.symbol}</span>
+                      <span className="text-[10px] font-bold" style={{ color: catEnergy.borderColor }}>
+                        {catEnergy.name}
+                      </span>
+                      {isCurrentCategory && <span className="text-[8px] text-green-400 ml-auto">✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
             {/* Category Tag & Item Name - same line */}
             <div className="flex items-center gap-1.5 mt-0.5">
               {item.tags.length > 0 && (
-                <span className="text-[7px] font-semibold px-1 py-0.5 rounded flex-shrink-0" style={{ 
+                <span className="text-[7px] font-semibold px-1 py-0.5 rounded flex-shrink-0" style={{
                   backgroundColor: `${energyType.borderColor}20`,
-                  color: energyType.borderColor 
+                  color: energyType.borderColor
                 }}>
                   {item.tags[0]}
                 </span>
               )}
-              
+
               <h3 className="text-white font-bold text-[10px] leading-tight flex-1" style={{
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -453,28 +506,17 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
           </div>
 
 
-          {/* Barcode Section - Clickable to open Vendoo link */}
+          {/* Barcode Section */}
           <div className="px-2.5 py-1.5">
             {item.barcode ? (
-              <div className="flex items-center justify-between text-[10px] font-mono text-gray-300">
-                {item.vendooUrl ? (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (item.vendooUrl) {
-                        window.open(item.vendooUrl, '_blank');
-                      }
-                    }}
-                    className="truncate text-blue-400 hover:text-blue-300 underline cursor-pointer"
-                    title="Click to open Vendoo listing"
-                  >
-                    {item.barcode}
-                  </button>
-                ) : (
-                  <span className="truncate">{item.barcode}</span>
-                )}
-                <div className="flex gap-1">
+              <div className="space-y-1">
+                {/* QR code for easy screen scanning */}
+                <div className="flex justify-center">
+                  <BarcodeImage value={item.barcode} width={80} height={80} useQR={true} />
+                </div>
+                <p className="text-[8px] text-gray-400 text-center font-mono truncate">{item.barcode}</p>
+                {/* Action buttons */}
+                <div className="flex items-center justify-center gap-1">
                   <button
                     type="button"
                     onClick={(e) => {
@@ -484,48 +526,65 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                         toast.success('Barcode copied');
                       }
                     }}
-                    className="rounded bg-gray-700 px-1 text-[9px] font-semibold text-gray-200 hover:bg-gray-600"
+                    className="rounded bg-gray-700 px-1.5 py-0.5 text-[8px] font-semibold text-gray-200 hover:bg-gray-600"
                   >
                     Copy
                   </button>
-                  {onPrintLabel && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onPrintLabel(item);
-                      }}
-                      className="rounded bg-purple-700 px-1 text-[9px] font-semibold text-purple-100 hover:bg-purple-600"
-                    >
-                      Print
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Open print window with just this barcode
+                      const printWindow = window.open('', '_blank', 'width=400,height=300');
+                      if (printWindow) {
+                        printWindow.document.write(`
+                          <html>
+                            <head>
+                              <title>Print Barcode - ${item.name}</title>
+                              <style>
+                                body { font-family: sans-serif; text-align: center; padding: 20px; }
+                                .label { border: 1px dashed #ccc; padding: 10px; display: inline-block; }
+                                .name { font-size: 12px; font-weight: bold; margin-bottom: 5px; }
+                                .size { font-size: 10px; color: #666; margin-bottom: 8px; }
+                                canvas { display: block; margin: 0 auto; }
+                              </style>
+                              <script src="https://cdn.jsdelivr.net/npm/bwip-js@3"></script>
+                            </head>
+                            <body>
+                              <div class="label">
+                                <div class="name">${item.name}</div>
+                                <div class="size">Size: ${item.size || 'N/A'}</div>
+                                <canvas id="barcode"></canvas>
+                              </div>
+                              <script>
+                                bwipjs.toCanvas('barcode', {
+                                  bcid: 'code128',
+                                  text: '${item.barcode}',
+                                  scale: 3,
+                                  height: 12,
+                                  includetext: true,
+                                  textxalign: 'center',
+                                });
+                                setTimeout(() => { window.print(); }, 500);
+                              </script>
+                            </body>
+                          </html>
+                        `);
+                        printWindow.document.close();
+                      }
+                    }}
+                    className="rounded bg-purple-700 px-1.5 py-0.5 text-[8px] font-semibold text-purple-100 hover:bg-purple-600 flex items-center gap-0.5"
+                  >
+                    <Printer className="w-2.5 h-2.5" />
+                    Print
+                  </button>
                 </div>
               </div>
             ) : (
-              <p className="text-[10px] font-semibold text-red-400">Needs barcode</p>
+              <p className="text-[10px] font-semibold text-red-400 text-center">Needs barcode - Click Fix Data</p>
             )}
           </div>
 
-          {/* Footer - Vendoo Link */}
-          {item.vendooUrl && (
-            <div className="px-2.5 py-1.5">
-              <div className="flex items-center justify-center">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (item.vendooUrl) {
-                      window.open(item.vendooUrl, '_blank');
-                    }
-                  }}
-                  className="w-full rounded bg-gradient-to-r from-purple-600 to-pink-600 px-3 py-1.5 text-[10px] font-bold text-white hover:from-purple-700 hover:to-pink-700 shadow-md active:scale-95 transition-all"
-                >
-                  🛍️ Open on Vendoo
-                </button>
-              </div>
-            </div>
-          )}
           </div>
         </div>
 
@@ -642,23 +701,6 @@ export const ClosetHanger: React.FC<ClosetHangerProps> = ({
                   />
                 </div>
 
-                {/* Vendoo URL */}
-                <div className="space-y-1">
-                  <p className="text-xs text-gray-400 font-semibold">VENDOO URL</p>
-                  <input
-                    type="url"
-                    value={editData.vendooUrl || ''}
-                    onChange={(e) => setEditData({ ...editData, vendooUrl: e.target.value })}
-                    onClick={(e) => e.stopPropagation()}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onDoubleClick={(e) => e.stopPropagation()}
-                    onFocus={(e) => e.stopPropagation()}
-                    onKeyDown={(e) => e.stopPropagation()}
-                    onKeyUp={(e) => e.stopPropagation()}
-                    className="w-full rounded bg-gray-700 px-2 py-1 text-[10px] text-white border border-gray-600 focus:border-purple-500 focus:outline-none"
-                    placeholder="https://web.vendoo.co/app/item/..."
-                  />
-                </div>
 
                 {/* Action Buttons - Larger touch targets for mobile */}
                 <div className="flex gap-1 mt-2 pt-2 border-t border-gray-700">

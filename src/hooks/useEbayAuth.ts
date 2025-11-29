@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { EBAY_ENDPOINTS, OAUTH_CONFIG, POLLING_CONFIG } from '../config/ebay';
 import { ebayService, type EbayConnectionStatus } from '../services/ebayService';
+import { useAuthStore } from '../store/useAuthStore';
 
 export interface UseEbayAuthReturn {
   // State
@@ -40,6 +41,7 @@ export function useEbayAuth(): UseEbayAuthReturn {
   const [status, setStatus] = useState<EbayConnectionStatus | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuthStore();
 
   /**
    * Check eBay connection status
@@ -68,6 +70,12 @@ export function useEbayAuth(): UseEbayAuthReturn {
    * Open OAuth popup and handle authentication flow
    */
   const connect = useCallback(() => {
+    if (!user?.id) {
+      toast.error('Please sign in first');
+      console.error('❌ Cannot connect to eBay: No user signed in');
+      return;
+    }
+
     console.log('🔐 Initiating eBay OAuth flow...');
     toast.info('Opening eBay login...');
 
@@ -77,9 +85,12 @@ export function useEbayAuth(): UseEbayAuthReturn {
     const left = window.screen.width / 2 - width / 2;
     const top = window.screen.height / 2 - height / 2;
 
+    // Build OAuth URL with userId
+    const oauthUrl = `${EBAY_ENDPOINTS.AUTH_CONNECT}?userId=${encodeURIComponent(user.id)}`;
+
     // Open OAuth popup
     const popup = window.open(
-      EBAY_ENDPOINTS.AUTH_CONNECT,
+      oauthUrl,
       OAUTH_CONFIG.POPUP_TITLE,
       `width=${width},height=${height},left=${left},top=${top},popup=yes`
     );
@@ -92,28 +103,40 @@ export function useEbayAuth(): UseEbayAuthReturn {
 
     console.log('✅ OAuth popup opened');
 
-    // Monitor popup closure
-    const checkClosed = setInterval(() => {
+    // Monitor popup closure AND poll localStorage for auth completion
+    let authCompleteTime = localStorage.getItem(OAUTH_CONFIG.STORAGE_KEYS.AUTH_COMPLETE);
+
+    const checkAuth = setInterval(() => {
+      // Check if popup closed
       if (popup.closed) {
-        clearInterval(checkClosed);
+        clearInterval(checkAuth);
         console.log('🚪 OAuth popup closed');
-        
-        // Check connection status after closure
-        setTimeout(() => {
-          checkConnection();
-        }, 1000);
+        checkConnection();
+        return;
+      }
+
+      // Poll localStorage for auth completion (backup method)
+      const currentAuthTime = localStorage.getItem(OAUTH_CONFIG.STORAGE_KEYS.AUTH_COMPLETE);
+      if (currentAuthTime && currentAuthTime !== authCompleteTime) {
+        console.log('✅ OAuth success detected via localStorage polling');
+        toast.success('🎉 eBay connected successfully!');
+        clearInterval(checkAuth);
+        localStorage.removeItem(OAUTH_CONFIG.STORAGE_KEYS.AUTH_COMPLETE);
+        popup.close();
+        checkConnection();
+        authCompleteTime = currentAuthTime;
       }
     }, 500);
 
     // Timeout after 5 minutes
     setTimeout(() => {
       if (!popup.closed) {
-        clearInterval(checkClosed);
+        clearInterval(checkAuth);
         popup.close();
         toast.warning('OAuth timeout. Please try again.');
       }
     }, 300000); // 5 minutes
-  }, [checkConnection]);
+  }, [checkConnection, user?.id]);
 
   /**
    * Disconnect eBay account
@@ -122,7 +145,7 @@ export function useEbayAuth(): UseEbayAuthReturn {
     try {
       setIsLoading(true);
       await ebayService.disconnect();
-      setStatus({ connected: false, hasToken: false, lastSync: null, tokenExpiry: null, timestamp: Date.now() });
+      setStatus({ connected: false, hasToken: false, lastSync: null, tokenExpiry: null });
       toast.success('eBay account disconnected');
       console.log('✅ eBay account disconnected');
     } catch (err) {

@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase/client';
+import { database } from '../lib/database/client';
 
 export interface ClothingComp {
   id: string;
@@ -52,10 +52,10 @@ export async function searchComps(params: CompSearchParams): Promise<ClothingCom
     
     console.log('Searching comps with query:', searchQuery);
 
-    let query = supabase
+    let query = database
       .from('clothing_comps')
       .select('*')
-      .order('ai_similarity_score', { ascending: false, nullsFirst: false })
+      .order('ai_similarity_score', { ascending: false })
       .order('scraped_at', { ascending: false });
 
     // Search by query string
@@ -71,7 +71,8 @@ export async function searchComps(params: CompSearchParams): Promise<ClothingCom
     // Limit results
     query = query.limit(params.limit || 10);
 
-    const { data, error } = await query;
+    const result = await (query as any);
+    const { data, error } = result;
 
     if (error) {
       console.error('Error fetching comps:', error);

@@ -110,7 +110,7 @@ export const INITIAL_ITEMS: Omit<Item, 'id' | 'dateAdded'>[] = [
     "hangerStatus": "Available",
     "hangerId": "",
     "tags": [
-      "polo"
+      "Polo"
     ],
     "ebayUrl": "",
     "marketplaceUrls": [],
@@ -666,7 +666,7 @@ export const INITIAL_ITEMS: Omit<Item, 'id' | 'dateAdded'>[] = [
     "hangerStatus": "Available",
     "hangerId": "",
     "tags": [
-      "polo"
+      "Polo"
     ],
     "ebayUrl": "",
     "marketplaceUrls": [],
@@ -686,7 +686,7 @@ export const INITIAL_ITEMS: Omit<Item, 'id' | 'dateAdded'>[] = [
     "hangerStatus": "Available",
     "hangerId": "",
     "tags": [
-      "polo"
+      "Polo"
     ],
     "ebayUrl": "",
     "marketplaceUrls": [],
@@ -899,13 +899,13 @@ export const INITIAL_ITEMS: Omit<Item, 'id' | 'dateAdded'>[] = [
     "position": 59
   },
   {
-    "name": "Polo by Ralph Lauren long sleeve / polo/ Blue/White Shirt Size - XL",
+    "name": "Polo by Ralph Lauren long sleeve / Polo/ Blue/White Shirt Size - XL",
     "size": "XL",
     "status": "Active",
     "hangerStatus": "In Use",
     "hangerId": "P6",
     "tags": [
-      "polo"
+      "Polo"
     ],
     "ebayUrl": "",
     "marketplaceUrls": [],
@@ -1019,13 +1019,13 @@ export const INITIAL_ITEMS: Omit<Item, 'id' | 'dateAdded'>[] = [
     "position": 65
   },
   {
-    "name": "Polo by Ralph Lauren long sleeve / polo/ Blue/White Shirt Size - XL",
+    "name": "Polo by Ralph Lauren long sleeve / Polo/ Blue/White Shirt Size - XL",
     "size": "XL",
     "status": "Active",
     "hangerStatus": "Available",
     "hangerId": "",
     "tags": [
-      "polo"
+      "Polo"
     ],
     "ebayUrl": "",
     "marketplaceUrls": [],
@@ -1342,7 +1342,7 @@ export const INITIAL_ITEMS: Omit<Item, 'id' | 'dateAdded'>[] = [
     "hangerStatus": "Available",
     "hangerId": "",
     "tags": [
-      "polo"
+      "Polo"
     ],
     "ebayUrl": "",
     "marketplaceUrls": [],
@@ -1422,7 +1422,7 @@ export const INITIAL_ITEMS: Omit<Item, 'id' | 'dateAdded'>[] = [
     "hangerStatus": "Available",
     "hangerId": "P5",
     "tags": [
-      "polo"
+      "Polo"
     ],
     "ebayUrl": "",
     "marketplaceUrls": [],

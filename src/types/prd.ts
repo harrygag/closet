@@ -1,5 +1,5 @@
 // PRD-Compliant TypeScript Types for Pokemon Closet Inventory
-// Aligned with Supabase schema in supabase/migrations/001_prd_schema.sql
+// Aligned with Firebase Firestore schema (migrated from Supabase)
 
 export type EnergyType = 
   | 'Steel'     // Polos - neutral/off-white
