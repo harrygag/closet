@@ -1,0 +1,130 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "Item",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "user_uuid", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "Item",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "barcode", "order": "ASCENDING" },
+        { "fieldPath": "user_uuid", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "Item",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "user_uuid", "order": "ASCENDING" },
+        { "fieldPath": "barcode", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "Item",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "user_uuid", "order": "ASCENDING" },
+        { "fieldPath": "sku", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "Item",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "user_uuid", "order": "ASCENDING" },
+        { "fieldPath": "ebayListingId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "ebay_pending_oauth",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "OfferLog",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "user_uuid", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "OfferLog",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "user_uuid", "order": "ASCENDING" },
+        { "fieldPath": "success", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "Item",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "user_uuid", "order": "ASCENDING" },
+        { "fieldPath": "lastScannedDate", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "Item",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "user_uuid", "order": "ASCENDING" },
+        { "fieldPath": "verificationStatus", "order": "ASCENDING" },
+        { "fieldPath": "lastScannedDate", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "Item",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "user_uuid", "order": "ASCENDING" },
+        { "fieldPath": "lastCheckInDate", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "ActivityLog",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "activityType", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "InventorySnapshot",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "takenAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "InventorySnapshot",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "reason", "order": "ASCENDING" },
+        { "fieldPath": "takenAt", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "PlatformListing",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "platform", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

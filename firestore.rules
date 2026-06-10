@@ -1,0 +1,174 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function to check if user is authenticated
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user owns the resource
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Item collection - users can only access their own items
+    match /Item/{itemId} {
+      allow read: if isSignedIn() && resource.data.user_uuid == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.user_uuid == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.user_uuid == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.user_uuid == request.auth.uid;
+    }
+
+    // ActivityLog collection - users can create and read their own logs
+    match /ActivityLog/{logId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      // Activity logs should not be updated or deleted
+      allow update, delete: if false;
+    }
+
+    // OfferLog collection - users can create and read their own offer logs
+    match /OfferLog/{logId} {
+      allow read: if isSignedIn() && resource.data.user_uuid == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.user_uuid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // BarcodeEvents collection - users can create and read their own events
+    match /barcode_events/{eventId} {
+      allow read: if isSignedIn() && resource.data.user_uuid == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.user_uuid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // User profiles (if needed in future)
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(userId);
+
+      // Marketplace data subcollection - users can read/write their own marketplace sync data
+      match /marketplaceData/{syncDoc} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Marketplace data — written by saveMarketplaceSync Cloud Function (admin SDK bypasses rules)
+    // Doc ID is either the Firebase Auth UID (new) or a username string (old extension data)
+    match /marketplaceData/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn(); // Tightened: require auth (Cloud Function admin SDK bypasses this)
+    }
+
+    // Depop Cookies — no longer written to (OpenClaw bot approach doesn't need cookie storage)
+    match /depop_cookies/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if false;
+    }
+
+    // Depop User Info
+    match /depop_user_info/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId);
+    }
+
+    // Listing Requests collection - for queuing items to list on marketplaces
+    match /listingRequests/{requestId} {
+      // Users can create listing requests for their own items
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      // Allow automation service to read/update
+      allow read, update: if true;
+      // Users can delete their own pending requests
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid && resource.data.status == 'pending';
+    }
+
+    // Sales collection - users can CRUD their own sales records
+    match /Sales/{saleId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // Sync Status collection - for background job completion tracking
+    // Written by Cloud Functions (admin SDK), read by users to monitor sync progress
+    match /sync_status/{statusId} {
+      // Users can read status docs that belong to them
+      // Doc ID format: ebay_quantities_{userId}
+      // Allow read if doc ID matches pattern OR if userId field matches (for existing docs)
+      allow read: if isSignedIn() &&
+        (statusId == 'ebay_quantities_' + request.auth.uid ||
+         (resource != null && resource.data.userId == request.auth.uid));
+      // Cloud Functions write with admin SDK (bypasses rules)
+      // But define rule for security: only allow if userId matches (won't be used by functions)
+      allow write: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Scan sessions — per-user doc, syncs across devices in real time
+    match /scanSessions/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Marketplace connections — per-user GoLogin profile storage
+    match /marketplaceConnections/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // SaleSnapshot — append-only baseline + new-sale tracking per platform
+    match /SaleSnapshot/{entryId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      // Allow status updates (mark counted/uncounted) but only by owner
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // CalibrationStatus — single doc per user tracking per-platform confirm state
+    match /CalibrationStatus/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // InventorySnapshot — append-only point-in-time inventory captures
+    match /InventorySnapshot/{snapshotId} {
+      // Allow read for null resource (doc doesn't exist yet) so getDoc on missing path doesn't 401
+      allow read: if isSignedIn() && (resource == null || resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      // Snapshots are immutable history — no updates or deletes
+      allow update, delete: if false;
+    }
+
+    // PlatformListing — live state of every listing on every platform
+    // Doc id is a deterministic key: `${userId}:${platform}:${listingId}`
+    match /PlatformListing/{listingKey} {
+      // Allow read for null resource so the upsertListings getDoc-then-set flow works on new keys
+      allow read: if isSignedIn() && (resource == null || resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // aiMatchRuns — live progress feed for the AI matcher.
+    // The Cloud Function (matchListingsWithAI) writes via Admin SDK, bypassing rules.
+    // The client needs read-only access to its own run + events subcollection so the
+    // AIMatchProgressModal can render the live event stream via onSnapshot.
+    //
+    // OWNER ENCODING: client generates `runId = ${user.uid}-${timestamp}-${rand}`. We
+    // authorize reads based on the runId prefix matching the caller's uid, NOT the
+    // parent doc's userId field — the modal subscribes BEFORE the CF writes the meta
+    // doc, so a resource-data check would race-fail with permission-denied.
+    match /aiMatchRuns/{runId} {
+      allow read: if isSignedIn() && runId.matches(request.auth.uid + '-.*');
+      allow write: if false; // Only Admin SDK (CF) may write.
+      match /events/{eventId} {
+        allow read: if isSignedIn() && runId.matches(request.auth.uid + '-.*');
+        allow write: if false; // Only Admin SDK (CF) may write.
+      }
+    }
+
+    // Deny all other collections by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

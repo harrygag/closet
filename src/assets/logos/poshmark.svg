@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 120" role="img" aria-label="Poshmark" preserveAspectRatio="xMidYMid meet">
+  <text x="180" y="60"
+        text-anchor="middle"
+        dominant-baseline="central"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-weight="700"
+        font-style="italic"
+        font-size="58"
+        letter-spacing="-1"
+        fill="#E2A6B5">
+    Poshmark
+  </text>
+</svg>

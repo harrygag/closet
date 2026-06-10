@@ -1,0 +1,16 @@
+{
+  "name": "depop-auth-extension",
+  "version": "1.0.0",
+  "description": "A Chrome Extension (Manifest V3) that automatically captures Depop authentication cookies and syncs them to Firebase Firestore for cross-device access.",
+  "main": "background.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@sentry/browser": "^10.29.0"
+  }
+}

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Depop Auth</h1>
+
+    <div class="status" id="status">
+      <span id="statusIcon">⚪</span>
+      <span id="statusText">Unknown</span>
+    </div>
+
+    <div class="user-id-section" style="margin: 15px 0; padding: 15px; background: #f0f7ff; border-radius: 8px; border: 1px solid #3b82f6;">
+      <h3 style="margin: 0 0 10px 0; color: #1e40af; font-size: 14px;">🤖 Auto-Listing Setup</h3>
+      <label style="display: block; margin-bottom: 5px; font-size: 12px; color: #64748b;">Your User ID:</label>
+      <input type="text" id="userIdInput" placeholder="Enter your Firebase User ID" style="width: calc(100% - 10px); padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; margin-bottom: 8px;">
+      <button id="saveUserIdBtn" style="width: 100%; padding: 8px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600;">Save User ID</button>
+      <div id="userIdStatus" style="margin-top: 8px; font-size: 12px; padding: 6px; border-radius: 4px; display: none;"></div>
+      <p style="margin: 10px 0 0 0; font-size: 11px; color: #64748b;">Extension checks for pending listings every 30 seconds</p>
+    </div>
+
+    <div class="actions">
+      <button id="captureBtn">📸 Capture Cookies Now</button>
+      <button id="testBtn">🧪 Test Authentication</button>
+      <button id="fetchListingsBtn">📦 Fetch My Listings</button>
+      <button id="exportBtn">📋 Export to Clipboard</button>
+      <button id="clearBtn">🗑️ Clear Stored Cookies</button>
+    </div>
+
+    <div class="firebase-sync">
+      <h3>🔥 Firebase Sync</h3>
+      <div class="sync-controls">
+        <label class="toggle-switch">
+          <input type="checkbox" id="firebaseSyncToggle">
+          <span class="toggle-slider"></span>
+          <span id="syncToggleLabel">Auto-sync disabled</span>
+        </label>
+      </div>
+      <div class="sync-actions">
+        <button id="syncToFirebaseBtn">⬆️ Sync to Firebase</button>
+        <button id="syncFromFirebaseBtn">⬇️ Sync from Firebase</button>
+      </div>
+      <div id="syncStatus" class="sync-status">Not synced</div>
+    </div>
+
+    <div class="cookies-list">
+      <h3>Stored Cookies:</h3>
+      <div id="cookiesList">Loading...</div>
+    </div>
+
+    <div class="info">
+      <p><small>Last updated: <span id="lastUpdate">Never</span></small></p>
+    </div>
+  </div>
+
+  <script src="sentry-browser.min.js"></script>
+  <script src="sentry-popup.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

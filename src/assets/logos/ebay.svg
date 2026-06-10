@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 120" role="img" aria-label="eBay" preserveAspectRatio="xMidYMid meet">
+  <text x="150" y="60"
+        text-anchor="middle"
+        dominant-baseline="central"
+        font-family="'Helvetica Neue', Arial, system-ui, sans-serif"
+        font-weight="900"
+        font-style="italic"
+        font-size="78"
+        letter-spacing="-2">
+    <tspan fill="#E53238">e</tspan><tspan fill="#0064D2">b</tspan><tspan fill="#F5AF02">a</tspan><tspan fill="#86B817">y</tspan>
+  </text>
+</svg>

@@ -1,0 +1,80 @@
+{
+  "manifest_version": 3,
+  "name": "Depop Auth & Automation",
+  "version": "2.51.0",
+  "description": "Captures Depop cookies and listings via network interception",
+
+  "permissions": [
+    "cookies",
+    "storage",
+    "tabs",
+    "webRequest",
+    "scripting",
+    "alarms"
+  ],
+
+  "host_permissions": [
+    "*://*.depop.com/*",
+    "*://webapi.depop.com/*",
+    "*://*.poshmark.com/*",
+    "*://*.facebook.com/*",
+    "*://*.whatnot.com/*",
+    "*://*.messenger.com/*",
+    "*://*.googleapis.com/*",
+    "*://*.firebaseio.com/*",
+    "*://*.cloudfunctions.net/*"
+  ],
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["*://*.depop.com/*"],
+      "js": ["content-script.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["*://*.poshmark.com/*"],
+      "js": ["poshmark-content-script.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["*://*.facebook.com/*"],
+      "js": ["facebook-content-script.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["*://*.whatnot.com/*"],
+      "js": ["whatnot-content-script.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://closet-da8f2.web.app/*",
+        "https://closet-da8f2.firebaseapp.com/*",
+        "http://localhost/*",
+        "http://127.0.0.1/*"
+      ],
+      "js": ["app-bridge.js"],
+      "run_at": "document_start"
+    }
+  ],
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Depop Extension"
+  },
+
+  "options_page": "options.html",
+
+  "externally_connectable": {
+    "matches": [
+      "*://localhost/*",
+      "*://127.0.0.1/*",
+      "https://closet-da8f2.web.app/*",
+      "https://closet-da8f2.firebaseapp.com/*"
+    ]
+  }
+}
