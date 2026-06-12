@@ -1,183 +1,85 @@
-# Supabase CLI
+# RetroThriftCo Virtual Closet
 
-[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
-](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
+A React + TypeScript + Vite + Firebase web app for managing resale inventory and
+cross-platform listings, with a companion Chrome extension for marketplace
+scraping and auth.
 
-[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
+It tracks one inventory across **eBay (the anchor), Poshmark, Depop, Facebook
+Marketplace, and Whatnot**, keeps real stock accurate as items sell on different
+sites, surfaces what needs to be (de)listed, and rolls sales up into analytics.
 
-This repository contains all the functionality for Supabase CLI.
+## What it does
 
-- [x] Running Supabase locally
-- [x] Managing database migrations
-- [x] Creating and deploying Supabase Functions
-- [x] Generating types directly from your database schema
-- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
+- **Unified import** — pull your active listings from each marketplace (via the
+  extension) and match them to inventory.
+- **Unified sales** — every sale across platforms in one chronological feed,
+  marked by site.
+- **Stock tools** (`/tools`) — reconciliation, delist queue, should-list, and
+  last-sold widgets per platform, plus an eBay delist section for items whose
+  real stock has hit 0.
+- **Stock-accuracy model** — `real stock = eBay available qty − non-eBay sales`
+  (Poshmark + Depop + in-person + Whatnot) since the calibrated baseline. When an
+  item sells out on other sites, it's flagged to delist on eBay too.
+
+## Structure
+
+```
+src/                  React app (pages, components, services, stores)
+functions/            Firebase Cloud Functions (eBay/Depop/Poshmark APIs, sync,
+                      matching, reconciliation)
+depop-auth-extension/ Chrome MV3 extension — per-platform content scripts
+                      (Depop / Poshmark / Facebook / Whatnot) + background worker
+public/               Static assets
+firebase.json, firestore.rules, firestore.indexes.json   Firebase config
+```
+
+## Tech stack
+
+- React 18 + TypeScript (strict), Vite, Tailwind CSS
+- Zustand (with immer) for state
+- Firebase v9 modular SDK — Auth, Firestore, Hosting, Cloud Functions
+- Firebase project: `closet-da8f2`
 
 ## Getting started
 
-### Install the CLI
+```bash
+npm install
+cp .env.example .env.local   # fill in Firebase + API config
+npm run dev                  # local dev server
+npm run build                # production build → dist/
+```
 
-Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
+Cloud Functions:
 
 ```bash
-npm i supabase --save-dev
+cd functions
+npm install
+npm run build
 ```
 
-To install the beta release channel:
+## Deploy
+
+Hosting:
 
 ```bash
-npm i supabase@beta --save-dev
+npx firebase-tools deploy --only hosting --project closet-da8f2
 ```
 
-When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
-
-```
-NODE_OPTIONS=--no-experimental-fetch yarn add supabase
-```
-
-> **Note**
-For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
-
-<details>
-  <summary><b>macOS</b></summary>
-
-  Available via [Homebrew](https://brew.sh). To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To install the beta release channel:
-  
-  ```sh
-  brew install supabase/tap/supabase-beta
-  brew link --overwrite supabase-beta
-  ```
-  
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Windows</b></summary>
-
-  Available via [Scoop](https://scoop.sh). To install:
-
-  ```powershell
-  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
-  scoop install supabase
-  ```
-
-  To upgrade:
-
-  ```powershell
-  scoop update supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Linux</b></summary>
-
-  Available via [Homebrew](https://brew.sh) and Linux packages.
-
-  #### via Homebrew
-
-  To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-
-  #### via Linux packages
-
-  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
-
-  ```sh
-  sudo apk add --allow-untrusted <...>.apk
-  ```
-
-  ```sh
-  sudo dpkg -i <...>.deb
-  ```
-
-  ```sh
-  sudo rpm -i <...>.rpm
-  ```
-
-  ```sh
-  sudo pacman -U <...>.pkg.tar.zst
-  ```
-</details>
-
-<details>
-  <summary><b>Other Platforms</b></summary>
-
-  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
-
-  ```sh
-  go install github.com/supabase/cli@latest
-  ```
-
-  Add a symlink to the binary in `$PATH` for easier access:
-
-  ```sh
-  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
-  ```
-
-  This works on other non-standard Linux distros.
-</details>
-
-<details>
-  <summary><b>Community Maintained Packages</b></summary>
-
-  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
-  To install in your working directory:
-
-  ```bash
-  pkgx install supabase
-  ```
-
-  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
-</details>
-
-### Run the CLI
+Functions:
 
 ```bash
-supabase bootstrap
+npx firebase-tools deploy --only functions --project closet-da8f2
 ```
 
-Or using npx:
+## Chrome extension
 
-```bash
-npx supabase bootstrap
-```
+Load `depop-auth-extension/` as an unpacked extension (chrome://extensions →
+Developer mode → Load unpacked). It captures listings and sold items from each
+marketplace in your own logged-in session and syncs them to Firestore for the
+app to import/match. Bump the `version` in `manifest.json` and reload after
+changes.
 
-The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
+## Notes
 
-## Docs
-
-Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
-
-## Breaking changes
-
-We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
-
-However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
-
-## Developing
-
-To run from source:
-
-```sh
-# Go >= 1.22
-go run . help
-```
+- Secrets (`.env*`, `.mcp.json`, service-account keys) and scraped data dumps are
+  intentionally excluded from the repo — see `.gitignore`.
